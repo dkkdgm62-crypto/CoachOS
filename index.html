@@ -3,656 +3,678 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CoachOS — Digitales Trainermanagement für den Schweizer Jugendfussball</title>
+<title>CoachOS — Digitales Trainer-Management für den Schweizer Jugendfussball</title>
+<meta name="description" content="CoachOS bildet die SFV-Spielphilosophie digital ab. Aufstellung, Bewertungen, Makrozyklus und mehr — für Trainer, die nachhaltig ausbilden.">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
-  --bg:#F4F6F9;--surface:#fff;--border:#E2E6EE;
-  --text:#0F172A;--text2:#5A6478;--text3:#9CA3AF;
-  --accent:#1B4FDB;--accent-l:#EBF0FF;--accent-d:#1340B8;
+  --accent:#1B4FDB;--accent-d:#1340B8;--accent-l:#EBF0FF;
   --green:#16A34A;--green-l:#DCFCE7;
+  --text:#0F172A;--text2:#5A6478;--text3:#94A3B8;
+  --bg:#F4F6F9;--surface:#FFFFFF;--border:#E2E6EE;
   --gold:#D97706;--gold-l:#FEF3C7;
   --r:12px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 20px rgba(0,0,0,.06);
+  --sh2:0 8px 40px rgba(0,0,0,.12);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Inter',sans-serif;color:var(--text);background:var(--bg);}
-a{color:inherit;text-decoration:none;}
+html{scroll-behavior:smooth;}
+body{font-family:'Inter',sans-serif;background:#fff;color:var(--text);font-size:15px;line-height:1.6;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
 .hidden{display:none!important;}
 
-/* NAV */
+/* ── NAV ── */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;
-  background:rgba(255,255,255,.95);backdrop-filter:blur(12px);
-  border-bottom:1px solid var(--border);padding:0 24px;height:64px;
-  display:flex;align-items:center;justify-content:space-between;}
-.nav-logo{display:flex;align-items:center;gap:10px;}
-.nav-logo-icon{width:36px;height:36px;background:var(--accent);border-radius:9px;
+  background:rgba(255,255,255,.92);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo-icon{width:34px;height:34px;background:var(--accent);border-radius:8px;
   display:flex;align-items:center;justify-content:center;
-  font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;font-size:16px;}
-.nav-logo-text{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:18px;}
+  font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;font-size:15px;}
+.nav-logo-text{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:18px;color:var(--text);}
 .nav-logo-text span{color:var(--accent);}
-.nav-links{display:flex;align-items:center;gap:24px;}
-.nav-link{font-size:14px;font-weight:500;color:var(--text2);cursor:pointer;transition:color .15s;}
+.nav-links{display:flex;align-items:center;gap:28px;}
+.nav-link{font-size:14px;font-weight:500;color:var(--text2);text-decoration:none;transition:color .15s;}
 .nav-link:hover{color:var(--accent);}
-.nav-cta{display:flex;gap:8px;}
-.btn{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;
-  transition:all .15s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;}
-.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--text);}
-.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
-.btn-primary{background:var(--accent);color:#fff;}
-.btn-primary:hover{background:var(--accent-d);}
-.btn-lg{padding:13px 28px;font-size:15px;border-radius:10px;}
-.btn-green{background:var(--green);color:#fff;}
+.nav-cta{padding:8px 18px;background:var(--accent);color:#fff;border-radius:8px;
+  font-size:14px;font-weight:600;text-decoration:none;transition:background .15s;}
+.nav-cta:hover{background:var(--accent-d);}
 
-/* HERO */
+/* ── HERO ── */
 .hero{min-height:100vh;display:flex;align-items:center;
-  background:linear-gradient(140deg,#050E25 0%,#0D2563 55%,#1B4FDB 100%);
-  position:relative;overflow:hidden;padding:100px 24px 60px;}
+  background:linear-gradient(140deg,#050E25 0%,#0D2563 60%,#1B4FDB 100%);
+  position:relative;overflow:hidden;padding-top:64px;}
 .hero::before{content:'';position:absolute;width:700px;height:700px;border-radius:50%;
-  background:radial-gradient(circle,rgba(27,79,219,.3) 0%,transparent 65%);
-  top:-150px;right:-150px;pointer-events:none;}
+  background:radial-gradient(circle,rgba(27,79,219,.3) 0%,transparent 70%);
+  top:-150px;right:-100px;pointer-events:none;}
 .hero::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;
-  background:radial-gradient(circle,rgba(22,163,74,.15) 0%,transparent 65%);
-  bottom:-100px;left:-100px;pointer-events:none;}
-.hero-inner{max-width:1100px;margin:0 auto;width:100%;
-  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;position:relative;z-index:1;}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;
+  background:radial-gradient(circle,rgba(22,163,74,.1) 0%,transparent 70%);
+  bottom:-100px;left:-50px;pointer-events:none;}
+.hero-inner{max-width:1140px;margin:0 auto;padding:80px 40px;display:grid;
+  grid-template-columns:1fr 480px;gap:60px;align-items:center;position:relative;z-index:1;}
+.hero-tag{display:inline-flex;align-items:center;gap:8px;
   background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
-  border-radius:20px;padding:6px 14px;font-size:12px;color:rgba(255,255,255,.8);
-  margin-bottom:20px;font-weight:600;}
-.hero-title{font-family:'Space Grotesk',sans-serif;font-size:52px;font-weight:800;
-  color:#fff;line-height:1.1;margin-bottom:20px;}
+  border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:rgba(255,255,255,.85);
+  margin-bottom:20px;}
+.hero-tag .dot{width:6px;height:6px;border-radius:50%;background:#16A34A;}
+.hero-title{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:52px;
+  line-height:1.1;color:#fff;margin-bottom:20px;}
 .hero-title span{color:#60A5FA;}
-.hero-sub{font-size:17px;color:rgba(255,255,255,.75);line-height:1.6;margin-bottom:32px;}
-.hero-actions{display:flex;gap:12px;flex-wrap:wrap;}
-.hero-stats{display:flex;gap:32px;margin-top:40px;}
+.hero-sub{font-size:17px;color:rgba(255,255,255,.75);line-height:1.7;margin-bottom:36px;max-width:520px;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;}
+.btn-hero-p{padding:13px 26px;background:#fff;color:var(--accent);border-radius:9px;
+  font-size:15px;font-weight:700;border:none;text-decoration:none;transition:all .15s;}
+.btn-hero-p:hover{background:var(--accent-l);transform:translateY(-1px);}
+.btn-hero-s{padding:13px 26px;background:rgba(255,255,255,.12);color:#fff;border-radius:9px;
+  font-size:15px;font-weight:600;border:1.5px solid rgba(255,255,255,.25);text-decoration:none;transition:all .15s;}
+.btn-hero-s:hover{background:rgba(255,255,255,.2);}
+.hero-stats{display:flex;gap:28px;margin-top:40px;}
 .hero-stat .val{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;color:#fff;}
-.hero-stat .lbl{font-size:12px;color:rgba(255,255,255,.6);margin-top:2px;}
-.hero-card{background:rgba(255,255,255,.07);backdrop-filter:blur(16px);
-  border:1px solid rgba(255,255,255,.15);border-radius:16px;padding:24px;
-  display:flex;flex-direction:column;gap:14px;}
-.hero-card-row{display:flex;align-items:center;gap:12px;
-  background:rgba(255,255,255,.06);border-radius:10px;padding:12px;}
-.hero-card-icon{width:38px;height:38px;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
-.hero-card-text .t{font-size:13px;font-weight:600;color:#fff;}
-.hero-card-text .s{font-size:11px;color:rgba(255,255,255,.6);}
+.hero-stat .lbl{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px;}
 
-/* SECTIONS */
-section{padding:80px 24px;}
-.section-inner{max-width:1100px;margin:0 auto;}
-.section-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
-  color:var(--accent);margin-bottom:10px;}
-.section-title{font-family:'Space Grotesk',sans-serif;font-size:36px;font-weight:800;
-  margin-bottom:14px;line-height:1.2;}
-.section-sub{font-size:16px;color:var(--text2);line-height:1.6;max-width:580px;}
+/* Hero-Karte (Vorschau) */
+.hero-card{background:#fff;border-radius:16px;box-shadow:0 24px 60px rgba(0,0,0,.3);overflow:hidden;}
+.hc-bar{background:#F4F6F9;border-bottom:1px solid #E2E6EE;padding:10px 14px;
+  display:flex;align-items:center;gap:6px;}
+.hc-dot{width:10px;height:10px;border-radius:50%;}
+.hc-body{display:grid;grid-template-columns:160px 1fr;min-height:340px;}
+.hc-sidebar{background:#fff;border-right:1px solid #E2E6EE;padding:12px 10px;}
+.hc-sb-logo{display:flex;align-items:center;gap:7px;padding:6px 8px;margin-bottom:10px;}
+.hc-sb-l{width:22px;height:22px;background:#1B4FDB;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:10px;}
+.hc-sb-t{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:12px;color:#0F172A;}
+.hc-sb-t span{color:#1B4FDB;}
+.hc-ni{display:flex;align-items:center;gap:7px;padding:6px 8px;border-radius:6px;font-size:11px;font-weight:500;color:#5A6478;margin-bottom:1px;}
+.hc-ni.active{background:#EBF0FF;color:#1B4FDB;font-weight:600;}
+.hc-content{padding:14px;}
+.hc-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px;}
+.hc-s{background:#F4F6F9;border-radius:7px;padding:10px;text-align:center;}
+.hc-sv{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:800;color:#0F172A;}
+.hc-sl{font-size:9px;color:#5A6478;margin-top:1px;}
+.hc-field-mini{width:100%;background:linear-gradient(180deg,#2A6B35,#2E7A3C);border-radius:7px;
+  height:120px;position:relative;overflow:hidden;}
+.hc-player{position:absolute;transform:translate(-50%,-50%);
+  width:20px;height:20px;border-radius:50%;background:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:7px;color:#1B4FDB;
+  box-shadow:0 1px 4px rgba(0,0,0,.3);border:1.5px solid rgba(255,255,255,.9);}
 
-/* FEATURES */
+/* ── SECTIONS ── */
+.section{padding:90px 40px;max-width:1140px;margin:0 auto;}
+.section-tag{font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.section-title{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:36px;line-height:1.2;margin-bottom:14px;}
+.section-sub{font-size:16px;color:var(--text2);line-height:1.7;max-width:580px;}
+
+/* ── WARUM WIR ── */
+#warum{background:var(--bg);}
+#warum .section{max-width:1140px;}
+.warum-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;margin-top:48px;}
+.warum-text p{font-size:16px;color:var(--text2);line-height:1.8;margin-bottom:16px;}
+.warum-text p strong{color:var(--text);font-weight:600;}
+.warum-text .zitat{font-size:17px;font-style:italic;color:var(--text);line-height:1.7;
+  padding:20px 24px;border-left:3px solid var(--accent);background:var(--accent-l);
+  border-radius:0 8px 8px 0;margin:20px 0;}
+.warum-profil{background:#fff;border-radius:var(--r);padding:28px;box-shadow:var(--sh);}
+.warum-profil-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.warum-avatar{width:52px;height:52px;background:linear-gradient(135deg,#1B4FDB,#3B82F6);
+  border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:20px;color:#fff;}
+.warum-name{font-weight:700;font-size:15px;margin-bottom:2px;}
+.warum-role{font-size:12px;color:var(--text2);}
+.warum-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px;}
+.warum-item-dot{width:20px;height:20px;border-radius:50%;background:var(--accent-l);
+  display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;margin-top:1px;}
+.warum-item-text{font-size:13px;color:var(--text2);line-height:1.5;}
+.warum-item-text strong{color:var(--text);font-weight:600;}
+.warum-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+  background:var(--green-l);color:var(--green);border-radius:20px;font-size:11px;font-weight:700;
+  margin-top:4px;}
+
+/* ── FEATURES ── */
 .features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px;}
-.feat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
-  padding:24px;transition:box-shadow .2s;}
-.feat-card:hover{box-shadow:0 8px 32px rgba(0,0,0,.10);}
-.feat-icon{width:48px;height:48px;border-radius:12px;
-  display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px;}
-.feat-title{font-weight:700;font-size:16px;margin-bottom:8px;}
-.feat-desc{font-size:13px;color:var(--text2);line-height:1.6;}
-.feat-badge{display:inline-block;margin-top:10px;padding:2px 8px;border-radius:20px;
-  font-size:10px;font-weight:700;}
+.feature-card{background:#fff;border:1px solid var(--border);border-radius:var(--r);
+  padding:24px;box-shadow:var(--sh);transition:box-shadow .2s,transform .2s;}
+.feature-card:hover{box-shadow:var(--sh2);transform:translateY(-2px);}
+.feature-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;
+  justify-content:center;font-size:20px;margin-bottom:14px;}
+.feature-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px;}
+.feature-text{font-size:13px;color:var(--text2);line-height:1.6;}
+.feature-badge{display:inline-block;padding:2px 7px;background:var(--accent-l);color:var(--accent);
+  border-radius:4px;font-size:10px;font-weight:700;margin-top:8px;}
+.feature-badge.extra{background:var(--gold-l);color:var(--gold);}
 
-/* ABOUT */
-.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-top:48px;}
-.about-img{background:linear-gradient(135deg,#1B4FDB,#16A34A);border-radius:16px;
-  aspect-ratio:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
-.about-img-inner{text-align:center;color:#fff;}
-.about-img-inner .initials{font-family:'Space Grotesk',sans-serif;font-size:72px;font-weight:800;opacity:.9;}
-.about-img-inner .name{font-size:18px;font-weight:700;margin-top:8px;}
-.about-img-inner .title{font-size:13px;opacity:.75;margin-top:4px;}
-.cred-list{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:24px;}
-.cred-item{display:flex;align-items:flex-start;gap:12px;font-size:14px;color:var(--text2);}
-.cred-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:6px;flex-shrink:0;}
+/* ── SFV SECTION ── */
+#sfv{background:linear-gradient(135deg,#050E25,#0D2563);}
+#sfv .section{color:#fff;}
+#sfv .section-title{color:#fff;}
+#sfv .section-sub{color:rgba(255,255,255,.7);}
+.sfv-phases{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px;}
+.sfv-phase{border-radius:var(--r);padding:20px;border:1px solid rgba(255,255,255,.1);}
+.sfv-phase-icon{font-size:24px;margin-bottom:10px;}
+.sfv-phase-title{font-weight:700;font-size:14px;color:#fff;margin-bottom:6px;}
+.sfv-phase-text{font-size:12px;color:rgba(255,255,255,.6);line-height:1.6;}
 
-/* PREISE */
-.pricing-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px;}
-.price-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);
-  padding:24px;position:relative;transition:all .2s;}
-.price-card.featured{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-l);}
-.price-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);
-  background:var(--accent);color:#fff;padding:3px 14px;border-radius:20px;
-  font-size:11px;font-weight:700;white-space:nowrap;}
-.price-name{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:18px;margin-bottom:4px;}
-.price-desc{font-size:12px;color:var(--text2);margin-bottom:20px;}
-.price-amount{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:800;color:var(--accent);}
-.price-period{font-size:12px;color:var(--text2);}
-.price-annual{font-size:12px;color:var(--green);font-weight:600;margin-top:4px;}
-.price-features{list-style:none;margin:20px 0;display:flex;flex-direction:column;gap:8px;}
-.price-features li{font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px;}
-.price-features li::before{content:'✓';color:var(--green);font-weight:700;flex-shrink:0;}
-.price-cta{width:100%;padding:10px;border-radius:8px;font-size:13px;font-weight:600;
-  cursor:pointer;border:none;font-family:inherit;transition:all .15s;}
+/* ── PREISE ── */
+.preise-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px;}
+.preis-card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);
+  padding:22px;box-shadow:var(--sh);position:relative;}
+.preis-card.featured{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-l),var(--sh2);}
+.preis-label{position:absolute;top:-10px;left:50%;transform:translateX(-50%);
+  background:var(--accent);color:#fff;font-size:10px;font-weight:700;
+  padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.preis-name{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:16px;margin-bottom:6px;}
+.preis-val{font-size:28px;font-weight:800;color:var(--accent);margin-bottom:4px;}
+.preis-val span{font-size:13px;font-weight:400;color:var(--text2);}
+.preis-j{font-size:11px;color:var(--text2);margin-bottom:14px;}
+.preis-specs{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.7;}
+.preis-specs strong{color:var(--text);font-weight:600;}
+.preis-btn{width:100%;padding:9px;border-radius:8px;font-size:13px;font-weight:600;
+  cursor:pointer;border:1.5px solid var(--border);background:transparent;color:var(--text);
+  transition:all .15s;}
+.preis-btn.featured{background:var(--accent);border-color:var(--accent);color:#fff;}
+.preis-btn:hover{border-color:var(--accent);color:var(--accent);}
+.preis-btn.featured:hover{background:var(--accent-d);}
+.pilot-banner{background:linear-gradient(90deg,var(--green),#059669);color:#fff;
+  border-radius:var(--r);padding:20px 24px;display:flex;align-items:center;gap:16px;margin-top:20px;}
+.pilot-icon{font-size:32px;}
+.pilot-text strong{font-size:15px;font-weight:700;display:block;margin-bottom:3px;}
+.pilot-text p{font-size:13px;opacity:.9;}
 
-/* ANMELDUNG */
-.form-section{background:linear-gradient(135deg,#0D2563,#1B4FDB);padding:80px 24px;}
-.form-card{background:#fff;border-radius:16px;padding:40px;max-width:680px;margin:0 auto;}
-.form-title{font-family:'Space Grotesk',sans-serif;font-size:28px;font-weight:800;margin-bottom:6px;}
-.form-sub{color:var(--text2);font-size:14px;margin-bottom:28px;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.form-group{display:flex;flex-direction:column;gap:4px;}
-.form-group.full{grid-column:1/-1;}
-.form-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;}
-.form-input{padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
-  font-size:14px;font-family:inherit;outline:none;transition:border-color .15s;}
-.form-input:focus{border-color:var(--accent);}
-.form-select{padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
-  font-size:14px;font-family:inherit;outline:none;background:#fff;cursor:pointer;}
-.form-select:focus{border-color:var(--accent);}
-.form-check-group{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;}
-.form-check{display:flex;align-items:center;gap:8px;padding:8px 12px;
-  border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;}
-.form-check input{cursor:pointer;}
-.form-check:has(input:checked){border-color:var(--accent);background:var(--accent-l);}
-.form-note{font-size:11px;color:var(--text3);margin-top:16px;text-align:center;}
+/* ── ANMELDUNG ── */
+#anmeldung{background:var(--bg);}
+.anmelde-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;margin-top:48px;}
+.anmelde-info h3{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;margin-bottom:12px;}
+.anmelde-info p{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:20px;}
+.anmelde-steps{display:flex;flex-direction:column;gap:12px;}
+.anmelde-step{display:flex;align-items:flex-start;gap:12px;}
+.anmelde-step-num{width:28px;height:28px;border-radius:50%;background:var(--accent);
+  color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.anmelde-step-text{font-size:13px;color:var(--text2);padding-top:4px;line-height:1.5;}
+.anmelde-form{background:#fff;border-radius:var(--r);padding:32px;box-shadow:var(--sh);}
+.anmelde-form h3{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:18px;margin-bottom:20px;}
+.fi{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;background:#fff;}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-l);}
+.fi-label{font-size:11px;font-weight:700;color:var(--text2);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px;}
+.fi-group{margin-bottom:14px;}
+.fl2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.form-alert{display:none;padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:14px;}
+.form-alert.error{background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;}
+.form-alert.success{background:var(--green-l);color:var(--green);border:1px solid #BBF7D0;}
+.form-alert.info{background:var(--accent-l);color:var(--accent);border:1px solid #BFDBFE;}
+.btn-submit{width:100%;padding:12px;background:var(--accent);color:#fff;border-radius:8px;
+  font-size:14px;font-weight:700;border:none;cursor:pointer;transition:background .15s;}
+.btn-submit:hover{background:var(--accent-d);}
+.btn-submit:disabled{background:#94a3b8;cursor:not-allowed;}
+.form-note{font-size:11px;color:var(--text2);text-align:center;margin-top:12px;line-height:1.5;}
 
-/* SUPPORT */
-.support-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;margin-top:48px;}
-.support-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px;}
-
-/* FOOTER */
-footer{background:#050E25;color:rgba(255,255,255,.6);padding:40px 24px;text-align:center;}
-.footer-logo{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:20px;color:#fff;margin-bottom:8px;}
+/* ── FOOTER ── */
+footer{background:#050E25;color:rgba(255,255,255,.5);padding:40px;text-align:center;}
+.footer-logo{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:18px;color:#fff;margin-bottom:8px;}
 .footer-logo span{color:#60A5FA;}
-.footer-links{display:flex;gap:20px;justify-content:center;margin-top:12px;flex-wrap:wrap;}
-.footer-link{font-size:12px;cursor:pointer;transition:color .15s;}
-.footer-link:hover{color:#fff;}
+.footer-text{font-size:12px;line-height:1.7;margin-bottom:6px;}
+.footer-links{display:flex;gap:20px;justify-content:center;margin-top:16px;}
+.footer-link{font-size:12px;color:rgba(255,255,255,.4);text-decoration:none;transition:color .15s;}
+.footer-link:hover{color:rgba(255,255,255,.8);}
 
-/* MODAL */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
-  display:flex;align-items:center;justify-content:center;padding:20px;}
-.modal{background:#fff;border-radius:16px;padding:32px;max-width:480px;width:100%;
-  max-height:90vh;overflow-y:auto;}
-.modal-title{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px;}
-.modal-sub{color:var(--text2);font-size:13px;margin-bottom:20px;}
-
-/* SUCCESS */
-.success-box{background:var(--green-l);border:1px solid var(--green);border-radius:10px;
-  padding:20px;text-align:center;display:none;}
-.success-box.show{display:block;}
-
-/* RESPONSIVE */
-@media(max-width:768px){
-  .hero-inner{grid-template-columns:1fr;}
-  .hero-card{display:none;}
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .hero-inner{grid-template-columns:1fr;padding:60px 20px;}
+  .hc-body{display:none;}
   .hero-title{font-size:36px;}
-  .features-grid{grid-template-columns:1fr;}
-  .pricing-grid{grid-template-columns:1fr 1fr;}
-  .about-grid{grid-template-columns:1fr;}
-  .about-img{display:none;}
-  .form-grid{grid-template-columns:1fr;}
-  .nav-links{display:none;}
-  .support-grid{grid-template-columns:1fr;}
+  .warum-grid,.anmelde-grid{grid-template-columns:1fr;}
+  .features-grid{grid-template-columns:1fr 1fr;}
+  .sfv-phases,.preise-grid{grid-template-columns:1fr 1fr;}
+  .section{padding:60px 20px;}
+  nav{padding:0 20px;}
 }
-@media(max-width:480px){
-  .pricing-grid{grid-template-columns:1fr;}
-  .hero-stats{flex-direction:column;gap:16px;}
+@media(max-width:600px){
+  .features-grid,.sfv-phases,.preise-grid{grid-template-columns:1fr;}
+  .nav-links{gap:12px;}
+  .nav-link{display:none;}
 }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
+<!-- ── NAV ── -->
 <nav>
-  <div class="nav-logo">
+  <a href="#" class="nav-logo">
     <div class="nav-logo-icon">C</div>
     <div class="nav-logo-text">Coach<span>OS</span></div>
-  </div>
+  </a>
   <div class="nav-links">
-    <span class="nav-link" onclick="scroll2('funktionen')">Funktionen</span>
-    <span class="nav-link" onclick="scroll2('preise')">Preise</span>
-    <span class="nav-link" onclick="scroll2('ueber')">Über mich</span>
-    <span class="nav-link" onclick="scroll2('support')">Support</span>
-  </div>
-  <div class="nav-cta">
-    <button class="btn btn-outline" onclick="openLogin()">Anmelden</button>
-    <button class="btn btn-primary" onclick="scroll2('anmeldung')">Jetzt anfragen</button>
+    <a href="#warum" class="nav-link">Warum CoachOS</a>
+    <a href="#features" class="nav-link">Funktionen</a>
+    <a href="#preise" class="nav-link">Preise</a>
+    <a href="coachos_v2.html" class="nav-link">Demo</a>
+    <a href="#anmeldung" class="nav-cta">Jetzt anmelden</a>
   </div>
 </nav>
 
-<!-- HERO -->
-<section class="hero">
+<!-- ── HERO ── -->
+<section class="hero" id="home">
   <div class="hero-inner">
     <div>
-      <div class="hero-badge">🇨🇭 Für den Schweizer Jugendfussball</div>
-      <h1 class="hero-title">Dein digitales <span>Trainerzentrum</span></h1>
-      <p class="hero-sub">CoachOS vereint Spielerverwaltung, Bewertungen, Taktik, Matchvorbereitung und Makrozyklusplanung — konform mit der SFV-Spielphilosophie. Für Vereine, Teams und Einzeltrainer.</p>
-      <div class="hero-actions">
-        <button class="btn btn-primary btn-lg" onclick="scroll2('anmeldung')">Kostenlos anfragen</button>
-        <button class="btn btn-outline btn-lg" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openDemoLogin()">Demo ansehen</button>
+      <div class="hero-tag"><div class="dot"></div> Für den Schweizer Jugendfussball</div>
+      <h1 class="hero-title">Nachhaltige<br>Ausbildung.<br><span>Digital.</span></h1>
+      <p class="hero-sub">CoachOS bildet die SFV-Spielphilosophie vollständig digital ab — Aufstellung, Bewertungen, Makrozyklus, Taktik. Für jeden Trainer, jederzeit verfügbar.</p>
+      <div class="hero-btns">
+        <a href="#anmeldung" class="btn-hero-p">Jetzt anmelden →</a>
+        <a href="coachos_v2.html" class="btn-hero-s">Demo ansehen</a>
       </div>
       <div class="hero-stats">
-        <div class="hero-stat"><div class="val">4</div><div class="lbl">Spielformate (7er/9er/11er)</div></div>
-        <div class="hero-stat"><div class="val">5</div><div class="lbl">Bewertungsdimensionen</div></div>
-        <div class="hero-stat"><div class="val">100%</div><div class="lbl">SFV-konform</div></div>
+        <div class="hero-stat"><div class="val">4</div><div class="lbl">Spielphasen SFV</div></div>
+        <div class="hero-stat"><div class="val">6</div><div class="lbl">Bewertungs&shy;dimensionen</div></div>
+        <div class="hero-stat"><div class="val">3</div><div class="lbl">Spielformate</div></div>
       </div>
     </div>
-    <div class="hero-card">
-      <div class="hero-card-row">
-        <div class="hero-card-icon" style="background:rgba(22,163,74,.2)">📅</div>
-        <div class="hero-card-text"><div class="t">Nächstes Spiel: Sa 24. Aug</div><div class="s">vs FC Riehen B · Meisterschaft · 7er</div></div>
-      </div>
-      <div class="hero-card-row">
-        <div class="hero-card-icon" style="background:rgba(27,79,219,.2)">⭐</div>
-        <div class="hero-card-text"><div class="t">Q2 Bewertung: Jan Meier</div><div class="s">Spielintelligenz 9/10 · Technik 8/10</div></div>
-      </div>
-      <div class="hero-card-row">
-        <div class="hero-card-icon" style="background:rgba(217,119,6,.2)">📈</div>
-        <div class="hero-card-text"><div class="t">Makrozyklus — Aufbauphase</div><div class="s">Wir haben den Ball · Zone 2</div></div>
-      </div>
-      <div class="hero-card-row">
-        <div class="hero-card-icon" style="background:rgba(220,38,38,.2)">🎯</div>
-        <div class="hero-card-text"><div class="t">Taktiktafel — Live am Spielfeldrand</div><div class="s">7er Formation · Spieler ziehen · Pfeile</div></div>
-      </div>
-      <div class="hero-card-row">
-        <div class="hero-card-icon" style="background:rgba(139,92,246,.2)">📊</div>
-        <div class="hero-card-text"><div class="t">Mirwald-Messung fällig</div><div class="s">3 Spieler · August-Messung ausstehend</div></div>
+    <!-- Mini-Vorschau -->
+    <div>
+      <div class="hero-card">
+        <div class="hc-bar">
+          <div class="hc-dot" style="background:#FF5F57"></div>
+          <div class="hc-dot" style="background:#FEBC2E"></div>
+          <div class="hc-dot" style="background:#28C840"></div>
+        </div>
+        <div class="hc-body">
+          <div class="hc-sidebar">
+            <div class="hc-sb-logo">
+              <div class="hc-sb-l">C</div>
+              <div class="hc-sb-t">Coach<span>OS</span></div>
+            </div>
+            <div class="hc-ni active">🏠 Dashboard</div>
+            <div class="hc-ni">📅 Kalender</div>
+            <div class="hc-ni">⚽ Spieler</div>
+            <div class="hc-ni">📋 Matchvorb.</div>
+            <div class="hc-ni">🗂️ Aufstellung</div>
+            <div class="hc-ni">⭐ Bewertungen</div>
+            <div class="hc-ni">📈 Makrozyklus</div>
+            <div class="hc-ni">🎯 Taktiktafel</div>
+          </div>
+          <div class="hc-content">
+            <div class="hc-stats">
+              <div class="hc-s"><div class="hc-sv">18</div><div class="hc-sl">Spieler</div></div>
+              <div class="hc-s"><div class="hc-sv">7.4</div><div class="hc-sl">Ø Rating</div></div>
+            </div>
+            <div class="hc-field-mini">
+              <!-- Mini-Spieler -->
+              <div class="hc-player" style="left:50%;top:88%">TW</div>
+              <div class="hc-player" style="left:25%;top:70%">LV</div>
+              <div class="hc-player" style="left:75%;top:70%">RV</div>
+              <div class="hc-player" style="left:20%;top:48%">LF</div>
+              <div class="hc-player" style="left:50%;top:46%;background:#D97706;color:#fff">ZM</div>
+              <div class="hc-player" style="left:80%;top:48%">RF</div>
+              <div class="hc-player" style="left:50%;top:22%;background:#DC2626;color:#fff">ST</div>
+            </div>
+            <div style="margin-top:10px;font-size:10px;color:#5A6478;text-align:center">FE12 Blau · 7er · 1-2-3-1</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FUNKTIONEN -->
-<section id="funktionen" style="background:var(--bg)">
-  <div class="section-inner">
-    <div class="section-label">Funktionen</div>
-    <h2 class="section-title">Alles was ein moderner Trainer braucht</h2>
-    <p class="section-sub">Von der Spielerverwaltung bis zur Taktiktafel — CoachOS deckt den kompletten Trainingsalltag ab.</p>
+<!-- ── WARUM COACHOS ── -->
+<section id="warum" style="background:var(--bg);padding:90px 0;">
+  <div class="section">
+    <div class="section-tag">Entstehungsgeschichte</div>
+    <h2 class="section-title">Entstanden aus dem Trainer-Alltag</h2>
+    <div class="warum-grid">
+      <div class="warum-text">
+        <p>CoachOS entstand nicht im Büro — sondern auf dem Trainingsplatz. Als Trainer im Schweizer Jugendfussball war die tägliche Realität: Spielerdaten in Excel-Tabellen, Bewertungen auf Papier, Aufstellungen auf dem Handy — und wenn ein Trainer geht, gehen die Daten mit ihm.</p>
+        <div class="zitat">„Was fehlte, war ein System, das die SFV-Spielphilosophie wirklich digital abbildet — nachhaltig für den Verein, einfach für jeden Trainer."</div>
+        <p>Daten, die nur im Kopf eines Trainers existieren, helfen dem Spieler nicht langfristig. CoachOS macht Ausbildungsfortschritte sichtbar, messbar und übertragbar — unabhängig davon, wer als nächstes auf dem Platz steht.</p>
+        <p><strong>Das Ergebnis:</strong> Ein System, das Trainer entlastet, Spieler besser versteht und Vereine nachhaltig stärkt.</p>
+      </div>
+      <div>
+        <div class="warum-profil">
+          <div class="warum-profil-head">
+            <div class="warum-avatar">D</div>
+            <div>
+              <div class="warum-name">D. Kaplan</div>
+              <div class="warum-role">Entwickler & UEFA-lizenzierter Trainer</div>
+            </div>
+          </div>
+          <div class="warum-item">
+            <div class="warum-item-dot">⚽</div>
+            <div class="warum-item-text"><strong>Nat. Leistungszentrum</strong> — Ausbildungstrainer im Footeco-Bereich</div>
+          </div>
+          <div class="warum-item">
+            <div class="warum-item-dot">🏆</div>
+            <div class="warum-item-text"><strong>Cheftrainer</strong> — FE12 in der Region Basel, mehrere Vereine</div>
+          </div>
+          <div class="warum-item">
+            <div class="warum-item-dot">🎓</div>
+            <div class="warum-item-text"><strong>UEFA-Lizenz</strong> · Ajax-Zertifikat Technik & Individuelle Entwicklung</div>
+          </div>
+          <div class="warum-item">
+            <div class="warum-item-dot">📋</div>
+            <div class="warum-item-text"><strong>SFV-Stützpunkt</strong> FVNWS — Erfahrung in strukturierter Langzeitausbildung</div>
+          </div>
+          <div class="warum-item">
+            <div class="warum-item-dot">👨‍👧</div>
+            <div class="warum-item-text"><strong>Vater</strong> — weiss, was Familien von einem guten Ausbildungssystem erwarten</div>
+          </div>
+          <div style="margin-top:14px;">
+            <div class="warum-badge">✓ Entwickelt von einem Trainer — für Trainer</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES ── -->
+<section id="features" style="padding:90px 0;background:#fff;">
+  <div class="section">
+    <div class="section-tag">Funktionen</div>
+    <h2 class="section-title">Alles, was ein moderner Trainer braucht</h2>
+    <p class="section-sub">Basis-Module für alle. Zusatz-Module werden vom Superadmin pro Verein freigeschaltet.</p>
     <div class="features-grid">
-      <div class="feat-card">
-        <div class="feat-icon" style="background:#EBF0FF">📅</div>
-        <div class="feat-title">Kalender & Spielplan</div>
-        <div class="feat-desc">Monatsübersicht mit Meisterschaft, Testspiel und Turnier-Markierungen. Notizen pro Spieltag, PDF-Export des Monatsplans.</div>
-        <span class="feat-badge" style="background:#EBF0FF;color:#1B4FDB">Basis</span>
+      <!-- BASIS -->
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#EBF0FF">🏠</div>
+        <div class="feature-title">Dashboard</div>
+        <div class="feature-text">Übersicht über Spieler, nächste Spiele, SFV-Fokus-Phase und Teambewertung auf einen Blick.</div>
+        <div class="feature-badge">Basis</div>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:#DCFCE7">⚽</div>
-        <div class="feat-title">Spielerverwaltung</div>
-        <div class="feat-desc">Kader mit Foto, Positionen (Haupt + 2 Alternativen), Geburtstag, starker Fuss. Max. 24 Spieler/Team, davon 2–3 Torhüter.</div>
-        <span class="feat-badge" style="background:#DCFCE7;color:#16A34A">Basis</span>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#EBF0FF">📅</div>
+        <div class="feature-title">Kalender</div>
+        <div class="feature-text">Meisterschaft, Testspiele, Turniere. Klick auf jeden Tag für Details und Trainer-Notizen.</div>
+        <div class="feature-badge">Basis</div>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:#FFF3EB">🗂️</div>
-        <div class="feat-title">Matchvorbereitung & Aufstellung</div>
-        <div class="feat-desc">7er/9er/11er Formationen mit Drag & Drop. Abseitslinien korrekt. Spieler-Tracking, Spielzeit, Tore. PDF-Ausdruck.</div>
-        <span class="feat-badge" style="background:#FFF3EB;color:#EA580C">Basis</span>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#EBF0FF">⚽</div>
+        <div class="feature-title">Spieler-Kader</div>
+        <div class="feature-text">Max. 24 Spieler pro Team. Positionen, Fusskompetenz, Spielzeit, Tore, Foto-Upload.</div>
+        <div class="feature-badge">Basis</div>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:#FEF3C7">⭐</div>
-        <div class="feat-title">Spielerbewertungen</div>
-        <div class="feat-desc">6 Dimensionen: Technik, Spielintelligenz, Persönlichkeit, Athletik, Schnelligkeit, Umfeld. Quartal-basiert, mit Kommentaren, IEP-Entwicklungsplan.</div>
-        <span class="feat-badge" style="background:#FEF3C7;color:#D97706">Zusatz</span>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#EBF0FF">👥</div>
+        <div class="feature-title">Teams</div>
+        <div class="feature-text">Mehrere Teams pro Verein. Altersklassen, Spielformat (7/9/11er), Saison-Übersicht.</div>
+        <div class="feature-badge">Basis</div>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:#EDE9FE">📈</div>
-        <div class="feat-title">Makrozyklus</div>
-        <div class="feat-desc">SFV-konforme Saisonplanung mit allen 4 Spielphasen und 3 Zonen. Selbst zusammenklickbar, Schwerpunkte pro Phase, Ferienperioden.</div>
-        <span class="feat-badge" style="background:#EDE9FE;color:#8B5CF6">Zusatz</span>
+      <!-- ZUSATZ -->
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#FEF3C7">🗂️</div>
+        <div class="feature-title">Aufstellung</div>
+        <div class="feature-text">Drag & Drop auf echtem Spielfeld. 7er, 9er, 11er. Alle SFV-Formationen. Doppelfeld bei Turnieren. PDF-Export.</div>
+        <div class="feature-badge extra">Zusatz</div>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:#FEE2E2">🎯</div>
-        <div class="feat-title">Taktiktafel</div>
-        <div class="feat-desc">Live am Spielfeldrand. Spieler ziehen per Touch/Maus. Pfeile, Zonen, Freihand zeichnen. Offensive/defensive Standardsituationen. iPad Querformat.</div>
-        <span class="feat-badge" style="background:#FEE2E2;color:#DC2626">Zusatz</span>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#FEF3C7">⭐</div>
+        <div class="feature-title">Bewertungen</div>
+        <div class="feature-text">6 Dimensionen: Technik, Spielintelligenz, Persönlichkeit, Athletik, Schnelligkeit, Umfeld. Quartalweise, mit Kommentaren.</div>
+        <div class="feature-badge extra">Zusatz</div>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:#DCFCE7">📏</div>
-        <div class="feat-title">Mirwald-Messung</div>
-        <div class="feat-desc">2× jährlich: Grösse, Gewicht, Sitzhöhe. Automatische Erinnerung (August / Februar). Entwicklungsverlauf pro Spieler sichtbar.</div>
-        <span class="feat-badge" style="background:#DCFCE7;color:#16A34A">Zusatz</span>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#FEF3C7">📈</div>
+        <div class="feature-title">Makrozyklus</div>
+        <div class="feature-text">Saisonplanung mit SFV-Spielphasen. Vorrunde / Rückrunde, Schwerpunkte pro Phase, Trainer-Notizen.</div>
+        <div class="feature-badge extra">Zusatz</div>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:#EBF0FF">💬</div>
-        <div class="feat-title">Spieler- & Elterngespräche</div>
-        <div class="feat-desc">2× jährlich planbar und dokumentierbar. Protokoll für Eltern druckbar. Zwischenstand Nov/Dez und März–Mai.</div>
-        <span class="feat-badge" style="background:#EBF0FF;color:#1B4FDB">Zusatz</span>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#FEF3C7">🎯</div>
+        <div class="feature-title">Taktiktafel</div>
+        <div class="feature-text">Interaktives Spielfeld: Spieler ziehen, Pfeile zeichnen, Zonen markieren, Sequenzen speichern. Touch-optimiert für iPad.</div>
+        <div class="feature-badge extra">Zusatz</div>
       </div>
-      <div class="feat-card">
-        <div class="feat-icon" style="background:#FFF3EB">🔒</div>
-        <div class="feat-title">Sicherheit & Datenschutz</div>
-        <div class="feat-desc">Vereine vollständig getrennt (RLS). Rollenbasierter Zugriff. Daten-Export jederzeit. Kein Verein sieht Daten eines anderen.</div>
-        <span class="feat-badge" style="background:#FFF3EB;color:#EA580C">Alle Pakete</span>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:#FEF3C7">📋</div>
+        <div class="feature-title">Matchvorbereitung</div>
+        <div class="feature-text">Spiel anlegen, Aufstellung planen, Gegner-Notizen. Verbunden mit Kalender und Aufstellungsmodul.</div>
+        <div class="feature-badge extra">Zusatz</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;padding:16px 20px;background:var(--bg);border-radius:10px;font-size:13px;color:var(--text2)">
+      <strong style="color:var(--text)">Demnächst:</strong> IEP (Individuelle Entwicklungspläne) · Mirwald-Messung (Wachstumsentwicklung) · Spieler-/Elterngespräche mit PDF-Protokoll · Radar-Charts · Mehrsprachigkeit
+    </div>
+  </div>
+</section>
+
+<!-- ── SFV ── -->
+<section id="sfv">
+  <div class="section">
+    <div class="section-tag" style="color:#60A5FA">SFV Spielphilosophie</div>
+    <h2 class="section-title">Alle 4 Phasen. Digital abgebildet.</h2>
+    <p class="section-sub">CoachOS ist das einzige System, das die SFV-Spielphilosophie mit allen 4 Phasen und 3 Zonen strukturiert digital abbildet und in die tägliche Trainingsplanung integriert.</p>
+    <div class="sfv-phases">
+      <div class="sfv-phase" style="background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.3)">
+        <div class="sfv-phase-icon">🟢</div>
+        <div class="sfv-phase-title">Wir haben den Ball</div>
+        <div class="sfv-phase-text">Zone 1: Spiel aufbauen · Zone 2: Spiel bestimmen · Zone 3/BOX: Angriff abschliessen</div>
+      </div>
+      <div class="sfv-phase" style="background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.3)">
+        <div class="sfv-phase-icon">🔴</div>
+        <div class="sfv-phase-title">Wir verlieren den Ball</div>
+        <div class="sfv-phase-text">Zone 3: Gegenpressing · Zone 2: Gegenangriff bremsen · Zone 1/BOX: Tor verteidigen</div>
+      </div>
+      <div class="sfv-phase" style="background:rgba(27,79,219,.1);border-color:rgba(27,79,219,.3)">
+        <div class="sfv-phase-icon">🔵</div>
+        <div class="sfv-phase-title">Wir haben den Ball nicht</div>
+        <div class="sfv-phase-text">Zone 3: Hoch verteidigen · Zone 2: Gegner kontrollieren · Zone 1/BOX: Tief verteidigen</div>
+      </div>
+      <div class="sfv-phase" style="background:rgba(234,88,12,.1);border-color:rgba(234,88,12,.3)">
+        <div class="sfv-phase-icon">🟠</div>
+        <div class="sfv-phase-title">Wir erobern den Ball</div>
+        <div class="sfv-phase-text">Zone 3/BOX: Tor erzielen · Zone 2: In Zone 3 spielen · Zone 1: Nach vorne spielen</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ÜBER MICH -->
-<section id="ueber" style="background:var(--surface)">
-  <div class="section-inner">
-    <div class="section-label">Der Entwickler</div>
-    <h2 class="section-title">Aus der Praxis — für die Praxis</h2>
-    <div class="about-grid">
-      <div class="about-img">
-        <div class="about-img-inner">
-          <div class="initials">DK</div>
-          <div class="name">Dogus Kaplan</div>
-          <div class="title">UEFA-lizenzierter Trainer · Basel</div>
+<!-- ── PREISE ── -->
+<section id="preise" style="padding:90px 0;background:#fff;">
+  <div class="section">
+    <div class="section-tag">Preise</div>
+    <h2 class="section-title">Transparent. Flexibel. Fair.</h2>
+    <p class="section-sub">Monatlich kündbar. Jährlich günstiger. Nach Ablauf: 3 Tage Übergangszeit, dann Basis-Modus — alle Daten bleiben erhalten.</p>
+    <div class="preise-grid">
+      <div class="preis-card">
+        <div class="preis-name">Solo</div>
+        <div class="preis-val">CHF 19.90<span>/Mo</span></div>
+        <div class="preis-j">CHF 199.90 / Jahr</div>
+        <div class="preis-specs"><strong>1 Team · 2 Logins</strong><br>Ideal für Einzeltrainer</div>
+        <button class="preis-btn" onclick="scrollToAnmeldung()">Jetzt starten</button>
+      </div>
+      <div class="preis-card">
+        <div class="preis-name">Starter</div>
+        <div class="preis-val">CHF 29.90<span>/Mo</span></div>
+        <div class="preis-j">CHF 319.90 / Jahr</div>
+        <div class="preis-specs"><strong>2 Teams · 5 Logins</strong><br>Für kleinere Vereine</div>
+        <button class="preis-btn" onclick="scrollToAnmeldung()">Jetzt starten</button>
+      </div>
+      <div class="preis-card featured">
+        <div class="preis-label">Beliebt</div>
+        <div class="preis-name">Pro</div>
+        <div class="preis-val">CHF 49.90<span>/Mo</span></div>
+        <div class="preis-j">CHF 499.90 / Jahr</div>
+        <div class="preis-specs"><strong>5 Teams · 15 Logins</strong><br>Für aktive Nachwuchsvereine</div>
+        <button class="preis-btn featured" onclick="scrollToAnmeldung()">Jetzt starten</button>
+      </div>
+      <div class="preis-card">
+        <div class="preis-name">Enterprise</div>
+        <div class="preis-val">CHF 129.90<span>/Mo</span></div>
+        <div class="preis-j">CHF 1'199.90 / Jahr (ab Jahr 2: 1'299.90)</div>
+        <div class="preis-specs"><strong>15 Teams · ∞ Logins</strong><br>Für grosse Nachwuchsabteilungen</div>
+        <button class="preis-btn" onclick="scrollToAnmeldung()">Kontakt aufnehmen</button>
+      </div>
+    </div>
+    <div class="pilot-banner">
+      <div class="pilot-icon">🎁</div>
+      <div class="pilot-text">
+        <strong>Pilotpartner-Programm — Erste 10 Vereine</strong>
+        <p>5 Jahre Vollzugang kostenlos. Dafür bitten wir um Feedback und unterstützen die Weiterentwicklung gemeinsam.</p>
+      </div>
+    </div>
+    <div style="margin-top:16px;padding:14px 18px;background:var(--bg);border-radius:10px;font-size:12px;color:var(--text2)">
+      🔐 <strong>Sicherheit:</strong> Alle Daten separat pro Verein gespeichert. Anmeldung nur via Magic Link (keine Passwörter). Nach Abo-Ablauf: 3 Tage Vollzugang, dann automatisch Basis-Modus — kein Datenverlust, nie.
+    </div>
+  </div>
+</section>
+
+<!-- ── ANMELDUNG ── -->
+<section id="anmeldung" style="background:var(--bg);padding:90px 0;">
+  <div class="section">
+    <div class="section-tag">Anmeldung</div>
+    <h2 class="section-title">Jetzt starten</h2>
+    <div class="anmelde-grid">
+      <div class="anmelde-info">
+        <h3>Wie funktioniert es?</h3>
+        <p>Füll das Formular aus. Wir prüfen deine Anfrage und schalten deinen Verein innerhalb von 24 Stunden frei. Du erhältst einen Magic Link — kein Passwort nötig.</p>
+        <div class="anmelde-steps">
+          <div class="anmelde-step">
+            <div class="anmelde-step-num">1</div>
+            <div class="anmelde-step-text">Formular ausfüllen (2 Minuten)</div>
+          </div>
+          <div class="anmelde-step">
+            <div class="anmelde-step-num">2</div>
+            <div class="anmelde-step-text">Wir schalten deinen Verein frei und konfigurieren die Module</div>
+          </div>
+          <div class="anmelde-step">
+            <div class="anmelde-step-num">3</div>
+            <div class="anmelde-step-text">Du erhältst einen sicheren Magic Link per E-Mail — klick und sofort loslegen</div>
+          </div>
+          <div class="anmelde-step">
+            <div class="anmelde-step-num">4</div>
+            <div class="anmelde-step-text">Kader aufbauen, Saison planen, loslegen 🚀</div>
+          </div>
+        </div>
+        <div style="margin-top:28px;padding:16px;background:#fff;border-radius:10px;border:1px solid var(--border)">
+          <div style="font-weight:700;font-size:13px;margin-bottom:8px">🔐 Maximale Sicherheit</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.7">
+            Keine Passwörter — nur sichere Magic Links. Jeder Verein hat seinen eigenen abgesicherten Bereich. Daten werden auf Schweizer/EU-Servern (Frankfurt) gespeichert. Kein fremder Zugriff möglich.
+          </div>
         </div>
       </div>
       <div>
-        <p style="font-size:16px;line-height:1.7;color:var(--text2);margin-bottom:24px">CoachOS entstand aus dem Alltag als Jugendtrainer. Was fehlte: ein System, das die SFV-Spielphilosophie digital abbildet — nachhaltig, übersichtlich, für jeden Trainer nutzbar.</p>
-        <ul class="cred-list">
-          <li><div class="cred-dot"></div><span><strong>FC Basel Footeco (FE12)</strong> — Ausbildungstrainer im nationalen Leistungszentrum</span></li>
-          <li><div class="cred-dot"></div><span><strong>TB Old Boys Basel (FE12)</strong> — Cheftrainer, UEFA-lizenziert</span></li>
-          <li><div class="cred-dot"></div><span><strong>FC Basel Frauen U14</strong> — Cheftrainer, Aufbau und Entwicklung</span></li>
-          <li><div class="cred-dot"></div><span><strong>Ajax Amsterdam Coaching Academy</strong> — Diplom 2025/26: Technikfundament & individuelle Spielerentwicklung</span></li>
-          <li><div class="cred-dot"></div><span><strong>SFV Nordwestschweiz Stützpunkt</strong> — Hospitanz und Praxiserfahrung bei Verbandsexperten</span></li>
-          <li><div class="cred-dot"></div><span><strong>Eigene Spielerkarriere</strong> — Juniorenauswahlen Region Bern, bis U18</span></li>
-          <li><div class="cred-dot"></div><span><strong>IT-Hintergrund</strong> — Entwicklung digitaler Tools für KMU (Kaplan Digital, Basel)</span></li>
-        </ul>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- PREISE -->
-<section id="preise" style="background:var(--bg)">
-  <div class="section-inner">
-    <div class="section-label">Preise</div>
-    <h2 class="section-title">Transparent. Fair. Schweizer Qualität.</h2>
-    <p class="section-sub">Alle Pakete inklusive Updates, Datensicherung und Support. Keine versteckten Kosten.</p>
-    <div class="pricing-grid">
-      <!-- SOLO -->
-      <div class="price-card">
-        <div class="price-name">Solo</div>
-        <div class="price-desc">1 Trainer + 1 Assistent</div>
-        <div class="price-amount">CHF 19.90</div>
-        <div class="price-period">pro Monat</div>
-        <div class="price-annual">CHF 199.90 / Jahr (spare CHF 39.–)</div>
-        <ul class="price-features">
-          <li>1 Team</li>
-          <li>2 Logins</li>
-          <li>Dashboard, Kalender</li>
-          <li>Spieler, Matchvorbereitung</li>
-          <li>Aufstellungen (7/9/11er)</li>
-          <li style="color:var(--text3)"><span style="color:var(--text3)">✕</span>&nbsp; Makrozyklus, Bewertungen</li>
-          <li style="color:var(--text3)"><span style="color:var(--text3)">✕</span>&nbsp; Taktiktafel</li>
-        </ul>
-        <button class="price-cta btn-outline" onclick="scroll2('anmeldung')">Anfragen</button>
-      </div>
-      <!-- STARTER -->
-      <div class="price-card">
-        <div class="price-name">Starter</div>
-        <div class="price-desc">2 Teams · 5 Logins</div>
-        <div class="price-amount">CHF 29.90</div>
-        <div class="price-period">pro Monat</div>
-        <div class="price-annual">CHF 319.90 / Jahr (spare CHF 39.–)</div>
-        <ul class="price-features">
-          <li>2 Teams</li>
-          <li>5 Logins</li>
-          <li>Alle Basis-Module</li>
-          <li>Vereinsleiter + Trainer</li>
-          <li style="color:var(--text3)"><span style="color:var(--text3)">✕</span>&nbsp; Makrozyklus, Bewertungen</li>
-          <li style="color:var(--text3)"><span style="color:var(--text3)">✕</span>&nbsp; Taktiktafel</li>
-        </ul>
-        <button class="price-cta btn-outline" onclick="scroll2('anmeldung')">Anfragen</button>
-      </div>
-      <!-- PRO -->
-      <div class="price-card featured">
-        <div class="price-badge">Empfohlen</div>
-        <div class="price-name">Pro</div>
-        <div class="price-desc">5 Teams · 15 Logins</div>
-        <div class="price-amount">CHF 49.90</div>
-        <div class="price-period">pro Monat</div>
-        <div class="price-annual">CHF 499.90 / Jahr (spare CHF 99.–)</div>
-        <ul class="price-features">
-          <li>5 Teams</li>
-          <li>15 Logins</li>
-          <li>Alle Basis-Module</li>
-          <li>+ Makrozyklus</li>
-          <li>+ Bewertungen & IEP</li>
-          <li>+ Mirwald, Gespräche</li>
-          <li style="color:var(--text3)"><span style="color:var(--text3)">✕</span>&nbsp; Taktiktafel</li>
-        </ul>
-        <button class="price-cta" style="background:var(--accent);color:#fff" onclick="scroll2('anmeldung')">Anfragen</button>
-      </div>
-      <!-- ENTERPRISE -->
-      <div class="price-card">
-        <div class="price-name">Enterprise</div>
-        <div class="price-desc">15 Teams · Unbegrenzt</div>
-        <div class="price-amount">CHF 129.90</div>
-        <div class="price-period">pro Monat</div>
-        <div class="price-annual">CHF 1'199.90 / Jahr · ab Jahr 2: CHF 1'299.90</div>
-        <ul class="price-features">
-          <li>15 Teams</li>
-          <li>Unbegrenzte Logins</li>
-          <li>Alle Module</li>
-          <li>+ Taktiktafel</li>
-          <li>+ Prioritäts-Support</li>
-          <li>+ Daten-Export</li>
-        </ul>
-        <button class="price-cta btn-outline" onclick="scroll2('anmeldung')">Anfragen</button>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:24px;font-size:12px;color:var(--text3)">
-      Alle Preise in CHF inkl. MwSt. · Testphase: erste 10 Vereine erhalten <strong style="color:var(--green)">5 Jahre kostenfreie Nutzung</strong> als Pilotpartner.
-    </div>
-  </div>
-</section>
-
-<!-- ANMELDUNG -->
-<section class="form-section" id="anmeldung">
-  <div style="max-width:1100px;margin:0 auto;position:relative;z-index:1">
-    <div style="text-align:center;margin-bottom:32px">
-      <div class="section-label" style="color:rgba(255,255,255,.7)">Jetzt anfragen</div>
-      <h2 class="section-title" style="color:#fff">Werde Teil der Pilotphase</h2>
-      <p style="color:rgba(255,255,255,.7);font-size:15px">Die ersten 10 Vereine erhalten CoachOS 5 Jahre kostenlos als Pilotpartner.</p>
-    </div>
-    <div class="form-card">
-      <div class="form-title">Anmeldeantrag</div>
-      <div class="form-sub">Füll das Formular aus — wir melden uns innerhalb von 48 Stunden.</div>
-      <div id="form-success" class="success-box">
-        <div style="font-size:28px;margin-bottom:10px">✅</div>
-        <div style="font-weight:700;font-size:16px;margin-bottom:6px">Anfrage erfolgreich gesendet!</div>
-        <div style="font-size:13px;color:var(--text2)">Wir melden uns innert 48 Stunden bei dir.</div>
-      </div>
-      <form id="anmelde-form" onsubmit="submitForm(event)">
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">Vorname *</label>
-            <input class="form-input" type="text" required placeholder="Max">
+        <div class="anmelde-form">
+          <h3>Anmelde-Anfrage</h3>
+          <div class="form-alert" id="form-alert"></div>
+          <div class="fl2">
+            <div class="fi-group"><label class="fi-label">Vorname *</label><input type="text" class="fi" id="f-vorname" placeholder="Max"></div>
+            <div class="fi-group"><label class="fi-label">Nachname *</label><input type="text" class="fi" id="f-nachname" placeholder="Muster"></div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Nachname *</label>
-            <input class="form-input" type="text" required placeholder="Mustermann">
-          </div>
-          <div class="form-group">
-            <label class="form-label">E-Mail *</label>
-            <input class="form-input" type="email" required placeholder="trainer@verein.ch">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Telefon</label>
-            <input class="form-input" type="tel" placeholder="+41 79 123 45 67">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Vereinsname *</label>
-            <input class="form-input" type="text" required placeholder="FC Musterstadt">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Ort / Stadt</label>
-            <input class="form-input" type="text" placeholder="Basel">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Funktion im Verein *</label>
-            <select class="form-select" required>
-              <option value="">Bitte wählen...</option>
-              <option>Vereinsleiter/in</option>
-              <option>Cheftrainer/in</option>
-              <option>Assistenztrainer/in</option>
-              <option>Torwarttrainer/in</option>
-              <option>Athletiktrainer/in</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Mannschaft / Team</label>
-            <input class="form-input" type="text" placeholder="z.B. FE12, U14, Damen">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Anzahl Teams im Verein</label>
-            <select class="form-select">
-              <option>1 Team</option>
-              <option>2–3 Teams</option>
-              <option>4–5 Teams</option>
-              <option>6–10 Teams</option>
-              <option>Mehr als 10 Teams</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Gewünschtes Paket</label>
-            <select class="form-select">
-              <option>Solo (1 Team)</option>
-              <option>Starter (2 Teams)</option>
-              <option selected>Pro (5 Teams)</option>
-              <option>Enterprise (15 Teams)</option>
-            </select>
-          </div>
-          <div class="form-group full">
-            <label class="form-label">Gewünschte Module (optional)</label>
-            <div class="form-check-group">
-              <label class="form-check"><input type="checkbox" checked> Dashboard & Kalender</label>
-              <label class="form-check"><input type="checkbox" checked> Spieler & Teams</label>
-              <label class="form-check"><input type="checkbox" checked> Matchvorbereitung</label>
-              <label class="form-check"><input type="checkbox"> Bewertungen & IEP</label>
-              <label class="form-check"><input type="checkbox"> Makrozyklus</label>
-              <label class="form-check"><input type="checkbox"> Taktiktafel</label>
+          <div class="fi-group"><label class="fi-label">E-Mail *</label><input type="email" class="fi" id="f-email" placeholder="trainer@verein.ch"></div>
+          <div class="fi-group"><label class="fi-label">Telefon</label><input type="tel" class="fi" id="f-tel" placeholder="+41 79 000 00 00"></div>
+          <div class="fi-group"><label class="fi-label">Vereinsname *</label><input type="text" class="fi" id="f-verein" placeholder="FC Musterstadt"></div>
+          <div class="fl2">
+            <div class="fi-group"><label class="fi-label">Stadt *</label><input type="text" class="fi" id="f-stadt" placeholder="Basel"></div>
+            <div class="fi-group"><label class="fi-label">Deine Funktion</label>
+              <select class="fi" id="f-funktion">
+                <option value="">Bitte wählen</option>
+                <option>Cheftrainer</option>
+                <option>Assistenztrainer</option>
+                <option>Vereinsleiter</option>
+                <option>Sportchef / Jugendleiter</option>
+                <option>Anderes</option>
+              </select>
             </div>
           </div>
-          <div class="form-group full">
-            <label class="form-label">Nachricht / Fragen (optional)</label>
-            <textarea class="form-input" rows="3" placeholder="Was beschäftigt dich? Was erhoffst du dir von CoachOS?" style="resize:vertical"></textarea>
+          <div class="fl2">
+            <div class="fi-group"><label class="fi-label">Anzahl Teams</label>
+              <select class="fi" id="f-teams">
+                <option>1 Team</option>
+                <option>2–3 Teams</option>
+                <option>4–5 Teams</option>
+                <option>6+ Teams</option>
+              </select>
+            </div>
+            <div class="fi-group"><label class="fi-label">Gewünschtes Paket</label>
+              <select class="fi" id="f-paket">
+                <option>Solo</option>
+                <option>Starter</option>
+                <option selected>Pro</option>
+                <option>Enterprise</option>
+                <option>Pilot (kostenlos)</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group full">
-            <label class="form-check" style="background:var(--bg);border-radius:8px;padding:12px">
-              <input type="checkbox" required>
-              <span style="font-size:12px">Ich stimme zu, dass meine Daten für die Bearbeitung meiner Anfrage verwendet werden. Datenschutz gemäss DSG (Schweiz).</span>
-            </label>
+          <div class="fi-group"><label class="fi-label">Nachricht (optional)</label>
+            <textarea class="fi" id="f-nachricht" style="height:80px;resize:vertical" placeholder="Was bewegst du dich zu CoachOS? Spezielle Anforderungen?"></textarea>
           </div>
+          <button class="btn-submit" onclick="submitAnmeldung()" id="submit-btn">📩 Anfrage senden</button>
+          <div class="form-note">Keine automatische Aktivierung. Wir melden uns persönlich innerhalb von 24h.<br>Deine Daten werden ausschliesslich für die Kontaktaufnahme verwendet.</div>
         </div>
-        <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:8px;justify-content:center">
-          Anfrage absenden →
-        </button>
-        <p class="form-note">🔒 Deine Daten werden verschlüsselt übertragen und nicht an Dritte weitergegeben.</p>
-      </form>
-    </div>
-  </div>
-</section>
-
-<!-- SUPPORT -->
-<section id="support" style="background:var(--surface)">
-  <div class="section-inner">
-    <div class="section-label">Support</div>
-    <h2 class="section-title">Wir sind für dich da</h2>
-    <div class="support-grid">
-      <div class="support-card">
-        <div style="font-size:28px;margin-bottom:14px">📧</div>
-        <div style="font-weight:700;font-size:16px;margin-bottom:6px">E-Mail Support</div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Fragen, Probleme oder Feedback — wir antworten innert 24 Stunden.</p>
-        <button class="btn btn-outline" onclick="openSupportModal()">Nachricht schreiben</button>
-      </div>
-      <div class="support-card">
-        <div style="font-size:28px;margin-bottom:14px">🤝</div>
-        <div style="font-weight:700;font-size:16px;margin-bottom:6px">Pilotprojekt</div>
-        <p style="font-size:13px;color:var(--text2);margin-bottom:16px">CoachOS ist aktuell in der Testphase. Dein Feedback hilft direkt bei der Weiterentwicklung.</p>
-        <button class="btn btn-primary" onclick="scroll2('anmeldung')">Jetzt mitmachen</button>
       </div>
     </div>
   </div>
 </section>
 
-<!-- FOOTER -->
+<!-- ── FOOTER ── -->
 <footer>
   <div class="footer-logo">Coach<span>OS</span></div>
-  <div style="font-size:12px;margin-top:6px">Digitales Trainermanagement für den Schweizer Jugendfussball</div>
+  <div class="footer-text">Digitales Trainer-Management für den Schweizer Jugendfussball.<br>Entwickelt von D. Kaplan · Basel · Schweiz · 2025</div>
   <div class="footer-links">
-    <span class="footer-link" onclick="scroll2('funktionen')">Funktionen</span>
-    <span class="footer-link" onclick="scroll2('preise')">Preise</span>
-    <span class="footer-link" onclick="scroll2('ueber')">Über mich</span>
-    <span class="footer-link" onclick="openSupportModal()">Support</span>
-    <span class="footer-link">Datenschutz</span>
-    <span class="footer-link">Impressum</span>
+    <a href="coachos_v2.html" class="footer-link">Demo</a>
+    <a href="#features" class="footer-link">Funktionen</a>
+    <a href="#preise" class="footer-link">Preise</a>
+    <a href="#anmeldung" class="footer-link">Anmeldung</a>
+    <a href="mailto:dogusk@fe.ch" class="footer-link">Kontakt</a>
   </div>
-  <div style="margin-top:20px;font-size:11px;opacity:.5">© 2025 Dogus Kaplan · Kaplan Digital · Basel · CoachOS ist ein Produkt in der Entwicklung.</div>
 </footer>
 
-<!-- LOGIN MODAL -->
-<div class="modal-bg hidden" id="login-modal" onclick="closeModal('login-modal')">
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-title">Anmelden</div>
-    <div class="modal-sub">Zugang für registrierte Vereinsmitglieder</div>
-    <div class="form-group" style="margin-bottom:12px">
-      <label class="form-label">E-Mail</label>
-      <input class="form-input" type="email" placeholder="deine@email.ch" style="margin-top:4px">
-    </div>
-    <div class="form-group" style="margin-bottom:20px">
-      <label class="form-label">Passwort</label>
-      <input class="form-input" type="password" placeholder="••••••••" style="margin-top:4px">
-    </div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="openDemoLogin()">Einloggen</button>
-    <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">
-      Noch kein Zugang? <span style="color:var(--accent);cursor:pointer" onclick="closeModal('login-modal');scroll2('anmeldung')">Jetzt anfragen →</span>
-    </div>
-  </div>
-</div>
-
-<!-- SUPPORT MODAL -->
-<div class="modal-bg hidden" id="support-modal" onclick="closeModal('support-modal')">
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-title">Support Anfrage</div>
-    <div class="modal-sub">Wir melden uns innert 24 Stunden.</div>
-    <div class="form-group" style="margin-bottom:10px">
-      <label class="form-label">Dein Name</label>
-      <input class="form-input" type="text" placeholder="Max Mustermann" style="margin-top:4px">
-    </div>
-    <div class="form-group" style="margin-bottom:10px">
-      <label class="form-label">E-Mail</label>
-      <input class="form-input" type="email" placeholder="deine@email.ch" style="margin-top:4px">
-    </div>
-    <div class="form-group" style="margin-bottom:10px">
-      <label class="form-label">Betreff</label>
-      <select class="form-select" style="margin-top:4px">
-        <option>Technisches Problem</option>
-        <option>Frage zur Funktion</option>
-        <option>Feedback</option>
-        <option>Zugang / Login</option>
-        <option>Sonstiges</option>
-      </select>
-    </div>
-    <div class="form-group" style="margin-bottom:16px">
-      <label class="form-label">Nachricht</label>
-      <textarea class="form-input" rows="4" placeholder="Beschreib dein Anliegen..." style="resize:vertical;margin-top:4px"></textarea>
-    </div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="closeModal('support-modal');alert('Anfrage gesendet! Wir melden uns bald.')">Absenden</button>
-  </div>
-</div>
-
 <script>
-function scroll2(id){
-  document.getElementById(id)?.scrollIntoView({behavior:'smooth'});
+const SUPA_URL='https://lmojjiczebnhnbstuweg.supabase.co';
+const SUPA_KEY='sb_publishable_xUP-cfbbQd7yWCjfe6XWFA_QLls1y2r';
+const{createClient}=supabase;
+const sb=createClient(SUPA_URL,SUPA_KEY);
+
+function scrollToAnmeldung(){document.getElementById('anmeldung').scrollIntoView({behavior:'smooth'});}
+
+function showFormAlert(msg,type='error'){
+  const el=document.getElementById('form-alert');
+  el.textContent=msg;el.className=`form-alert ${type}`;el.style.display='block';
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
-function openLogin(){
-  document.getElementById('login-modal').classList.remove('hidden');
+
+async function submitAnmeldung(){
+  const vorname=document.getElementById('f-vorname').value.trim();
+  const nachname=document.getElementById('f-nachname').value.trim();
+  const email=document.getElementById('f-email').value.trim().toLowerCase();
+  const verein=document.getElementById('f-verein').value.trim();
+  const stadt=document.getElementById('f-stadt').value.trim();
+  if(!vorname||!nachname||!email||!verein||!stadt){
+    showFormAlert('Bitte alle Pflichtfelder (*) ausfüllen.');return;
+  }
+  if(!email.includes('@')||!email.includes('.')){
+    showFormAlert('Bitte eine gültige E-Mail-Adresse eingeben.');return;
+  }
+  const btn=document.getElementById('submit-btn');
+  btn.disabled=true;btn.textContent='⏳ Wird gesendet...';
+  try{
+    const{error}=await sb.from('anmelde_anfragen').insert({
+      vorname,nachname,email,
+      telefon:document.getElementById('f-tel').value.trim(),
+      verein_name:verein,
+      stadt,
+      funktion:document.getElementById('f-funktion').value,
+      anzahl_teams:document.getElementById('f-teams').value,
+      gewuenschtes_paket:document.getElementById('f-paket').value.toLowerCase().replace(' (kostenlos)',''),
+      nachricht:document.getElementById('f-nachricht').value.trim(),
+      status:'neu'
+    });
+    if(error)throw error;
+    showFormAlert('✅ Anfrage erfolgreich gesendet! Wir melden uns innerhalb von 24 Stunden bei dir.','success');
+    ['f-vorname','f-nachname','f-email','f-tel','f-verein','f-stadt','f-nachricht'].forEach(id=>{document.getElementById(id).value='';});
+    btn.textContent='✅ Gesendet';
+  }catch(e){
+    showFormAlert('Fehler beim Senden: '+( e.message||'Bitte nochmals versuchen oder direkt mailen: dogusk@fe.ch'));
+    btn.disabled=false;btn.textContent='📩 Anfrage senden';
+  }
 }
-function openSupportModal(){
-  document.getElementById('support-modal').classList.remove('hidden');
-}
-function closeModal(id){
-  document.getElementById(id).classList.add('hidden');
-}
-function openDemoLogin(){
-  closeModal('login-modal');
-  window.open('coachos_v2.html','_blank');
-}
-function submitForm(e){
-  e.preventDefault();
-  document.getElementById('anmelde-form').style.display='none';
-  document.getElementById('form-success').classList.add('show');
-}
+
+// Smooth scroll für Nav-Links
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    const t=document.querySelector(a.getAttribute('href'));
+    if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});}
+  });
+});
 </script>
 </body>
 </html>

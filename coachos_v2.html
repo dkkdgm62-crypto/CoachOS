@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CoachOS</title>
+<title>CoachOS — Trainer Management</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --bg:#F4F6F9;--surface:#FFFFFF;--surface2:#F0F2F6;--border:#E2E6EE;
@@ -24,50 +25,82 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
 button{font-family:inherit;cursor:pointer;}
 input,select,textarea{font-family:inherit;}
 
-/* ── LOGIN ── */
-#ls{min-height:100vh;display:flex;align-items:center;justify-content:center;
+/* ── AUTH SCREENS ── */
+#auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;
   background:linear-gradient(140deg,#050E25 0%,#0D2563 55%,#1B4FDB 100%);
   position:relative;overflow:hidden;}
-#ls::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;
+#auth-screen::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;
   background:radial-gradient(circle,rgba(27,79,219,.25) 0%,transparent 70%);
-  top:-100px;right:-100px;}
-#ls::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;
+  top:-100px;right:-100px;pointer-events:none;}
+#auth-screen::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;
   background:radial-gradient(circle,rgba(22,163,74,.12) 0%,transparent 70%);
-  bottom:-80px;left:-80px;}
-.lc{background:#fff;border-radius:16px;padding:36px;width:100%;max-width:400px;
+  bottom:-80px;left:-80px;pointer-events:none;}
+.auth-card{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:420px;
   position:relative;z-index:1;box-shadow:0 32px 80px rgba(0,0,0,.35);}
-.ll{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
-.li{width:38px;height:38px;background:var(--accent);border-radius:9px;
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:32px;}
+.auth-logo-icon{width:40px;height:40px;background:var(--accent);border-radius:10px;
   display:flex;align-items:center;justify-content:center;
-  font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;font-size:17px;}
-.lt{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:20px;}
-.lt span{color:var(--accent);}
-.lh{font-size:17px;font-weight:700;margin-bottom:4px;}
-.ls2{color:var(--text2);font-size:12px;margin-bottom:24px;}
-.db{padding:11px 14px;border-radius:8px;border:1.5px solid var(--border);
-  cursor:pointer;background:#fff;transition:all .15s;
-  display:flex;align-items:center;gap:12px;margin-bottom:8px;width:100%;text-align:left;}
-.db:hover{border-color:var(--accent);background:var(--accent-l);}
-.db .ri{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;}
-.db .rl{font-weight:700;font-size:13px;}
-.db .rd{font-size:11px;color:var(--text2);}
+  font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;font-size:18px;}
+.auth-logo-text{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:22px;}
+.auth-logo-text span{color:var(--accent);}
+.auth-title{font-size:20px;font-weight:700;margin-bottom:6px;}
+.auth-sub{color:var(--text2);font-size:13px;margin-bottom:28px;line-height:1.5;}
+.auth-step{display:none;}
+.auth-step.active{display:block;}
+.fi{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:13px;font-family:inherit;outline:none;transition:border-color .15s;background:#fff;}
+.fi:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-l);}
+.fi-label{font-size:10px;font-weight:700;color:var(--text2);display:block;margin-bottom:5px;
+  text-transform:uppercase;letter-spacing:.5px;}
+.fi-wrap{margin-bottom:16px;}
+.btn-full{width:100%;padding:12px;border-radius:8px;font-size:14px;font-weight:700;
+  border:none;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-d);}
+.btn-primary:disabled{background:#94a3b8;cursor:not-allowed;}
+.btn-secondary{background:transparent;border:1.5px solid var(--border);color:var(--text);}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.auth-hint{font-size:11px;color:var(--text2);text-align:center;margin-top:16px;line-height:1.5;}
+.auth-hint a{color:var(--accent);cursor:pointer;text-decoration:none;}
+.auth-success{text-align:center;padding:20px 0;}
+.auth-success-icon{font-size:48px;margin-bottom:16px;}
+.auth-success-title{font-size:18px;font-weight:700;margin-bottom:8px;}
+.auth-success-text{color:var(--text2);font-size:13px;line-height:1.6;}
+.auth-alert{padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:14px;display:none;}
+.auth-alert.error{background:#FEE2E2;color:#DC2626;border:1px solid #FECACA;}
+.auth-alert.info{background:var(--accent-l);color:var(--accent);border:1px solid #BFDBFE;}
+.auth-divider{display:flex;align-items:center;gap:10px;margin:20px 0;color:var(--text3);font-size:11px;}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* ── LIZENZ ABGELAUFEN ── */
+#lizenz-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);}
+.lizenz-card{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:480px;
+  box-shadow:var(--sh2);text-align:center;}
+.lizenz-icon{font-size:56px;margin-bottom:20px;}
+.lizenz-title{font-size:20px;font-weight:700;margin-bottom:8px;color:var(--red);}
+.lizenz-text{color:var(--text2);font-size:13px;line-height:1.7;margin-bottom:24px;}
+.lizenz-grace{background:var(--gold-l);border:1px solid var(--gold);border-radius:8px;
+  padding:12px 16px;font-size:12px;color:var(--gold);margin-bottom:20px;font-weight:600;}
+.lizenz-basis{background:var(--accent-l);border-radius:8px;padding:14px;
+  font-size:12px;color:var(--accent);margin-bottom:20px;text-align:left;}
+.lizenz-basis ul{margin-left:14px;margin-top:6px;}
+.lizenz-basis li{margin-bottom:4px;}
 
 /* ── SHELL ── */
 #app{display:flex;min-height:100vh;}
 .sb{width:var(--sw);background:var(--surface);border-right:1px solid var(--border);
   display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:100;
-  transition:left .2s;}
+  transition:transform .25s;}
 .sb.right{left:auto;right:0;border-right:none;border-left:1px solid var(--border);}
 .sb-head{padding:0 16px;height:var(--hh);border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:10px;}
+  display:flex;align-items:center;gap:10px;flex-shrink:0;}
 .sb-logo{width:30px;height:30px;background:var(--accent);border-radius:7px;
   display:flex;align-items:center;justify-content:center;
   font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;font-size:13px;flex-shrink:0;}
 .sb-lt{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;}
 .sb-lt span{color:var(--accent);}
-
-/* Verein-Box in Sidebar */
-.vb{margin:10px;border-radius:9px;overflow:hidden;}
+.vb{margin:10px;border-radius:9px;overflow:hidden;flex-shrink:0;}
 .vb-inner{padding:10px 12px;background:var(--accent-l);display:flex;align-items:center;gap:10px;}
 .vb-logo{width:36px;height:36px;border-radius:7px;background:var(--accent);
   display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;
@@ -75,7 +108,6 @@ input,select,textarea{font-family:inherit;}
 .vb-logo img{width:100%;height:100%;object-fit:cover;}
 .vb-name{font-weight:700;font-size:12px;color:var(--accent);}
 .vb-sub{font-size:10px;color:var(--text2);}
-
 .sbn{flex:1;overflow-y:auto;padding:8px;}
 .ns{margin-bottom:2px;}
 .nl{padding:9px 8px 3px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;}
@@ -83,18 +115,19 @@ input,select,textarea{font-family:inherit;}
   cursor:pointer;transition:all .12s;color:var(--text2);font-weight:500;font-size:13px;margin-bottom:1px;}
 .ni:hover{background:var(--surface2);color:var(--text);}
 .ni.active{background:var(--accent-l);color:var(--accent);font-weight:600;}
+.ni.locked{opacity:.45;cursor:not-allowed;}
+.ni.locked:hover{background:transparent;color:var(--text2);}
 .ni .ic{font-size:15px;width:18px;text-align:center;}
 .ni .nb{margin-left:auto;background:var(--red);color:#fff;border-radius:20px;
   padding:1px 5px;font-size:10px;font-weight:700;}
-.sb-foot{padding:10px;border-top:1px solid var(--border);}
+.ni .lock-ic{margin-left:auto;font-size:10px;}
+.sb-foot{padding:10px;border-top:1px solid var(--border);flex-shrink:0;}
 .uc{display:flex;align-items:center;gap:9px;padding:7px;border-radius:7px;cursor:pointer;}
 .uc:hover{background:var(--surface2);}
 .ua{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;
   justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0;}
 .un{font-size:12px;font-weight:600;}
 .ur{font-size:10px;color:var(--text2);}
-
-/* ── MAIN ── */
 .main{flex:1;margin-left:var(--sw);display:flex;flex-direction:column;min-height:100vh;}
 .main.sr{margin-left:0;margin-right:var(--sw);}
 .tb{height:var(--hh);background:var(--surface);border-bottom:1px solid var(--border);
@@ -113,22 +146,24 @@ input,select,textarea{font-family:inherit;}
 .btn-sm{padding:4px 9px;font-size:11px;}
 .pc{padding:20px;}
 
+/* ── LIZENZ BANNER ── */
+.lizenz-banner{background:linear-gradient(90deg,#D97706,#EA580C);color:#fff;
+  padding:8px 22px;font-size:12px;font-weight:600;display:flex;align-items:center;
+  justify-content:space-between;}
+.lizenz-banner.grace{background:linear-gradient(90deg,#DC2626,#991B1B);}
+
 /* ── CARDS ── */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);}
 .ch{padding:14px 18px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;}
 .ct{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;}
 .cb{padding:18px;}
-
-/* ── BADGE ── */
 .bdg{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;}
 .bdg-b{background:var(--accent-l);color:var(--accent);}
 .bdg-g{background:var(--green-l);color:var(--green);}
 .bdg-r{background:var(--red-l);color:var(--red);}
 .bdg-o{background:var(--orange-l);color:var(--orange);}
 .bdg-gold{background:var(--gold-l);color:var(--gold);}
-
-/* ── DASHBOARD ── */
 .dg{display:grid;gap:14px;}
 .sr4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
 .sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
@@ -142,8 +177,7 @@ input,select,textarea{font-family:inherit;}
 /* ── KALENDER ── */
 .cg{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
 .ch2{text-align:center;font-size:10px;font-weight:700;color:var(--text3);padding:5px 0;}
-.cd{min-height:52px;border-radius:6px;padding:4px;cursor:pointer;transition:background .1s;
-  position:relative;font-size:11px;font-weight:600;}
+.cd{min-height:52px;border-radius:6px;padding:4px;cursor:pointer;transition:background .1s;font-size:11px;font-weight:600;}
 .cd:hover{background:var(--surface2);}
 .cd.today{background:var(--accent);color:#fff;}
 .cd.today .cd-num{color:#fff;}
@@ -182,34 +216,11 @@ input,select,textarea{font-family:inherit;}
 /* ── SPIELFELD ── */
 .field-wrap{position:relative;width:100%;max-width:340px;margin:0 auto;
   background:linear-gradient(180deg,#2A6B35 0%,#2E7A3C 50%,#2A6B35 100%);
-  border-radius:8px;overflow:hidden;}
+  border-radius:8px;overflow:hidden;aspect-ratio:.62;}
 .field-wrap::before{content:'';position:absolute;inset:0;
   background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0px,rgba(255,255,255,.03) 1px,transparent 1px,transparent 40px);}
-.fw7{aspect-ratio:.62;}
-.fw9{aspect-ratio:.62;}
-.fw11{aspect-ratio:.62;}
 .fl{position:absolute;background:rgba(255,255,255,.3);}
 .fc{position:absolute;border:1px solid rgba(255,255,255,.3);background:transparent;border-radius:50%;}
-/* Mittellinig */
-.fl-mid{top:50%;left:5%;right:5%;height:1px;}
-.fc-mid{width:15%;padding-top:15%;top:50%;left:50%;transform:translate(-50%,-50%);}
-/* Strafraumlinie 7er = Abseitsregel */
-.fl-pen-t{top:22%;left:15%;right:15%;height:2px;background:rgba(255,200,0,.6);}
-.fl-pen-b{bottom:22%;left:15%;right:15%;height:2px;background:rgba(255,200,0,.6);}
-.fl-offs-label-t{position:absolute;top:23%;left:16%;font-size:8px;color:rgba(255,220,0,.9);font-weight:700;}
-.fl-offs-label-b{position:absolute;bottom:23%;left:16%;font-size:8px;color:rgba(255,220,0,.9);font-weight:700;}
-/* Tore */
-.fl-goal-t{top:0;left:35%;right:35%;height:4%;background:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.6);}
-.fl-goal-b{bottom:0;left:35%;right:35%;height:4%;background:rgba(255,255,255,.5);border-top:1px solid rgba(255,255,255,.6);}
-/* Außenlinien */
-.fl-out-l{top:0;bottom:0;left:5%;width:1px;}
-.fl-out-r{top:0;bottom:0;right:5%;width:1px;}
-.fl-out-t{top:0;left:5%;right:5%;height:1px;}
-.fl-out-b{bottom:0;left:5%;right:5%;height:1px;}
-/* Penalty box normal */
-.fl-pb-t{top:0;left:25%;right:25%;height:14%;background:transparent;border:1px solid rgba(255,255,255,.3);border-top:none;}
-.fl-pb-b{bottom:0;left:25%;right:25%;height:14%;background:transparent;border:1px solid rgba(255,255,255,.3);border-bottom:none;}
-
 .fp{position:absolute;transform:translate(-50%,-50%);
   display:flex;flex-direction:column;align-items:center;gap:2px;
   cursor:grab;user-select:none;z-index:10;}
@@ -221,7 +232,6 @@ input,select,textarea{font-family:inherit;}
   transition:transform .1s;pointer-events:none;}
 .fp:hover .fd{transform:scale(1.1);}
 .fd.k{background:var(--gold);color:#fff;}
-.fd.s{background:var(--orange);color:#fff;}
 .fn{font-size:8px;font-weight:700;color:#fff;
   text-shadow:0 1px 3px rgba(0,0,0,.8);
   background:rgba(0,0,0,.45);padding:1px 3px;border-radius:3px;
@@ -237,23 +247,17 @@ input,select,textarea{font-family:inherit;}
 .bw-fill.m{background:var(--gold);}
 .bw-fill.l{background:var(--red);}
 .bw-val{font-size:18px;font-weight:800;font-family:'Space Grotesk',sans-serif;}
-.bw-kom{margin-top:6px;}
 .bw-kom textarea{width:100%;padding:5px 7px;border:1.5px solid var(--border);
   border-radius:6px;font-size:11px;resize:vertical;min-height:40px;
   background:var(--surface);font-family:inherit;color:var(--text);}
 .bw-kom textarea:focus{outline:none;border-color:var(--accent);}
 
 /* ── MAKROZYKLUS ── */
-.mz-phase{margin-bottom:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
-.mz-ph{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;
-  cursor:pointer;user-select:none;}
+.mz-phase{margin-bottom:12px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.mz-ph{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;}
 .mz-ph:hover{background:var(--surface2);}
 .mz-body{padding:14px;background:var(--surface);border-top:1px solid var(--border);}
-.mz-zone{margin-bottom:10px;}
-.mz-zt{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
-.mz-zl{font-size:12px;color:var(--text2);margin-bottom:3px;padding-left:10px;line-height:1.5;}
-.mz-zp{font-size:11px;color:var(--text2);padding-left:18px;margin-bottom:2px;
-  position:relative;}
+.mz-zp{font-size:11px;color:var(--text2);padding-left:18px;margin-bottom:2px;position:relative;}
 .mz-zp::before{content:'•';position:absolute;left:8px;}
 
 /* ── TAKTIK ── */
@@ -269,8 +273,6 @@ input,select,textarea{font-family:inherit;}
 .tk-pd{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
   justify-content:center;font-weight:800;font-size:10px;
   box-shadow:0 2px 8px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.8);}
-.tk-svg{position:absolute;inset:0;pointer-events:none;z-index:5;}
-.tk-draw-canvas{position:absolute;inset:0;z-index:20;display:none;}
 
 /* ── TABS ── */
 .tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px;}
@@ -283,47 +285,124 @@ input,select,textarea{font-family:inherit;}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;
   display:flex;align-items:flex-end;justify-content:center;}
 .bs{background:#fff;border-radius:16px 16px 0 0;padding:22px;
-  width:100%;max-width:500px;max-height:80vh;overflow-y:auto;}
+  width:100%;max-width:500px;max-height:85vh;overflow-y:auto;}
 .bsh{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
-.fi{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:7px;
-  font-size:13px;font-family:inherit;outline:none;transition:border-color .1s;}
-.fi:focus{border-color:var(--accent);}
-.fl2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .flbl{font-size:10px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px;}
+.fl2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+
+/* ── SUPERADMIN MODULE TOGGLE ── */
+.module-toggle{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-bottom:1px solid var(--border);}
+.module-toggle:last-child{border-bottom:none;}
+.toggle-sw{width:38px;height:20px;background:var(--border);border-radius:20px;
+  position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.toggle-sw.on{background:var(--green);}
+.toggle-sw::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;
+  background:#fff;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.toggle-sw.on::after{left:20px;}
+
+/* ── LOADING ── */
+.loading{display:flex;align-items:center;justify-content:center;padding:60px;
+  flex-direction:column;gap:12px;}
+.spinner{width:32px;height:32px;border:3px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="ls">
-  <div class="lc">
-    <div class="ll">
-      <div class="li">C</div>
-      <div class="lt">Coach<span>OS</span></div>
+<!-- ── AUTH SCREEN ── -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">C</div>
+      <div class="auth-logo-text">Coach<span>OS</span></div>
     </div>
-    <div class="lh">Willkommen zurück</div>
-    <div class="ls2">Demo — Rolle wählen zum Starten</div>
-    <button class="db" onclick="loginAs('superadmin')">
-      <div class="ri" style="background:#EBF0FF">🛡️</div>
-      <div><div class="rl">Super-Admin (Dogus)</div><div class="rd">Alle Vereine · Vollzugriff · Lizenzen</div></div>
+
+    <!-- Step 1: Email eingeben -->
+    <div class="auth-step active" id="step-email">
+      <div class="auth-title">Willkommen</div>
+      <div class="auth-sub">Gib deine E-Mail-Adresse ein. Du erhältst einen sicheren Anmeldelink — kein Passwort nötig.</div>
+      <div class="auth-alert" id="email-alert"></div>
+      <div class="fi-wrap">
+        <label class="fi-label">E-Mail-Adresse</label>
+        <input type="email" class="fi" id="email-input" placeholder="trainer@verein.ch" autocomplete="email"
+          onkeydown="if(event.key==='Enter')sendMagicLink()">
+      </div>
+      <button class="btn-full btn-primary" onclick="sendMagicLink()" id="magic-btn">
+        <span id="magic-btn-text">🔐 Sicheren Link senden</span>
+      </button>
+      <div class="auth-divider">oder</div>
+      <button class="btn-full btn-secondary" onclick="showDemo()">Demo ansehen</button>
+      <div class="auth-hint">Kein Konto? <a onclick="window.open('https://coachos.ch','_blank')">Jetzt registrieren</a></div>
+    </div>
+
+    <!-- Step 2: Link verschickt -->
+    <div class="auth-step" id="step-sent">
+      <div class="auth-success">
+        <div class="auth-success-icon">📬</div>
+        <div class="auth-success-title">Link ist unterwegs!</div>
+        <div class="auth-success-text">Wir haben einen sicheren Anmeldelink an<br><strong id="sent-email"></strong><br>geschickt. Klick auf den Link im E-Mail — er ist 24 Stunden gültig.</div>
+      </div>
+      <div style="margin-top:20px;padding:12px;background:var(--surface2);border-radius:8px;font-size:11px;color:var(--text2)">
+        💡 Kein E-Mail erhalten? Spam-Ordner prüfen oder <a style="color:var(--accent);cursor:pointer" onclick="showStep('step-email')">nochmals versuchen</a>.
+      </div>
+    </div>
+
+    <!-- Step 3: Demo-Modus -->
+    <div class="auth-step" id="step-demo">
+      <div class="auth-title">Demo-Modus</div>
+      <div class="auth-sub">Wähle eine Rolle zum Ausprobieren. Alle Daten sind Beispieldaten.</div>
+      <button class="btn-full btn-primary" style="margin-bottom:8px" onclick="loginDemo('superadmin')">
+        🛡️ Super-Admin — Vollzugriff
+      </button>
+      <button class="btn-full btn-secondary" style="margin-bottom:8px" onclick="loginDemo('vereinsleiter')">
+        👔 Vereinsleiter — FC Musterstadt
+      </button>
+      <button class="btn-full btn-secondary" style="margin-bottom:8px" onclick="loginDemo('cheftrainer')">
+        ⚽ Cheftrainer — FE12 Blau
+      </button>
+      <button class="btn-full btn-secondary" style="margin-bottom:8px" onclick="loginDemo('assistent')">
+        📋 Assistent — FE12 Rot
+      </button>
+      <button class="btn-full" style="background:transparent;border:none;color:var(--text2);font-size:12px;margin-top:8px" onclick="showStep('step-email')">← Zurück zur Anmeldung</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── LIZENZ SCREEN (Abo abgelaufen) ── -->
+<div id="lizenz-screen" class="hidden">
+  <div class="lizenz-card">
+    <div class="lizenz-icon">🔒</div>
+    <div class="lizenz-title">Abonnement abgelaufen</div>
+    <div class="lizenz-text">Dein Abonnement ist abgelaufen. Alle deine Daten sind sicher gespeichert und bleiben erhalten.</div>
+    <div class="lizenz-grace" id="grace-info" style="display:none"></div>
+    <div class="lizenz-basis">
+      <strong style="color:var(--accent)">✅ Weiterhin verfügbar (Basis):</strong>
+      <ul>
+        <li>Dashboard — Übersicht</li>
+        <li>Kalender — Termine lesen</li>
+        <li>Spieler — Kader lesen</li>
+        <li>Teams — Übersicht</li>
+      </ul>
+    </div>
+    <button class="btn-full btn-primary" onclick="window.open('https://coachos.ch/abonnement','_blank')">
+      🔓 Abonnement erneuern
     </button>
-    <button class="db" onclick="loginAs('vereinsleiter')">
-      <div class="ri" style="background:#DCFCE7">👔</div>
-      <div><div class="rl">Vereinsleiter</div><div class="rd">FC Musterstadt · Lesen / Bearbeiten / Löschen</div></div>
-    </button>
-    <button class="db" onclick="loginAs('cheftrainer')">
-      <div class="ri" style="background:#FEF3C7">⚽</div>
-      <div><div class="rl">Cheftrainer</div><div class="rd">FE12 Blau · Bearbeiten / Löschen</div></div>
-    </button>
-    <button class="db" onclick="loginAs('assistent')">
-      <div class="ri" style="background:#F3F4F6">📋</div>
-      <div><div class="rl">Assistent</div><div class="rd">FE12 Rot · Erstellen / Bearbeiten (kein Löschen)</div></div>
+    <button class="btn-full btn-secondary" style="margin-top:8px" onclick="showBasisApp()">
+      Basis-Ansicht öffnen
     </button>
   </div>
 </div>
 
-<!-- APP -->
+<!-- ── APP ── -->
 <div id="app" class="hidden">
+  <!-- Lizenz-Banner (wenn fast abgelaufen oder Grace-Period) -->
+  <div id="lizenz-banner" class="lizenz-banner hidden">
+    <span id="lizenz-banner-text"></span>
+    <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:#fff;border:none" onclick="window.open('https://coachos.ch/abonnement','_blank')">Verlängern →</button>
+  </div>
+
   <nav class="sb" id="sb">
     <div class="sb-head">
       <div class="sb-logo">C</div>
@@ -341,12 +420,12 @@ input,select,textarea{font-family:inherit;}
     <nav class="sbn" id="sbn"></nav>
     <div class="sb-foot">
       <div class="uc" onclick="goPage('settings')">
-        <div class="ua" id="ua">DK</div>
-        <div>
-          <div class="un" id="un">Dogus Kaplan</div>
-          <div class="ur" id="ur">Super-Admin</div>
+        <div class="ua" id="ua" style="background:var(--accent)">DK</div>
+        <div style="flex:1;min-width:0">
+          <div class="un" id="un">Laden...</div>
+          <div class="ur" id="ur">—</div>
         </div>
-        <div style="margin-left:auto;color:var(--text3);font-size:10px" onclick="event.stopPropagation();doLogout()">↩</div>
+        <div style="color:var(--text3);font-size:10px;cursor:pointer" onclick="event.stopPropagation();doLogout()" title="Abmelden">↩</div>
       </div>
     </div>
   </nav>
@@ -355,15 +434,17 @@ input,select,textarea{font-family:inherit;}
     <div class="tb">
       <div class="tb-t" id="pt">Dashboard</div>
       <div class="tb-a">
-        <button class="btn btn-o btn-sm" onclick="toggleSide()">⇄ Seite</button>
-        <button class="btn btn-b btn-sm" onclick="goPage('matchvorbereitung')">+ Spiel</button>
+        <button class="btn btn-o btn-sm" onclick="toggleSide()">⇄</button>
+        <button class="btn btn-b btn-sm" id="tb-action-btn" onclick="goPage('matchvorbereitung')">+ Spiel</button>
       </div>
     </div>
-    <div class="pc" id="pc"></div>
+    <div class="pc" id="pc">
+      <div class="loading"><div class="spinner"></div><div style="color:var(--text2);font-size:13px">Laden...</div></div>
+    </div>
   </div>
 </div>
 
-<!-- OVERLAY -->
+<!-- ── OVERLAY ── -->
 <div class="ov hidden" id="ov" onclick="closeOv()">
   <div class="bs" onclick="event.stopPropagation()">
     <div class="bsh"></div>
@@ -372,208 +453,423 @@ input,select,textarea{font-family:inherit;}
 </div>
 
 <script>
-// ── DATA ─────────────────────────────────────────────
-const ROLES_DATA = {
-  superadmin:   {name:'Dogus Kaplan',    ab:'DK', role:'Super-Admin',     col:'#1B4FDB'},
-  vereinsleiter:{name:'Thomas Müller',   ab:'TM', role:'Vereinsleiter',   col:'#16A34A'},
-  cheftrainer:  {name:'Marco Becker',    ab:'MB', role:'Cheftrainer',     col:'#D97706'},
-  assistent:    {name:'Sara Lehmann',    ab:'SL', role:'Assistentin',     col:'#6B7280'},
+// ═══════════════════════════════════════════════════════════════
+// SUPABASE INIT
+// ═══════════════════════════════════════════════════════════════
+const SUPA_URL = 'https://lmojjiczebnhnbstuweg.supabase.co';
+const SUPA_KEY = 'sb_publishable_xUP-cfbbQd7yWCjfe6XWFA_QLls1y2r';
+const { createClient } = supabase;
+const sb = createClient(SUPA_URL, SUPA_KEY, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true,
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// GLOBALER STATE
+// ═══════════════════════════════════════════════════════════════
+let STATE = {
+  user: null,         // Supabase auth user
+  profile: null,      // profiles row
+  verein: null,       // vereine row
+  module: [],         // aktive module für diesen verein
+  isDemo: false,
+  role: null,
+  lizenzOk: true,
+  graceMode: false,
+  sideRight: false,
+  currentPage: '',
 };
 
-const NAV = {
-  superadmin:[
-    {s:'System',items:[
-      {id:'dashboard',ic:'🏠',lb:'Dashboard'},
-      {id:'vereine',ic:'🏟️',lb:'Vereine',nb:'4'},
-      {id:'lizenzen',ic:'🔑',lb:'Lizenzen'},
-    ]},
-  ],
-  default:[
-    {s:'Übersicht',items:[
-      {id:'dashboard',ic:'🏠',lb:'Dashboard'},
-      {id:'kalender',ic:'📅',lb:'Kalender'},
-    ]},
-    {s:'Verein & Team',items:[
-      {id:'teams',ic:'👥',lb:'Teams'},
-      {id:'spieler',ic:'⚽',lb:'Spieler'},
-      {id:'makrozyklus',ic:'📈',lb:'Makrozyklus'},
-      {id:'bewertungen',ic:'⭐',lb:'Bewertungen'},
-    ]},
-    {s:'Spielbetrieb',items:[
-      {id:'matchvorbereitung',ic:'📋',lb:'Matchvorbereitung',nb:'2'},
-      {id:'aufstellung',ic:'🗂️',lb:'Aufstellungen'},
-      {id:'taktiktafel',ic:'🎯',lb:'Taktiktafel'},
-    ]},
-  ],
+// Demo-Daten
+const DEMO_PROFILES = {
+  superadmin:   {id:'demo-sa', vorname:'Dogus', nachname:'Kaplan', email:'dogusk@fe.ch', rolle:'superadmin', aktiv:true},
+  vereinsleiter:{id:'demo-vl', vorname:'Thomas', nachname:'Müller', email:'t.mueller@fc-musterstadt.ch', rolle:'vereinsleiter', aktiv:true},
+  cheftrainer:  {id:'demo-ct', vorname:'Marco', nachname:'Becker', email:'m.becker@fc-musterstadt.ch', rolle:'cheftrainer', aktiv:true},
+  assistent:    {id:'demo-as', vorname:'Sara', nachname:'Lehmann', email:'s.lehmann@fc-musterstadt.ch', rolle:'assistent', aktiv:true},
 };
-
-const POSITIONEN = ['TW','IV','LV','RV','DM','ZM','OM','LF','RF','ST'];
-
-const SFV = {
-  'wir_haben_ball':{
-    label:'🟢 Wir haben den Ball',col:'#16A34A',bg:'#DCFCE7',
-    ziele:['Initiativ sein, dynamisch nach vorne spielen','Eigenes Spiel durchsetzen und Gegner dominieren','Lösungen finden, Spiel beschleunigen und Tore erzielen'],
-    zonen:{
-      'Zone 1 — Spiel aufbauen':{
-        prinzipien:['Breite nutzen & präzise Pässe mit Variation kurz, lang oder diagonal','Initiative der Innenverteidiger und Einbezug der zentralen Mittelfeldspieler','Freilaufbewegungen, Orientierung, Signale erkennen','Einen «Zielspieler» einbeziehen','Den freien Raum erkennen und nutzen; Pass oder Dribbling in Zone 2'],
-      },
-      'Zone 2 — Spiel bestimmen':{
-        prinzipien:['Spiel zwischen den Linien (Vertikalpass) mit Dreiecks- und Rhombusbildung','Gegner fixieren im 1:1, Spielverlagerung (Diagonal) oder Dribbling','Dosierte, präzise Pässe und Timing der Freilaufbewegungen','Vertikales Spiel, «Zielspieler» finden','Räume schaffen und besetzen, Signale erkennen'],
-      },
-      'Zone 3/BOX — Angriff abschliessen':{
-        prinzipien:['Den freien Raum nutzen, um Richtung gegnerisches Tor zu gelangen','Kombinationsspiel mit hoher Intensität: Doppelpass, Hinterlaufen, Kreuzen, Virgola','Besetzung der Box: Entschlossenheit und Qualität im Abschluss','Sprints, Signale erkennen','1:1 suchen und gewinnen'],
-      },
-    },
-  },
-  'wir_verlieren_ball':{
-    label:'🔴 Wir verlieren den Ball',col:'#DC2626',bg:'#FEE2E2',
-    ziele:['Initiative behalten, weiterhin agieren','Spielsituation rasch erkennen und blitzschnell entscheiden','Raum und Zeit für den Gegner einschränken, um Gegentor zu verhindern'],
-    zonen:{
-      'Zone 1/BOX — Tor verteidigen':{
-        prinzipien:['Direkten Weg zum Tor schützen','So schnell wie möglich Überzahl in Ballnähe schaffen (Pyramide bilden)','Ballführenden Spieler unter Druck setzen','Duell suchen, Schuss und Flanke blockieren','Duell 1:1 in der Box gewinnen'],
-      },
-      'Zone 2 — Gegenangriff bremsen':{
-        prinzipien:['Ballführenden Spieler sofort unter Druck setzen, Nähe zum Gegenspieler','Vertikalen Pass verhindern (Tiefe absichern)','So schnell wie möglich Überzahl in Ballnähe schaffen (Pyramide bilden)','Falls nicht möglich: fallen lassen, sich organisieren'],
-      },
-      'Zone 3 — Gegenpressing':{
-        prinzipien:['Nach vorne verteidigen','Ballführenden Spieler sofort unter Druck setzen','Prinzip der 3 Kreise','Falls nicht möglich: fallen lassen, sich organisieren mit dem Ziel Ballgewinn'],
-      },
-    },
-  },
-  'wir_haben_ball_nicht':{
-    label:'🔵 Wir haben den Ball nicht',col:'#1B4FDB',bg:'#EBF0FF',
-    ziele:['Initiativ sein, agieren','Ball zurückerobern und Tor verhindern','Spiel des Gegners stören und ihn zu Fehlern zwingen (Raum und Zeit)'],
-    zonen:{
-      'Zone 1/BOX — Tief verteidigen':{
-        prinzipien:['Ballführenden Spieler permanent unter Druck setzen, Überzahl in Ballnähe schaffen','Steuern: Von der Gefahr weg (nach aussen)','Tiefe absichern (Pyramide oder Diagonale)','Flanken und Torschüsse blocken','In der Box: situativ zwischen Mann- oder Raumdeckung entscheiden'],
-      },
-      'Zone 2 — Gegner kontrollieren':{
-        prinzipien:['Ballführenden Spieler permanent unter Druck setzen (Mittelfeldpressing)','Prinzip der 3 Kreise','Wenn Druck nicht möglich: fallen lassen und schnell wieder unter Druck setzen','Steuern: a) Zur Überzahl (zur Mitte) b) Von der Gefahr weg (nach aussen)'],
-      },
-      'Zone 3 — Hoch verteidigen':{
-        prinzipien:['Angriffspressing','Nach vorne verteidigen: Bei Quer-/Rückpass des Gegners','Prinzip der 3 Kreise','Ballführenden Spieler permanent unter Druck setzen, falls nicht möglich: fallen lassen','Den Angriff des Gegners in eine «günstige Position» steuern'],
-      },
-    },
-  },
-  'wir_erobern_ball':{
-    label:'🟠 Wir erobern den Ball',col:'#EA580C',bg:'#FFF3EB',
-    ziele:['Initiative behalten, weiterhin agieren','Spielsituation rasch erkennen und blitzschnell entscheiden','Verfügbaren Raum und Zeit nutzen, um Tore zu erzielen'],
-    zonen:{
-      'Zone 1 — Nach vorne spielen':{
-        prinzipien:['Tiefe nutzen: Direkt oder nach dem zweiten oder dritten Pass (Freilaufbewegungen)','Die Zone 2 oder 3 mit «Zielspielern» suchen','Gezielter langer Ball in den Raum (in den Rücken der gegnerischen Defensive)','Wenn nicht möglich: Ballsicherung mit dem Ziel Neuaufbau'],
-      },
-      'Zone 2 — In die Zone 3 spielen':{
-        prinzipien:['«Zielspieler» in der Zone 3 finden','Schnittstellenpass aus Zone 2 in Zone 3 oder gezielter langer Ball in den Rücken','Individuelle Aktion: Einzeldurchbruch mit oder ohne Ball','Wenn nicht möglich: Ballsicherung (Spielrhythmus kontrollieren)'],
-      },
-      'Zone 3/BOX — Tor erzielen':{
-        prinzipien:['Gegner fixieren, 1:1 suchen und gewinnen','Dosierter, präziser 1. Pass','Pässe und Laufwege aufeinander abstimmen','Raschmöglichst, mit Entschlossenheit und Qualität abschliessen','Wenn nicht möglich: Ballsicherung mit dem Ziel, neue Spielsituation zu schaffen'],
-      },
-    },
-  },
+const DEMO_VEREIN = {
+  id:'demo-verein', name:'FC Musterstadt', kuerzel:'FCM', aktiv:true,
+  lizenz_typ:'pro', lizenz_ende: new Date(Date.now()+30*24*60*60*1000).toISOString().split('T')[0],
+  pilot:false
 };
+const DEMO_MODULE = ['dashboard','kalender','spieler','teams','matchvorbereitung','aufstellung','makrozyklus','bewertungen','taktiktafel'];
+
+// Basis-Module (immer verfügbar, auch nach Abo-Ablauf)
+const BASIS_MODULE = ['dashboard','kalender','spieler','teams'];
 
 const SPIELER_DATA = [
-  {name:'Ben Fischer',pos:'TW',pos2:'',fuss:'R',rating:7,tw:true,min:160,tore:0},
-  {name:'Luis König',pos:'TW',pos2:'',fuss:'L',rating:6,tw:true,min:80,tore:0},
-  {name:'Jan Meier',pos:'IV',pos2:'DM',fuss:'R',rating:9,tw:false,min:180,tore:0},
-  {name:'Max Schulz',pos:'IV',pos2:'LV',fuss:'R',rating:8,tw:false,min:165,tore:1},
-  {name:'Tom Braun',pos:'LV',pos2:'',fuss:'L',rating:7,tw:false,min:140,tore:0},
-  {name:'Noah Becker',pos:'ZM',pos2:'DM',fuss:'R',rating:8,tw:false,min:195,tore:1},
-  {name:'Luca Müller',pos:'ST',pos2:'RF',fuss:'R',rating:9,tw:false,min:210,tore:4},
-  {name:'Tim Keller',pos:'LF',pos2:'ZM',fuss:'L',rating:7,tw:false,min:165,tore:2},
-  {name:'Nico Huber',pos:'RF',pos2:'ST',fuss:'R',rating:7,tw:false,min:120,tore:1},
-  {name:'Paul Suter',pos:'DM',pos2:'IV',fuss:'R',rating:6,tw:false,min:90,tore:0},
+  {id:'s1',vorname:'Ben',nachname:'Fischer',pos:'TW',pos2:'',fuss:'R',rating:7,tw:true,min:160,tore:0},
+  {id:'s2',vorname:'Luis',nachname:'König',pos:'TW',pos2:'',fuss:'L',rating:6,tw:true,min:80,tore:0},
+  {id:'s3',vorname:'Jan',nachname:'Meier',pos:'IV',pos2:'DM',fuss:'R',rating:9,tw:false,min:180,tore:0},
+  {id:'s4',vorname:'Max',nachname:'Schulz',pos:'IV',pos2:'LV',fuss:'R',rating:8,tw:false,min:165,tore:1},
+  {id:'s5',vorname:'Tom',nachname:'Braun',pos:'LV',pos2:'',fuss:'L',rating:7,tw:false,min:140,tore:0},
+  {id:'s6',vorname:'Noah',nachname:'Becker',pos:'ZM',pos2:'DM',fuss:'R',rating:8,tw:false,min:195,tore:1},
+  {id:'s7',vorname:'Luca',nachname:'Müller',pos:'ST',pos2:'RF',fuss:'R',rating:9,tw:false,min:210,tore:4},
+  {id:'s8',vorname:'Tim',nachname:'Keller',pos:'LF',pos2:'ZM',fuss:'L',rating:7,tw:false,min:165,tore:2},
+  {id:'s9',vorname:'Nico',nachname:'Huber',pos:'RF',pos2:'ST',fuss:'R',rating:7,tw:false,min:120,tore:1},
+  {id:'s10',vorname:'Paul',nachname:'Suter',pos:'DM',pos2:'IV',fuss:'R',rating:6,tw:false,min:90,tore:0},
+];
+const POSITIONEN = ['TW','IV','LV','RV','DM','ZM','OM','LF','RF','ST'];
+
+const SFV={
+  wir_haben_ball:{label:'🟢 Wir haben den Ball',col:'#16A34A',bg:'#DCFCE7',
+    ziele:['Initiativ sein, dynamisch nach vorne spielen','Eigenes Spiel durchsetzen und Gegner dominieren','Lösungen finden, Spiel beschleunigen und Tore erzielen'],
+    zonen:{'Zone 1 — Spiel aufbauen':{prinzipien:['Breite nutzen & präzise Pässe mit Variation','Initiative der Innenverteidiger einbeziehen','Freilaufbewegungen, Orientierung, Signale erkennen','Einen «Zielspieler» einbeziehen','Freien Raum erkennen und nutzen']},'Zone 2 — Spiel bestimmen':{prinzipien:['Spiel zwischen den Linien (Vertikalpass)','Gegner fixieren im 1:1, Spielverlagerung','Dosierte, präzise Pässe und Timing','Vertikales Spiel, «Zielspieler» finden','Räume schaffen und besetzen']},'Zone 3/BOX — Angriff abschliessen':{prinzipien:['Freien Raum nutzen Richtung gegnerisches Tor','Kombinationsspiel: Doppelpass, Hinterlaufen, Kreuzen','Besetzung der Box: Entschlossenheit im Abschluss','Sprints, Signale erkennen','1:1 suchen und gewinnen']}}},
+  wir_verlieren_ball:{label:'🔴 Wir verlieren den Ball',col:'#DC2626',bg:'#FEE2E2',
+    ziele:['Initiative behalten, weiterhin agieren','Spielsituation rasch erkennen und entscheiden','Raum und Zeit für den Gegner einschränken'],
+    zonen:{'Zone 3 — Gegenpressing':{prinzipien:['Nach vorne verteidigen','Ballführenden Spieler sofort unter Druck setzen','Prinzip der 3 Kreise','Falls nicht möglich: fallen lassen, sich organisieren']},'Zone 2 — Gegenangriff bremsen':{prinzipien:['Ballführenden Spieler sofort unter Druck setzen','Vertikalen Pass verhindern (Tiefe absichern)','Überzahl in Ballnähe schaffen']},'Zone 1/BOX — Tor verteidigen':{prinzipien:['Direkten Weg zum Tor schützen','Überzahl in Ballnähe schaffen (Pyramide)','Ballführenden Spieler unter Druck setzen','Duell 1:1 in der Box gewinnen']}}},
+  wir_haben_ball_nicht:{label:'🔵 Wir haben den Ball nicht',col:'#1B4FDB',bg:'#EBF0FF',
+    ziele:['Initiativ sein, agieren','Ball zurückerobern und Tor verhindern','Spiel des Gegners stören'],
+    zonen:{'Zone 3 — Hoch verteidigen':{prinzipien:['Angriffspressing','Nach vorne verteidigen','Prinzip der 3 Kreise','Ballführenden Spieler unter Druck setzen']},'Zone 2 — Gegner kontrollieren':{prinzipien:['Mittelfeldpressing','Prinzip der 3 Kreise','Steuern: zur Mitte oder von Gefahr weg']},'Zone 1/BOX — Tief verteidigen':{prinzipien:['Ballführenden Spieler permanent unter Druck','Tiefe absichern (Pyramide oder Diagonale)','Flanken und Torschüsse blocken']}}},
+  wir_erobern_ball:{label:'🟠 Wir erobern den Ball',col:'#EA580C',bg:'#FFF3EB',
+    ziele:['Initiative behalten, weiterhin agieren','Spielsituation rasch erkennen und entscheiden','Verfügbaren Raum nutzen, um Tore zu erzielen'],
+    zonen:{'Zone 1 — Nach vorne spielen':{prinzipien:['Tiefe nutzen: Direkt oder nach zweitem Pass','Die Zone 2 oder 3 mit «Zielspielern» suchen','Gezielter langer Ball in den Raum','Wenn nicht möglich: Ballsicherung']},'Zone 2 — In die Zone 3 spielen':{prinzipien:['«Zielspieler» in der Zone 3 finden','Schnittstellenpass oder gezielter langer Ball','Individuelle Aktion: Einzeldurchbruch','Wenn nicht möglich: Ballsicherung']},'Zone 3/BOX — Tor erzielen':{prinzipien:['Gegner fixieren, 1:1 suchen und gewinnen','Dosierter, präziser 1. Pass','Pässe und Laufwege abstimmen','Raschmöglichst abschliessen']}}},
+};
+
+const MZ_PHASES=[
+  {lb:'Vorbereitung',dates:'Jul–Aug',col:'#1B4FDB',sfv:null,typ:'vorbereitung'},
+  {lb:'Aufbauphase',dates:'Aug–Sep',col:'#16A34A',sfv:'wir_haben_ball',typ:'normal'},
+  {lb:'Intensivphase',dates:'Sep–Okt',col:'#D97706',sfv:'wir_verlieren_ball',typ:'normal'},
+  {lb:'Wettkampfphase',dates:'Okt–Nov',col:'#DC2626',sfv:'wir_haben_ball_nicht',typ:'normal'},
+  {lb:'Ferienphase',dates:'Okt',col:'#6B7280',sfv:null,typ:'ferien'},
+  {lb:'Abschluss',dates:'Nov–Dez',col:'#8B5CF6',sfv:'wir_erobern_ball',typ:'normal'},
 ];
 
-let role='',sideRight=false;
+const CAL_EVENTS={3:{type:'ms',vs:'FC Riehen'},10:{type:'ts',vs:'SC Bettlach'},22:{type:'tu',vs:'Turnier BB'},24:{type:'ms',vs:'FC Riehen B'}};
 
-// ── LOGIN ─────────────────────────────────────────────
-function loginAs(r){
-  role=r;
-  const u=ROLES_DATA[r];
-  document.getElementById('ls').classList.add('hidden');
+const ROLE_COLORS={superadmin:'#1B4FDB',vereinsleiter:'#16A34A',cheftrainer:'#D97706',assistent:'#6B7280'};
+const ROLE_LABELS={superadmin:'Super-Admin',vereinsleiter:'Vereinsleiter',cheftrainer:'Cheftrainer',assistent:'Assistent'};
+
+// ═══════════════════════════════════════════════════════════════
+// AUTH FLOWS
+// ═══════════════════════════════════════════════════════════════
+function showStep(id){
+  document.querySelectorAll('.auth-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showAlert(id,msg,type='error'){
+  const el=document.getElementById(id);
+  el.textContent=msg;el.className=`auth-alert ${type}`;el.style.display='block';
+}
+function hideAlert(id){document.getElementById(id).style.display='none';}
+
+async function sendMagicLink(){
+  const email=document.getElementById('email-input').value.trim().toLowerCase();
+  if(!email||!email.includes('@')){showAlert('email-alert','Bitte gültige E-Mail-Adresse eingeben.');return;}
+  const btn=document.getElementById('magic-btn');
+  const txt=document.getElementById('magic-btn-text');
+  btn.disabled=true;txt.textContent='⏳ Wird gesendet...';
+  hideAlert('email-alert');
+  try{
+    const{error}=await sb.auth.signInWithOtp({
+      email,
+      options:{emailRedirectTo:window.location.href}
+    });
+    if(error)throw error;
+    document.getElementById('sent-email').textContent=email;
+    showStep('step-sent');
+  }catch(e){
+    showAlert('email-alert',e.message||'Fehler beim Senden. Bitte nochmals versuchen.');
+  }finally{btn.disabled=false;txt.textContent='🔐 Sicheren Link senden';}
+}
+
+function showDemo(){showStep('step-demo');}
+
+function loginDemo(role){
+  STATE.isDemo=true;
+  STATE.profile=DEMO_PROFILES[role];
+  STATE.role=role;
+  STATE.verein=DEMO_VEREIN;
+  STATE.module=DEMO_MODULE;
+  STATE.lizenzOk=true;
+  STATE.graceMode=false;
+  initApp();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// SESSION CHECK (echter Login via Magic Link)
+// ═══════════════════════════════════════════════════════════════
+async function checkSession(){
+  const{data:{session}}=await sb.auth.getSession();
+  if(!session)return false;
+  STATE.user=session.user;
+  await loadProfile();
+  return true;
+}
+
+async function loadProfile(){
+  const{data:profile,error}=await sb.from('profiles').select('*').eq('id',STATE.user.id).single();
+  if(error||!profile){
+    // Profil nicht gefunden — Fehler anzeigen
+    showAlert('email-alert','Kein Konto gefunden. Bitte beim Administrator melden.','error');
+    await sb.auth.signOut();
+    return;
+  }
+  STATE.profile=profile;
+  STATE.role=profile.rolle;
+  if(profile.verein_id){
+    await loadVerein(profile.verein_id);
+  }
+}
+
+async function loadVerein(verein_id){
+  const{data:verein}=await sb.from('vereine').select('*').eq('id',verein_id).single();
+  if(verein){
+    STATE.verein=verein;
+    checkLizenz(verein);
+    await loadModule(verein_id);
+  }
+}
+
+function checkLizenz(verein){
+  if(STATE.role==='superadmin'){STATE.lizenzOk=true;STATE.graceMode=false;return;}
+  if(!verein.aktiv){STATE.lizenzOk=false;STATE.graceMode=false;return;}
+  if(!verein.lizenz_ende){STATE.lizenzOk=true;return;}
+  const heute=new Date();
+  const ende=new Date(verein.lizenz_ende);
+  const diffDays=Math.ceil((heute-ende)/(1000*60*60*24));
+  if(diffDays<=0){STATE.lizenzOk=true;STATE.graceMode=false;}
+  else if(diffDays<=3){STATE.lizenzOk=true;STATE.graceMode=true;STATE.graceDaysLeft=3-diffDays+1;}
+  else{STATE.lizenzOk=false;STATE.graceMode=false;}
+}
+
+async function loadModule(verein_id){
+  const{data:mods}=await sb.from('verein_module').select('modul').eq('verein_id',verein_id).eq('aktiv',true);
+  STATE.module=mods?mods.map(m=>m.modul):BASIS_MODULE;
+}
+
+function hasModule(mod){
+  if(STATE.role==='superadmin')return true;
+  if(!STATE.lizenzOk)return BASIS_MODULE.includes(mod);
+  return STATE.module.includes(mod)||BASIS_MODULE.includes(mod);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// APP INIT
+// ═══════════════════════════════════════════════════════════════
+async function boot(){
+  // Auth state listener (für Magic Link)
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(event==='SIGNED_IN'&&session&&!STATE.isDemo){
+      STATE.user=session.user;
+      await loadProfile();
+      if(STATE.profile){
+        if(!STATE.lizenzOk&&!STATE.graceMode){showLizenzScreen();}
+        else{initApp();}
+      }
+    }
+    if(event==='SIGNED_OUT'){
+      STATE={user:null,profile:null,verein:null,module:[],isDemo:false,role:null,lizenzOk:true,graceMode:false,sideRight:false,currentPage:''};
+      document.getElementById('app').classList.add('hidden');
+      document.getElementById('auth-screen').classList.remove('hidden');
+    }
+  });
+
+  // Check existing session
+  const hasSession=await checkSession();
+  if(hasSession&&STATE.profile){
+    if(!STATE.lizenzOk&&!STATE.graceMode){showLizenzScreen();}
+    else{initApp();}
+  }
+}
+
+function initApp(){
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('lizenz-screen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
+  renderUserInfo();
+  renderLizenzBanner();
+  buildNav();
+  goPage('dashboard');
+}
+
+function showLizenzScreen(){
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('lizenz-screen').classList.remove('hidden');
+  if(STATE.graceMode){
+    const gi=document.getElementById('grace-info');
+    gi.textContent=`⚠️ Noch ${STATE.graceDaysLeft} Tag(e) Zugang. Danach nur noch Basis-Module.`;
+    gi.style.display='block';
+  }
+}
+
+function showBasisApp(){
+  STATE.lizenzOk=false;
+  initApp();
+}
+
+function renderUserInfo(){
+  const p=STATE.profile;
+  if(!p)return;
+  const ab=(p.vorname?.[0]||'')+(p.nachname?.[0]||'');
+  const col=ROLE_COLORS[p.rolle]||'#1B4FDB';
+  const lbl=ROLE_LABELS[p.rolle]||p.rolle;
   const av=document.getElementById('ua');
-  av.textContent=u.ab; av.style.background=u.col;
-  document.getElementById('un').textContent=u.name;
-  document.getElementById('ur').textContent=u.role;
-  if(r==='superadmin'){
+  av.textContent=ab;av.style.background=col;
+  document.getElementById('un').textContent=`${p.vorname||''} ${p.nachname||''}`.trim()||p.email||'—';
+  document.getElementById('ur').textContent=lbl;
+
+  // Verein-Box
+  if(STATE.role==='superadmin'){
     document.getElementById('vb-logo').textContent='SA';
     document.getElementById('vb-name').textContent='Super-Admin';
-    document.getElementById('vb-sub').textContent='4 Vereine · Vollzugriff';
-  } else if(r==='vereinsleiter'){
-    document.getElementById('vb-logo').textContent='FC';
-    document.getElementById('vb-name').textContent='FC Musterstadt';
-    document.getElementById('vb-sub').textContent='3 Teams · Leiter';
-  } else {
-    document.getElementById('vb-logo').textContent='FB';
-    document.getElementById('vb-name').textContent='FC Musterstadt';
-    document.getElementById('vb-sub').textContent=r==='cheftrainer'?'FE12 Blau · Cheftrainer':'FE12 Rot · Assistentin';
+    document.getElementById('vb-sub').textContent='Vollzugriff · Alle Vereine';
+  } else if(STATE.verein){
+    const v=STATE.verein;
+    document.getElementById('vb-logo').textContent=(v.kuerzel||v.name.slice(0,2)).toUpperCase();
+    document.getElementById('vb-name').textContent=v.name;
+    document.getElementById('vb-sub').textContent=`${ROLE_LABELS[STATE.role]||STATE.role}`;
   }
-  buildNav(); goPage('dashboard');
-}
-function doLogout(){
-  document.getElementById('app').classList.add('hidden');
-  document.getElementById('ls').classList.remove('hidden');
-}
-function toggleSide(){
-  sideRight=!sideRight;
-  document.getElementById('sb').classList.toggle('right',sideRight);
-  document.getElementById('mc').classList.toggle('sr',sideRight);
 }
 
-// ── NAV ───────────────────────────────────────────────
+function renderLizenzBanner(){
+  const banner=document.getElementById('lizenz-banner');
+  const txt=document.getElementById('lizenz-banner-text');
+  if(STATE.graceMode){
+    banner.classList.remove('hidden');
+    banner.classList.add('grace');
+    txt.textContent=`⚠️ Abonnement abgelaufen — noch ${STATE.graceDaysLeft} Tag(e) Vollzugang. Daten bleiben erhalten.`;
+  } else if(STATE.verein&&STATE.verein.lizenz_ende){
+    const heute=new Date();
+    const ende=new Date(STATE.verein.lizenz_ende);
+    const diffDays=Math.ceil((ende-heute)/(1000*60*60*24));
+    if(diffDays<=14&&diffDays>0){
+      banner.classList.remove('hidden');
+      txt.textContent=`⏳ Abonnement läuft in ${diffDays} Tagen ab.`;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════════
+const NAV_SUPERADMIN=[
+  {s:'System',items:[
+    {id:'dashboard',ic:'🏠',lb:'Dashboard'},
+    {id:'vereine',ic:'🏟️',lb:'Vereine',nb:'4'},
+    {id:'lizenzen',ic:'🔑',lb:'Lizenzen'},
+    {id:'anfragen',ic:'📩',lb:'Anfragen',nb:'2'},
+  ]},
+];
+const NAV_DEFAULT=[
+  {s:'Übersicht',items:[
+    {id:'dashboard',ic:'🏠',lb:'Dashboard'},
+    {id:'kalender',ic:'📅',lb:'Kalender'},
+  ]},
+  {s:'Verein & Team',items:[
+    {id:'teams',ic:'👥',lb:'Teams'},
+    {id:'spieler',ic:'⚽',lb:'Spieler'},
+    {id:'makrozyklus',ic:'📈',lb:'Makrozyklus',mod:'makrozyklus'},
+    {id:'bewertungen',ic:'⭐',lb:'Bewertungen',mod:'bewertungen'},
+  ]},
+  {s:'Spielbetrieb',items:[
+    {id:'matchvorbereitung',ic:'📋',lb:'Matchvorbereitung',nb:'2',mod:'matchvorbereitung'},
+    {id:'aufstellung',ic:'🗂️',lb:'Aufstellungen',mod:'aufstellung'},
+    {id:'taktiktafel',ic:'🎯',lb:'Taktiktafel',mod:'taktiktafel'},
+  ]},
+];
+
 function buildNav(){
   const nav=document.getElementById('sbn');
   nav.innerHTML='';
-  const items=role==='superadmin'?NAV.superadmin:NAV.default;
-  items.forEach(sec=>{
+  const sections=STATE.role==='superadmin'?NAV_SUPERADMIN:NAV_DEFAULT;
+  sections.forEach(sec=>{
     const s=document.createElement('div');s.className='ns';
     s.innerHTML=`<div class="nl">${sec.s}</div>`;
     sec.items.forEach(it=>{
+      const locked=it.mod&&!hasModule(it.mod);
       const e=document.createElement('div');
-      e.className='ni'+(it.id===currentPage?' active':'');
+      e.className='ni'+(it.id===STATE.currentPage?' active':'')+(locked?' locked':'');
       e.id='n-'+it.id;
-      e.innerHTML=`<span class="ic">${it.ic}</span>${it.lb}${it.nb?`<span class="nb">${it.nb}</span>`:''}`;
-      e.onclick=()=>goPage(it.id);
+      e.innerHTML=`<span class="ic">${it.ic}</span>${it.lb}${it.nb&&!locked?`<span class="nb">${it.nb}</span>`:''}${locked?`<span class="lock-ic">🔒</span>`:''}`;
+      if(!locked)e.onclick=()=>goPage(it.id);
+      else e.onclick=()=>showModuleLocked(it.lb);
       s.appendChild(e);
     });
     nav.appendChild(s);
   });
 }
-let currentPage='';
+
+function showModuleLocked(name){
+  showOv(`<div style="text-align:center;padding:10px">
+    <div style="font-size:36px;margin-bottom:12px">🔒</div>
+    <div style="font-weight:700;font-size:15px;margin-bottom:8px">${name}</div>
+    <div style="color:var(--text2);font-size:12px;margin-bottom:20px">Dieses Modul ist in deinem aktuellen Paket nicht enthalten oder muss vom Super-Admin aktiviert werden.</div>
+    <button class="btn btn-b" style="width:100%" onclick="closeOv()">Verstanden</button>
+  </div>`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PAGE ROUTING
+// ═══════════════════════════════════════════════════════════════
+const PAGE_TITLES={dashboard:'Dashboard',kalender:'Kalender',teams:'Teams',spieler:'Spieler',
+  bewertungen:'Bewertungen',matchvorbereitung:'Matchvorbereitung',
+  aufstellung:'Aufstellungen',taktiktafel:'Taktiktafel',makrozyklus:'Makrozyklus',
+  vereine:'Vereinsverwaltung',lizenzen:'Lizenzen',anfragen:'Anmelde-Anfragen',settings:'Einstellungen'};
+
 function goPage(id){
-  currentPage=id;
+  if(!hasModule(id)&&!['dashboard','kalender','teams','spieler','settings','vereine','lizenzen','anfragen'].includes(id)){
+    showModuleLocked(PAGE_TITLES[id]||id);return;
+  }
+  STATE.currentPage=id;
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('active'));
   const nel=document.getElementById('n-'+id);
   if(nel)nel.classList.add('active');
-  const titles={dashboard:'Dashboard',kalender:'Kalender',teams:'Teams',spieler:'Spieler',
-    bewertungen:'Bewertungen',matchvorbereitung:'Matchvorbereitung',
-    aufstellung:'Aufstellungen',taktiktafel:'Taktiktafel',makrozyklus:'Makrozyklus',
-    vereine:'Vereinsverwaltung',lizenzen:'Lizenzen',settings:'Einstellungen'};
-  document.getElementById('pt').textContent=titles[id]||id;
+  document.getElementById('pt').textContent=PAGE_TITLES[id]||id;
   const el=document.getElementById('pc');
   el.innerHTML='';
-  ({dashboard:pDash,kalender:pKal,spieler:pSpieler,bewertungen:pBew,
+  const pages={
+    dashboard:pDash,kalender:pKal,spieler:pSpieler,bewertungen:pBew,
     matchvorbereitung:pMatch,aufstellung:pAufst,taktiktafel:pTaktik,
-    makrozyklus:pMakro,vereine:pVereine,lizenzen:pLiz,settings:pSet,teams:pTeams}[id]||((e)=>e.innerHTML='<div style="padding:40px;color:var(--text2);text-align:center">In Entwicklung</div>'))(el);
+    makrozyklus:pMakro,vereine:pVereine,lizenzen:pLiz,anfragen:pAnfragen,
+    settings:pSet,teams:pTeams
+  };
+  (pages[id]||pInDev)(el);
 }
 
-// ── DASHBOARD ─────────────────────────────────────────
+function pInDev(el){el.innerHTML='<div style="padding:60px;text-align:center;color:var(--text2)"><div style="font-size:32px;margin-bottom:12px">🚧</div><div style="font-weight:600">In Entwicklung</div></div>';}
+
+function toggleSide(){
+  STATE.sideRight=!STATE.sideRight;
+  document.getElementById('sb').classList.toggle('right',STATE.sideRight);
+  document.getElementById('mc').classList.toggle('sr',STATE.sideRight);
+}
+
+async function doLogout(){
+  if(STATE.isDemo){
+    STATE={user:null,profile:null,verein:null,module:[],isDemo:false,role:null,lizenzOk:true,graceMode:false,sideRight:false,currentPage:''};
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('auth-screen').classList.remove('hidden');
+    showStep('step-email');
+    return;
+  }
+  await sb.auth.signOut();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════════════════
 function pDash(el){
-  if(role==='superadmin'){pSuperDash(el);return;}
+  if(STATE.role==='superadmin'){pSuperDash(el);return;}
+  const isReadOnly=!STATE.lizenzOk;
   el.innerHTML=`
   <div class="dg">
+    ${isReadOnly?`<div style="background:var(--red-l);border:1px solid var(--red);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--red)">
+      🔒 <strong>Abonnement abgelaufen.</strong> Nur Basis-Funktionen verfügbar. Deine Daten sind sicher. <a style="color:var(--red);font-weight:700;text-decoration:underline;cursor:pointer" onclick="window.open('https://coachos.ch/abonnement','_blank')">Jetzt verlängern →</a>
+    </div>`:''}
     <div class="sr4">
       <div class="sc"><div style="font-size:20px;margin-bottom:6px">👥</div><div class="sv">18</div><div class="sl">Spieler im Kader</div><div class="sd up">▲ 2 neu</div></div>
       <div class="sc"><div style="font-size:20px;margin-bottom:6px">⚽</div><div class="sv">6</div><div class="sl">Spiele gespielt</div><div class="sd up">4S · 1U · 1N</div></div>
-      <div class="sc"><div style="font-size:20px;margin-bottom:6px">⭐</div><div class="sv">7.4</div><div class="sl">Ø Bewertung Team</div><div class="sd up">▲ +0.3 vs Q1</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">⭐</div><div class="sv">7.4</div><div class="sl">Ø Bewertung</div><div class="sd up">▲ +0.3 vs Q1</div></div>
       <div class="sc"><div style="font-size:20px;margin-bottom:6px">📅</div><div class="sv">3</div><div class="sl">Nächste Spiele</div><div class="sd warn">⚡ Sa 24. Aug</div></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 320px;gap:14px">
       <div class="card">
-        <div class="ch">
-          <span class="ct">📅 August 2025</span>
+        <div class="ch"><span class="ct">📅 August 2025</span>
           <div style="display:flex;gap:6px">
             <button class="btn btn-o btn-sm">‹</button>
             <button class="btn btn-o btn-sm">›</button>
@@ -587,17 +883,17 @@ function pDash(el){
         </div>
       </div>
       <div class="card">
-        <div class="ch"><span class="ct">⚡ Nächste Spiele</span><button class="btn btn-b btn-sm" onclick="goPage('matchvorbereitung')">Vorbereiten</button></div>
-        <div style="padding:0 16px">${nextG()}</div>
+        <div class="ch"><span class="ct">⚡ Nächste Spiele</span>${!isReadOnly?`<button class="btn btn-b btn-sm" onclick="goPage('matchvorbereitung')">Vorbereiten</button>`:''}</div>
+        <div style="padding:0 16px">${buildNextG()}</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div class="card">
         <div class="ch"><span class="ct">🏆 Einsätze & Tore</span><button class="btn btn-o btn-sm" onclick="goPage('spieler')">Alle</button></div>
-        <div style="padding:0 18px">${topSp()}</div>
+        <div style="padding:0 18px">${buildTopSp()}</div>
       </div>
       <div class="card">
-        <div class="ch"><span class="ct">🧭 Aktueller SFV Fokus</span></div>
+        <div class="ch"><span class="ct">🧭 SFV Spielphilosophie</span></div>
         <div class="cb">
           <div style="background:#DCFCE7;border-radius:8px;padding:12px;margin-bottom:10px;border-left:3px solid #16A34A">
             <div style="font-weight:700;font-size:12px;color:#16A34A;margin-bottom:4px">✅ Aktive Phase: Wir haben den Ball</div>
@@ -609,14 +905,13 @@ function pDash(el){
             <div style="font-weight:700;font-size:12px;color:#EA580C">Wir erobern den Ball</div>
             <div style="font-size:11px;color:var(--text2)">Zone 1: Nach vorne spielen · Umschalten DEF→OFF</div>
           </div>
-          <button class="btn btn-o btn-sm" style="margin-top:10px;width:100%" onclick="goPage('makrozyklus')">Makrozyklus öffnen →</button>
+          ${hasModule('makrozyklus')?`<button class="btn btn-o btn-sm" style="margin-top:10px;width:100%" onclick="goPage('makrozyklus')">Makrozyklus öffnen →</button>`:''}
         </div>
       </div>
     </div>
   </div>`;
 }
 
-const CAL_EVENTS={3:{type:'ms',vs:'FC Riehen'},10:{type:'ts',vs:'SC Bettlach'},22:{type:'tu',vs:'Turnier BB'},24:{type:'ms',vs:'FC Riehen B'}};
 function buildCal(){
   const days=['Mo','Di','Mi','Do','Fr','Sa','So'];
   let h=`<div class="cg">`;
@@ -626,77 +921,168 @@ function buildCal(){
     const ev=CAL_EVENTS[d];
     h+=`<div class="cd${d===20?' today':''}" onclick="calClick(${d})">
       <span class="cd-num">${d}</span>
-      ${ev?`<span class="ev-dot ev-${ev.type}">${ev.type.toUpperCase()}</span><div style="font-size:8px;color:${d===20?'#fff':'var(--text2)'};margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${ev.vs}</div>`:''}
+      ${ev?`<span class="ev-dot ev-${ev.type}">${ev.type.toUpperCase()}</span><div style="font-size:8px;color:${d===20?'#fff':'var(--text2)'};overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${ev.vs}</div>`:''}
     </div>`;
   }
-  h+='</div>';
-  return h;
+  return h+'</div>';
 }
+
 function calClick(d){
   const ev=CAL_EVENTS[d];
   showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">📅 ${d}. August 2025</div>
     ${ev?`<div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:14px">
       <div style="font-weight:700;font-size:13px">${ev.type==='ms'?'Meisterschaft':ev.type==='ts'?'Testspiel':'Turnier'} · vs ${ev.vs}</div>
     </div>`:'<div style="color:var(--text2);margin-bottom:14px">Kein Spiel an diesem Tag.</div>'}
-    <label class="flbl">Notiz hinzufügen</label>
-    <textarea class="fi" style="height:80px;resize:vertical;margin-top:4px;margin-bottom:12px" placeholder="z.B. Treffpunkt 13:30, Trikot mitbringen..."></textarea>
+    <label class="flbl">Notiz</label>
+    <textarea class="fi" style="height:80px;resize:vertical;margin-top:4px;margin-bottom:12px" placeholder="z.B. Treffpunkt 13:30 Uhr..."></textarea>
     <button class="btn btn-b" style="width:100%" onclick="closeOv()">Speichern</button>`);
 }
-function nextG(){
+
+function buildNextG(){
   const g=[{d:'24',m:'AUG',vs:'FC Riehen B',t:'Meisterschaft',o:'Herti, Basel',fmt:'7er'},
            {d:'31',m:'AUG',vs:'SC Bettlach',t:'Meisterschaft',o:'Auswärts',fmt:'7er'},
            {d:'07',m:'SEP',vs:'Turnier Bruderholz',t:'Turnier',o:'Bruderholz',fmt:'7er'}];
   return g.map(x=>`<div class="ng">
     <div class="nd"><div class="ndd">${x.d}</div><div class="ndm">${x.m}</div></div>
     <div style="flex:1"><div class="nv">vs ${x.vs}</div><div class="nm">${x.t} · ${x.o} · ${x.fmt}</div></div>
-    <button class="btn btn-o btn-sm" onclick="goPage('aufstellung')">→</button>
+    ${hasModule('aufstellung')?`<button class="btn btn-o btn-sm" onclick="goPage('aufstellung')">→</button>`:''}
   </div>`).join('');
 }
-function topSp(){
-  return SPIELER_DATA.slice(0,6).sort((a,b)=>b.min-a.min).map(p=>`
+
+function buildTopSp(){
+  return [...SPIELER_DATA].sort((a,b)=>b.min-a.min).slice(0,6).map(p=>`
   <div class="pr" style="grid-template-columns:32px 1fr 40px 30px">
-    <div class="pav">${p.name.split(' ').map(n=>n[0]).join('')}</div>
-    <div><div class="pn">${p.name}</div><div class="pp">${p.pos}${p.pos2?' · '+p.pos2:''} · ${p.min}min</div></div>
+    <div class="pav">${p.vorname[0]}${p.nachname[0]}</div>
+    <div><div class="pn">${p.vorname} ${p.nachname}</div><div class="pp">${p.pos} · ${p.min}min</div></div>
     <div style="font-size:11px;color:var(--text2)">${p.tore}⚽</div>
     <div class="rp ${p.rating>=8?'rh':p.rating>=6?'rm2':'rl'}">${p.rating}</div>
   </div>`).join('');
 }
 
-// ── SUPERADMIN DASH ───────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// SUPERADMIN DASHBOARD
+// ═══════════════════════════════════════════════════════════════
 function pSuperDash(el){
+  const vereine=[
+    {n:'FC Musterstadt',t:3,u:8,l:'Pro',s:'aktiv',c:'#1B4FDB',ab:'FC',ende:'2026-08-01'},
+    {n:'SC Riehen',t:2,u:5,l:'Starter',s:'aktiv',c:'#16A34A',ab:'SC',ende:'2026-06-01'},
+    {n:'BS United',t:5,u:12,l:'Pro',s:'aktiv',c:'#D97706',ab:'BS',ende:'2026-09-01'},
+    {n:'Old Boys Demo',t:2,u:5,l:'Starter',s:'abläuft',c:'#DC2626',ab:'OB',ende:'2025-08-28'},
+  ];
   el.innerHTML=`
   <div class="dg">
     <div class="sr4">
-      <div class="sc"><div style="font-size:20px;margin-bottom:6px">🏟️</div><div class="sv">4</div><div class="sl">Aktive Vereine</div></div>
-      <div class="sc"><div style="font-size:20px;margin-bottom:6px">👥</div><div class="sv">23</div><div class="sl">Total Logins</div></div>
-      <div class="sc"><div style="font-size:20px;margin-bottom:6px">⚠️</div><div class="sv" style="color:var(--orange)">1</div><div class="sl">Lizenz läuft ab</div></div>
-      <div class="sc"><div style="font-size:20px;margin-bottom:6px">✅</div><div class="sv" style="color:var(--green)">12</div><div class="sl">Teams total</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">🏟️</div><div class="sv">${vereine.length}</div><div class="sl">Aktive Vereine</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">👥</div><div class="sv">30</div><div class="sl">Total Logins</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">⚠️</div><div class="sv" style="color:var(--orange)">1</div><div class="sl">Läuft ab (≤14d)</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">📩</div><div class="sv" style="color:var(--accent)">2</div><div class="sl">Neue Anfragen</div></div>
     </div>
     <div class="card">
-      <div class="ch"><span class="ct">🏟️ Vereinsübersicht</span><button class="btn btn-b btn-sm">+ Verein</button></div>
+      <div class="ch"><span class="ct">🏟️ Vereinsübersicht</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-o btn-sm" onclick="goPage('anfragen')">📩 Anfragen</button>
+          <button class="btn btn-b btn-sm" onclick="showAddVerein()">+ Verein</button>
+        </div>
+      </div>
       <div style="padding:0 18px">
-        ${[
-          {n:'FC Musterstadt',t:3,u:8,l:'Pro',s:'aktiv',c:'#1B4FDB',ab:'FC'},
-          {n:'SC Riehen',t:2,u:5,l:'Starter',s:'aktiv',c:'#16A34A',ab:'SC'},
-          {n:'BS United',t:5,u:12,l:'Pro',s:'aktiv',c:'#D97706',ab:'BS'},
-          {n:'Old Boys Demo',t:2,u:5,l:'Starter',s:'abläuft',c:'#DC2626',ab:'OB'},
-        ].map(v=>`
-        <div style="display:grid;grid-template-columns:1fr auto auto auto auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+        ${vereine.map(v=>`
+        <div style="display:grid;grid-template-columns:1fr auto auto auto auto auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
           <div style="display:flex;align-items:center;gap:10px">
             <div style="width:32px;height:32px;border-radius:7px;background:${v.c};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px">${v.ab}</div>
-            <div><div style="font-weight:700;font-size:13px">${v.n}</div><div style="font-size:11px;color:var(--text2)">${v.t} Teams · ${v.u} Logins</div></div>
+            <div><div style="font-weight:700;font-size:13px">${v.n}</div><div style="font-size:11px;color:var(--text2)">${v.t} Teams · ${v.u} Logins · bis ${v.ende}</div></div>
           </div>
           <span class="bdg ${v.s==='aktiv'?'bdg-g':'bdg-r'}">${v.s}</span>
           <span class="bdg bdg-b">${v.l}</span>
-          <button class="btn btn-o btn-sm">Details</button>
-          <button class="btn btn-b btn-sm">🔑</button>
+          <button class="btn btn-o btn-sm" onclick="showVereinDetails('${v.n}')">Details</button>
+          <button class="btn btn-o btn-sm" onclick="showModuleManager('${v.n}')">Module</button>
+          <button class="btn btn-b btn-sm" onclick="showLizenzManager('${v.n}')">🔑 Lizenz</button>
         </div>`).join('')}
       </div>
     </div>
   </div>`;
 }
 
-// ── KALENDER ─────────────────────────────────────────
+function showVereinDetails(name){
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">🏟️ ${name}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <div style="background:var(--surface2);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text2)">STATUS</div><div style="font-weight:700;color:var(--green)">Aktiv</div></div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text2)">PAKET</div><div style="font-weight:700">Pro</div></div>
+    </div>
+    <div class="fi-wrap"><label class="fi-label">Verein aktiv</label>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-g btn-sm">✓ Aktivieren</button>
+      <button class="btn btn-r btn-sm">✕ Deaktivieren</button>
+    </div></div>
+    <button class="btn btn-b" style="width:100%;margin-top:10px" onclick="closeOv()">Schliessen</button>`);
+}
+
+function showModuleManager(vereinName){
+  const mods=[
+    {id:'makrozyklus',lb:'Makrozyklus',on:true},
+    {id:'bewertungen',lb:'Bewertungen',on:true},
+    {id:'taktiktafel',lb:'Taktiktafel',on:true},
+    {id:'iep',lb:'IEP (Entwicklungsplan)',on:false},
+    {id:'mirwald',lb:'Mirwald-Messung',on:false},
+    {id:'gespraeche',lb:'Gespräche',on:false},
+  ];
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">📦 Module — ${vereinName}</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:14px">Basis-Module (Dashboard, Kalender, Spieler, Teams) sind immer aktiv.</div>
+    <div class="card" style="box-shadow:none">
+      ${mods.map(m=>`
+      <div class="module-toggle">
+        <div>
+          <div style="font-weight:600;font-size:13px">${m.lb}</div>
+          <div style="font-size:11px;color:var(--text2)">Zusatzmodul</div>
+        </div>
+        <div class="toggle-sw ${m.on?'on':''}" onclick="this.classList.toggle('on')"></div>
+      </div>`).join('')}
+    </div>
+    <button class="btn btn-b" style="width:100%;margin-top:14px" onclick="closeOv()">Speichern</button>`);
+}
+
+function showLizenzManager(vereinName){
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">🔑 Lizenz — ${vereinName}</div>
+    <div class="fi-wrap"><label class="fi-label">Paket</label>
+    <select class="fi" style="margin-top:4px"><option>Solo (1 Team · 2 Logins)</option><option>Starter (2 Teams · 5 Logins)</option><option selected>Pro (5 Teams · 15 Logins)</option><option>Enterprise (15 Teams · ∞ Logins)</option></select></div>
+    <div class="fi-wrap"><label class="fi-label">Periode</label>
+    <select class="fi" style="margin-top:4px"><option>Monatlich</option><option selected>Jährlich</option></select></div>
+    <div class="fi-wrap"><label class="fi-label">Ablaufdatum</label>
+    <input type="date" class="fi" value="2026-08-01" style="margin-top:4px"></div>
+    <div class="fi-wrap"><label class="fi-label">Pilotpartner (kostenlos)</label>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-g btn-sm">✓ Ja</button>
+      <button class="btn btn-o btn-sm">Nein</button>
+    </div></div>
+    <div style="background:var(--gold-l);border-radius:8px;padding:10px;font-size:11px;color:var(--gold);margin-bottom:14px">
+      ⚠️ Nach Ablauf: 3 Tage Vollzugang (Grace Period), danach automatisch Basis-Modus. Daten bleiben erhalten.
+    </div>
+    <button class="btn btn-b" style="width:100%" onclick="closeOv()">Speichern</button>`);
+}
+
+function showAddVerein(){
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">➕ Neuer Verein</div>
+    <div class="fl2">
+      <div class="fi-wrap"><label class="fi-label">Vereinsname</label><input class="fi" placeholder="FC Beispiel" style="margin-top:4px"></div>
+      <div class="fi-wrap"><label class="fi-label">Kürzel</label><input class="fi" placeholder="FCB" maxlength="4" style="margin-top:4px"></div>
+    </div>
+    <div class="fi-wrap"><label class="fi-label">E-Mail Vereinsleiter</label><input type="email" class="fi" placeholder="leiter@verein.ch" style="margin-top:4px"></div>
+    <div class="fi-wrap"><label class="fi-label">Stadt</label><input class="fi" placeholder="Basel" style="margin-top:4px"></div>
+    <div class="fi-wrap"><label class="fi-label">Paket</label>
+    <select class="fi" style="margin-top:4px"><option>Solo</option><option selected>Starter</option><option>Pro</option><option>Enterprise</option></select></div>
+    <div class="fi-wrap"><label class="fi-label">Pilot (5 Jahre kostenlos)</label>
+    <div style="display:flex;gap:6px;margin-top:4px">
+      <button class="btn btn-g btn-sm">✓ Ja</button>
+      <button class="btn btn-o btn-sm">Nein</button>
+    </div></div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-b" style="flex:1" onclick="closeOv()">Verein erstellen & Magic Link senden</button>
+      <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
+    </div>`);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// KALENDER
+// ═══════════════════════════════════════════════════════════════
 function pKal(el){
   el.innerHTML=`
   <div class="card">
@@ -704,7 +1090,7 @@ function pKal(el){
       <div style="display:flex;gap:6px">
         <button class="btn btn-o btn-sm">‹ Jul</button>
         <button class="btn btn-o btn-sm">Sep ›</button>
-        <button class="btn btn-b btn-sm">+ Termin</button>
+        ${canWrite()?`<button class="btn btn-b btn-sm">+ Termin</button>`:''}
       </div>
     </div>
     <div class="cb">${buildCal()}</div>
@@ -712,14 +1098,17 @@ function pKal(el){
       <span class="ev-dot ev-ms" style="padding:2px 6px">MS</span>
       <span class="ev-dot ev-ts" style="padding:2px 6px">TS</span>
       <span class="ev-dot ev-tu" style="padding:2px 6px">TU</span>
-      <span style="font-size:10px;color:var(--text2);align-self:center">Klick auf Tag für Details / Notiz</span>
+      <span style="font-size:10px;color:var(--text2);align-self:center">Klick auf Tag für Details</span>
     </div>
   </div>`;
 }
 
-// ── SPIELER ───────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// SPIELER
+// ═══════════════════════════════════════════════════════════════
 function pSpieler(el){
-  const canDel=['cheftrainer','vereinsleiter','superadmin'].includes(role);
+  const canDel=['cheftrainer','vereinsleiter','superadmin'].includes(STATE.role);
+  const canAdd=canWrite();
   el.innerHTML=`
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
     <div style="display:flex;gap:6px">
@@ -729,7 +1118,7 @@ function pSpieler(el){
     </div>
     <div style="display:flex;gap:8px">
       <button class="btn btn-o btn-sm">📤 PDF</button>
-      <button class="btn btn-b btn-sm" onclick="showAddSp()">+ Spieler</button>
+      ${canAdd?`<button class="btn btn-b btn-sm" onclick="showAddSp()">+ Spieler</button>`:''}
     </div>
   </div>
   <div class="card">
@@ -743,22 +1132,25 @@ function pSpieler(el){
       ${SPIELER_DATA.map(p=>{
         const rc=p.rating>=8?'rh':p.rating>=6?'rm2':'rl';
         return `<div class="pr" style="grid-template-columns:32px 1fr auto auto auto${canDel?' auto':''}">
-          <div class="pav${p.tw?' style=background:var(--gold-l);color:var(--gold)':''}">${p.name.split(' ').map(n=>n[0]).join('')}</div>
+          <div class="pav" style="${p.tw?'background:var(--gold-l);color:var(--gold)':''}">${p.vorname[0]}${p.nachname[0]}</div>
           <div>
-            <div class="pn">${p.name}${p.tw?` <span style="font-size:9px;padding:1px 4px;background:var(--gold-l);color:var(--gold);border-radius:3px;font-weight:700">TW</span>`:''}</div>
-            <div class="pp">${p.pos}${p.pos2?' · '+p.pos2:''} · ${p.fuss}${p.fuss2?' / '+p.fuss2:''}</div>
+            <div class="pn">${p.vorname} ${p.nachname}${p.tw?` <span style="font-size:9px;padding:1px 4px;background:var(--gold-l);color:var(--gold);border-radius:3px;font-weight:700">TW</span>`:''}</div>
+            <div class="pp">${p.pos}${p.pos2?' · '+p.pos2:''} · Fuss ${p.fuss}</div>
           </div>
           <div class="rp ${rc}">${p.rating}</div>
-          <button class="btn btn-o btn-sm" onclick="showSpDetail('${p.name}')">Detail</button>
-          <button class="btn btn-o btn-sm" onclick="goPage('bewertungen')">⭐</button>
-          ${canDel?`<button class="btn btn-sm" style="background:var(--red-l);color:var(--red)" onclick="confirmDel('${p.name}')">✕</button>`:''}
+          <button class="btn btn-o btn-sm" onclick="showSpDetail('${p.id}')">Detail</button>
+          ${hasModule('bewertungen')?`<button class="btn btn-o btn-sm" onclick="goPage('bewertungen')">⭐</button>`:''}
+          ${canDel?`<button class="btn btn-sm" style="background:var(--red-l);color:var(--red)" onclick="confirmDel('${p.vorname} ${p.nachname}')">✕</button>`:''}
         </div>`;
       }).join('')}
     </div>
   </div>`;
 }
 
-// ── BEWERTUNGEN ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// BEWERTUNGEN
+// ═══════════════════════════════════════════════════════════════
+let mzOpen={};
 function pBew(el){
   el.innerHTML=`
   <div class="tabs">
@@ -767,31 +1159,26 @@ function pBew(el){
     <div class="tab" onclick="swTab(this,'bw-verl')">Verlauf</div>
   </div>
   <div id="bw-einzel">
-    <div style="display:grid;grid-template-columns:260px 1fr;gap:14px">
+    <div style="display:grid;grid-template-columns:220px 1fr;gap:14px">
       <div class="card">
         <div class="ch"><span class="ct">Spieler</span></div>
-        <div style="padding:10px">
+        <div style="padding:8px">
           ${SPIELER_DATA.map((p,i)=>`
-          <div onclick="selSp(this,'${p.name}')" style="padding:9px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:9px;${i===0?'background:var(--accent-l)':''}">
-            <div class="pav" style="${i===0?'background:var(--accent);color:#fff':''}">
-              ${p.name.split(' ').map(n=>n[0]).join('')}
-            </div>
-            <div>
-              <div style="font-weight:600;font-size:12px">${p.name}</div>
-              <div style="font-size:10px;color:var(--text2)">${p.pos}</div>
-            </div>
+          <div onclick="selSp(this,'${p.vorname} ${p.nachname}')" style="padding:8px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:9px;${i===0?'background:var(--accent-l)':''}">
+            <div class="pav" style="${i===0?'background:var(--accent);color:#fff':''}">${p.vorname[0]}${p.nachname[0]}</div>
+            <div><div style="font-weight:600;font-size:12px">${p.vorname} ${p.nachname}</div><div style="font-size:10px;color:var(--text2)">${p.pos}</div></div>
           </div>`).join('')}
         </div>
       </div>
       <div class="card" id="bw-dp">
         <div class="ch">
-          <span class="ct">Jan Meier — Q2 2025</span>
+          <span class="ct" id="bw-name">Jan Meier — Q2 2025</span>
           <div style="display:flex;gap:6px">
             <select class="fi" style="width:auto;padding:4px 8px;font-size:11px">
-              <option>Q2 2025</option><option>Q1 2025</option><option>Q4 2024</option><option>Q3 2024</option>
+              <option>Q2 2025</option><option>Q1 2025</option><option>Q4 2024</option>
             </select>
             <button class="btn btn-o btn-sm">📤 PDF</button>
-            <button class="btn btn-b btn-sm" onclick="showNewBew()">+ Bewertung</button>
+            ${canWrite()?`<button class="btn btn-b btn-sm" onclick="showNewBew()">+ Bewertung</button>`:''}
           </div>
         </div>
         <div class="cb">
@@ -799,10 +1186,10 @@ function pBew(el){
             ${[
               {lb:'Technik',v:8,cls:'h',kom:'Gute Ballkontrolle, Passgenauigkeit verbessert.'},
               {lb:'Spielintelligenz',v:9,cls:'h',kom:'Sehr gutes Lesen des Spiels. Positionierung top.'},
-              {lb:'Persönlichkeit',v:7,cls:'m',kom:'Führungsqualität vorhanden, kann noch mehr kommunizieren.'},
+              {lb:'Persönlichkeit',v:7,cls:'m',kom:'Führungsqualität vorhanden, kann mehr kommunizieren.'},
               {lb:'Athletik',v:8,cls:'h',kom:'Ausdauer und Zweikampfstärke sehr gut.'},
-              {lb:'Schnelligkeit (auch gedanklich)',v:8,cls:'h',kom:'Schnelle Entscheidungen. Antritt verbessert.'},
-              {lb:'Umfeld (Schule, Familie, Arbeit)',v:6,cls:'m',kom:'Familiäre Situation stabil. Schulleistungen gut.'},
+              {lb:'Schnelligkeit',v:8,cls:'h',kom:'Schnelle Entscheidungen. Antritt verbessert.'},
+              {lb:'Umfeld',v:6,cls:'m',kom:'Familiäre Situation stabil. Schulleistungen gut.'},
             ].map(r=>`
             <div class="bw-item">
               <div class="bw-lbl">${r.lb}</div>
@@ -810,9 +1197,7 @@ function pBew(el){
                 <div class="bw-track" style="flex:1"><div class="bw-fill ${r.cls}" style="width:${r.v*10}%"></div></div>
                 <div class="bw-val" style="color:${r.cls==='h'?'var(--green)':r.cls==='m'?'var(--gold)':'var(--red)'}">${r.v}</div>
               </div>
-              <div class="bw-kom">
-                <textarea class="fi" style="font-size:11px;min-height:40px;resize:vertical">${r.kom}</textarea>
-              </div>
+              <div class="bw-kom"><textarea class="fi" style="font-size:11px;min-height:40px;resize:vertical">${r.kom}</textarea></div>
             </div>`).join('')}
           </div>
           <div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:7px;font-size:11px;color:var(--text2)">
@@ -822,28 +1207,17 @@ function pBew(el){
       </div>
     </div>
   </div>
-  <div id="bw-vgl" class="hidden">
-    <div class="card"><div class="cb" style="text-align:center;padding:40px;color:var(--text2)">
-      🔄 Radar-Chart Vergleich mehrerer Spieler<br>
-      <button class="btn btn-b btn-sm" style="margin-top:14px">Spieler auswählen</button>
-    </div></div>
-  </div>
-  <div id="bw-verl" class="hidden">
-    <div class="card"><div class="cb" style="text-align:center;padding:40px;color:var(--text2)">
-      📈 Verlauf Q1 → Q4 pro Spieler — Langzeitanalyse
-    </div></div>
-  </div>`;
+  <div id="bw-vgl" class="hidden"><div class="card"><div class="cb" style="text-align:center;padding:40px;color:var(--text2)">🔄 Radar-Chart Vergleich mehrerer Spieler<br><button class="btn btn-b btn-sm" style="margin-top:14px">Spieler auswählen</button></div></div></div>
+  <div id="bw-verl" class="hidden"><div class="card"><div class="cb" style="text-align:center;padding:40px;color:var(--text2)">📈 Verlauf Q1 → Q4 — Langzeitanalyse</div></div></div>`;
 }
 
-// ── MATCHVORBEREITUNG ─────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// MATCHVORBEREITUNG
+// ═══════════════════════════════════════════════════════════════
 function pMatch(el){
   el.innerHTML=`
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">
-    ${[
-      {ic:'🏆',lb:'Meisterschaft',desc:'1 Aufstellung'},
-      {ic:'🤝',lb:'Testspiel',desc:'1 Aufstellung'},
-      {ic:'🎪',lb:'Turnier',desc:'Mehrere Aufstellungen · Doppelfeld'},
-    ].map(t=>`
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px">
+    ${[{ic:'🏆',lb:'Meisterschaft',desc:'1 Aufstellung'},{ic:'🤝',lb:'Testspiel',desc:'1 Aufstellung'},{ic:'🎪',lb:'Turnier',desc:'Mehrere Aufstellungen · Doppelfeld'}].map(t=>`
     <div class="card" style="cursor:pointer" onclick="showSpielForm('${t.lb}')"
       onmouseenter="this.style.boxShadow='var(--sh2)'" onmouseleave="this.style.boxShadow='var(--sh)'">
       <div class="cb" style="text-align:center;padding:28px">
@@ -856,24 +1230,36 @@ function pMatch(el){
   <div class="card">
     <div class="ch"><span class="ct">⏳ Offene Aufstellungen</span></div>
     <div style="padding:0 18px">
-      ${[
-        {vs:'FC Riehen B',d:'24. Aug',fmt:'7er',s:'Aufstellung fehlt'},
-        {vs:'SC Bettlach',d:'31. Aug',fmt:'7er',s:'Aufstellung fehlt'},
-      ].map(g=>`
+      ${[{vs:'FC Riehen B',d:'24',fmt:'7er'},{vs:'SC Bettlach',d:'31',fmt:'7er'}].map(g=>`
       <div class="ng">
-        <div class="nd"><div class="ndd">${g.d.split('.')[0]}</div><div class="ndm">AUG</div></div>
-        <div style="flex:1"><div class="nv">vs ${g.vs}</div><div class="nm">${g.fmt} · ${g.s}</div></div>
+        <div class="nd"><div class="ndd">${g.d}</div><div class="ndm">AUG</div></div>
+        <div style="flex:1"><div class="nv">vs ${g.vs}</div><div class="nm">${g.fmt} · Aufstellung fehlt</div></div>
         <button class="btn btn-b btn-sm" onclick="goPage('aufstellung')">Aufstellung →</button>
       </div>`).join('')}
     </div>
   </div>`;
 }
 
-// ── AUFSTELLUNG ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// AUFSTELLUNG
+// ═══════════════════════════════════════════════════════════════
+let curFmt='7';
+const FORMATIONS={
+  '7':{'1-2-3-1':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:28,y:70},{pos:'RV',x:72,y:70},{pos:'LF',x:20,y:50},{pos:'ZM',x:50,y:48},{pos:'RF',x:80,y:50},{pos:'ST',x:50,y:22}],
+       '1-2-1-2':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:28,y:70},{pos:'RV',x:72,y:70},{pos:'ZM',x:50,y:52},{pos:'LF',x:30,y:28},{pos:'ST',x:70,y:28}],
+       '1-1-3-2':[{pos:'TW',x:50,y:88,k:true},{pos:'IV',x:50,y:70},{pos:'LF',x:20,y:50},{pos:'ZM',x:50,y:48},{pos:'RF',x:80,y:50},{pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}]},
+  '9':{'3-2-3':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:22,y:72},{pos:'IV',x:50,y:72},{pos:'RV',x:78,y:72},{pos:'LF',x:30,y:52},{pos:'ZM',x:70,y:52},{pos:'LA',x:18,y:28},{pos:'ST',x:50,y:22},{pos:'RA',x:82,y:28}],
+       '2-4-2':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:28,y:72},{pos:'RV',x:72,y:72},{pos:'LF',x:18,y:48},{pos:'LM',x:38,y:48},{pos:'RM',x:62,y:48},{pos:'RF',x:82,y:48},{pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}],
+       '3-3-2':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:22,y:72},{pos:'IV',x:50,y:72},{pos:'RV',x:78,y:72},{pos:'LF',x:22,y:50},{pos:'ZM',x:50,y:48},{pos:'RF',x:78,y:50},{pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}]},
+  '11':{'4-3-3':[{pos:'TW',x:50,y:90,k:true},{pos:'LV',x:18,y:73},{pos:'IV',x:38,y:73},{pos:'IV2',x:62,y:73},{pos:'RV',x:82,y:73},{pos:'LM',x:25,y:52},{pos:'ZM',x:50,y:50},{pos:'RM',x:75,y:52},{pos:'LF',x:22,y:25},{pos:'ST',x:50,y:20},{pos:'RF',x:78,y:25}],
+        '4-4-2':[{pos:'TW',x:50,y:90,k:true},{pos:'LV',x:18,y:73},{pos:'IV',x:38,y:73},{pos:'IV2',x:62,y:73},{pos:'RV',x:82,y:73},{pos:'LF',x:15,y:50},{pos:'LM',x:38,y:50},{pos:'RM',x:62,y:50},{pos:'RF',x:85,y:50},{pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}],
+        '4-2-3-1':[{pos:'TW',x:50,y:90,k:true},{pos:'LV',x:18,y:73},{pos:'IV',x:38,y:73},{pos:'IV2',x:62,y:73},{pos:'RV',x:82,y:73},{pos:'DM',x:35,y:57},{pos:'DM2',x:65,y:57},{pos:'LF',x:18,y:38},{pos:'OM',x:50,y:36},{pos:'RF',x:82,y:38},{pos:'ST',x:50,y:18}]},
+};
+
 function pAufst(el){
   el.innerHTML=`
   <div style="display:grid;grid-template-columns:200px 1fr;gap:16px">
-    <div style="display:flex;flex-direction:column;gap:10px">
+    <div>
       <div class="card">
         <div class="cb" style="padding:12px">
           <div class="flbl" style="margin-bottom:6px">FORMAT</div>
@@ -884,9 +1270,7 @@ function pAufst(el){
           </div>
           <div class="flbl" style="margin-bottom:6px">FORMATION</div>
           <select id="formation-sel" class="fi" style="font-size:12px;margin-bottom:10px" onchange="renderField()">
-            <option value="1-2-3-1">1-2-3-1</option>
-            <option value="1-2-1-2">1-2-1-2</option>
-            <option value="1-1-3-2">1-1-3-2</option>
+            <option>1-2-3-1</option><option>1-2-1-2</option><option>1-1-3-2</option>
           </select>
           <div class="flbl" style="margin-bottom:4px">SPIELZEIT (Min)</div>
           <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
@@ -895,23 +1279,16 @@ function pAufst(el){
             <button class="btn btn-o btn-sm" onclick="adjT(5)">+</button>
           </div>
           <input type="range" min="5" max="45" value="15" style="width:100%;margin-bottom:10px" oninput="document.getElementById('szt').value=this.value">
-          <div id="offs-hint" style="font-size:10px;background:var(--gold-l);color:var(--gold);border-radius:5px;padding:5px 8px;margin-bottom:10px">
-            ⚠️ 7er: Abseits ab Strafraumhöhe
-          </div>
-          <div class="flbl" style="margin-bottom:4px">FELD (7er Doppel)</div>
-          <div style="display:flex;gap:4px;margin-bottom:10px">
-            <button class="btn btn-b btn-sm" style="flex:1">Feld 1</button>
-            <button class="btn btn-o btn-sm" style="flex:1">Feld 2</button>
-          </div>
+          <div id="offs-hint" style="font-size:10px;background:var(--gold-l);color:var(--gold);border-radius:5px;padding:5px 8px;margin-bottom:10px">⚠️ 7er: Abseits ab Strafraumhöhe</div>
           <div class="flbl" style="margin-bottom:4px">HALBZEIT</div>
           <div style="display:flex;gap:3px;margin-bottom:10px">
-            ${[1,2,3,4].map((h,i)=>`<button class="btn ${i===0?'btn-b':'btn-o'} btn-sm" style="flex:1" onclick="selHz(this,${h})">${h}</button>`).join('')}
+            ${[1,2,3,4].map((h,i)=>`<button class="btn ${i===0?'btn-b':'btn-o'} btn-sm" style="flex:1" onclick="selHz(this)">${h}</button>`).join('')}
           </div>
-          <div class="flbl" style="margin-bottom:4px">SPIEL-INFO</div>
+          <div class="flbl" style="margin-bottom:4px">SPIEL</div>
           <input placeholder="Gegner" class="fi" style="font-size:12px;margin-bottom:5px">
           <input type="date" class="fi" style="font-size:12px;margin-bottom:5px">
           <input placeholder="Ort" class="fi" style="font-size:12px;margin-bottom:10px">
-          <button class="btn btn-b btn-sm" style="width:100%" onclick="alert('PDF wird generiert...')">📤 PDF Aufstellung</button>
+          <button class="btn btn-b btn-sm" style="width:100%">📤 PDF Aufstellung</button>
         </div>
       </div>
     </div>
@@ -922,7 +1299,6 @@ function pAufst(el){
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           ${['P. Suter','N. Huber','R. Vogel','L. Egli'].map(n=>`
           <div style="padding:6px 10px;background:var(--surface);border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"
-            onclick="alert('${n} einwechseln?')"
             onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor='var(--border)'">
             <span style="width:20px;height:20px;background:var(--orange);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700">${n.split(' ').map(x=>x[0]).join('')}</span>${n}
           </div>`).join('')}
@@ -933,70 +1309,33 @@ function pAufst(el){
   renderField();
 }
 
-let curFmt='7';
-const FORMATIONS={
-  '7':{
-    '1-2-3-1':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:28,y:70},{pos:'RV',x:72,y:70},
-               {pos:'LF',x:20,y:50},{pos:'ZM',x:50,y:48},{pos:'RF',x:80,y:50},{pos:'ST',x:50,y:22}],
-    '1-2-1-2':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:28,y:70},{pos:'RV',x:72,y:70},
-               {pos:'ZM',x:50,y:52},{pos:'LF',x:30,y:28},{pos:'ST',x:70,y:28}],
-    '1-1-3-2':[{pos:'TW',x:50,y:88,k:true},{pos:'IV',x:50,y:70},
-               {pos:'LF',x:20,y:50},{pos:'ZM',x:50,y:48},{pos:'RF',x:80,y:50},{pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}],
-  },
-  '9':{
-    '3-2-3':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:22,y:72},{pos:'IV',x:50,y:72},{pos:'RV',x:78,y:72},
-             {pos:'LF',x:30,y:52},{pos:'ZM',x:70,y:52},
-             {pos:'LA',x:18,y:28},{pos:'ST',x:50,y:22},{pos:'RA',x:82,y:28}],
-    '2-4-2':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:28,y:72},{pos:'RV',x:72,y:72},
-             {pos:'LF',x:18,y:48},{pos:'LM',x:38,y:48},{pos:'RM',x:62,y:48},{pos:'RF',x:82,y:48},
-             {pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}],
-    '3-3-2':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:22,y:72},{pos:'IV',x:50,y:72},{pos:'RV',x:78,y:72},
-             {pos:'LF',x:22,y:50},{pos:'ZM',x:50,y:48},{pos:'RF',x:78,y:50},
-             {pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}],
-  },
-  '11':{
-    '4-3-3':[{pos:'TW',x:50,y:90,k:true},{pos:'LV',x:18,y:73},{pos:'IV',x:38,y:73},{pos:'IV2',x:62,y:73},{pos:'RV',x:82,y:73},
-             {pos:'LM',x:25,y:52},{pos:'ZM',x:50,y:50},{pos:'RM',x:75,y:52},
-             {pos:'LF',x:22,y:25},{pos:'ST',x:50,y:20},{pos:'RF',x:78,y:25}],
-    '4-4-2':[{pos:'TW',x:50,y:90,k:true},{pos:'LV',x:18,y:73},{pos:'IV',x:38,y:73},{pos:'IV2',x:62,y:73},{pos:'RV',x:82,y:73},
-             {pos:'LF',x:15,y:50},{pos:'LM',x:38,y:50},{pos:'RM',x:62,y:50},{pos:'RF',x:85,y:50},
-             {pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}],
-    '4-2-3-1':[{pos:'TW',x:50,y:90,k:true},{pos:'LV',x:18,y:73},{pos:'IV',x:38,y:73},{pos:'IV2',x:62,y:73},{pos:'RV',x:82,y:73},
-              {pos:'DM',x:35,y:57},{pos:'DM2',x:65,y:57},
-              {pos:'LF',x:18,y:38},{pos:'OM',x:50,y:36},{pos:'RF',x:82,y:38},{pos:'ST',x:50,y:18}],
-  },
-};
-
 function renderField(){
-  const cont=document.getElementById('field-cont');
-  if(!cont)return;
+  const cont=document.getElementById('field-cont');if(!cont)return;
   const fsel=document.getElementById('formation-sel');
   const formation=fsel?fsel.value:'1-2-3-1';
   const players=FORMATIONS[curFmt]?.[formation]||FORMATIONS['7']['1-2-3-1'];
-  const isSevenField=curFmt==='7';
+  const is7=curFmt==='7';
   cont.innerHTML=`
-  <div class="field-wrap ${curFmt==='7'?'fw7':curFmt==='9'?'fw9':'fw11'}">
-    <div class="fl fl-out-l"></div><div class="fl fl-out-r"></div>
-    <div class="fl fl-out-t"></div><div class="fl fl-out-b"></div>
-    <div class="fl fl-mid"></div>
-    <div class="fc fc-mid"></div>
+  <div class="field-wrap">
+    <div class="fl" style="top:0;bottom:0;left:5%;width:1px"></div>
+    <div class="fl" style="top:0;bottom:0;right:5%;width:1px"></div>
+    <div class="fl" style="top:0;left:5%;right:5%;height:1px"></div>
+    <div class="fl" style="bottom:0;left:5%;right:5%;height:1px"></div>
+    <div class="fl" style="top:50%;left:5%;right:5%;height:1px"></div>
+    <div class="fc" style="width:15%;padding-top:15%;top:50%;left:50%;transform:translate(-50%,-50%)"></div>
     <div class="fl" style="top:0;left:35%;right:35%;height:4%;background:rgba(255,255,255,.45)"></div>
     <div class="fl" style="bottom:0;left:35%;right:35%;height:4%;background:rgba(255,255,255,.45)"></div>
-    <div class="fl" style="top:0;left:25%;right:25%;height:14%;background:transparent;border:1px solid rgba(255,255,255,.3);border-top:none;pointer-events:none"></div>
-    <div class="fl" style="bottom:0;left:25%;right:25%;height:14%;background:transparent;border:1px solid rgba(255,255,255,.3);border-bottom:none;pointer-events:none"></div>
-    ${isSevenField?`
-    <div class="fl" style="top:22%;left:5%;right:5%;height:2px;background:rgba(255,220,0,.7)"></div>
+    <div style="position:absolute;top:0;left:25%;right:25%;height:14%;border:1px solid rgba(255,255,255,.3);border-top:none;pointer-events:none"></div>
+    <div style="position:absolute;bottom:0;left:25%;right:25%;height:14%;border:1px solid rgba(255,255,255,.3);border-bottom:none;pointer-events:none"></div>
+    ${is7?`<div class="fl" style="top:22%;left:5%;right:5%;height:2px;background:rgba(255,220,0,.7)"></div>
     <div class="fl" style="bottom:22%;left:5%;right:5%;height:2px;background:rgba(255,220,0,.7)"></div>
     <div style="position:absolute;top:23%;left:7%;font-size:8px;color:rgba(255,220,0,.95);font-weight:700">⚠️ ABSEITS AB HIER</div>
     <div style="position:absolute;bottom:23%;left:7%;font-size:8px;color:rgba(255,220,0,.95);font-weight:700">⚠️ ABSEITS AB HIER</div>`:''}
     ${players.map(p=>{
-      const sn=SPIELER_DATA.find(s=>s.pos===p.pos||s.pos2===p.pos)||{name:'—'};
-      return `<div class="fp" style="left:${p.x}%;top:${p.y}%"
-        data-x="${p.x}" data-y="${p.y}"
-        onmousedown="startDrag(event,this)"
-        onclick="showPickerFor(this,'${p.pos}')">
+      const sn=SPIELER_DATA.find(s=>s.pos===p.pos||s.pos2===p.pos)||{vorname:'—',nachname:''};
+      return `<div class="fp" style="left:${p.x}%;top:${p.y}%" onmousedown="startDrag(event,this)" onclick="showPickerFor(this,'${p.pos}')">
         <div class="fd${p.k?' k':''}">${p.pos}</div>
-        <div class="fn">${sn.name.split(' ')[1]||sn.name}</div>
+        <div class="fn">${sn.nachname||sn.vorname}</div>
       </div>`;
     }).join('')}
   </div>`;
@@ -1005,34 +1344,27 @@ function renderField(){
 
 function setFmt(f,btn){
   curFmt=f;
-  document.querySelectorAll('[id^="fmt-"]').forEach(b=>{b.className='btn btn-o btn-sm';});
+  document.querySelectorAll('[id^="fmt-"]').forEach(b=>b.className='btn btn-o btn-sm');
   btn.className='btn btn-b btn-sm';
-  // Update formations list
   const sel=document.getElementById('formation-sel');
-  if(sel){
-    const opts={'7':['1-2-3-1','1-2-1-2','1-1-3-2'],'9':['3-2-3','2-4-2','3-3-2'],'11':['4-3-3','4-4-2','4-2-3-1']};
-    sel.innerHTML=opts[f].map(o=>`<option>${o}</option>`).join('');
-  }
-  const hint=document.getElementById('offs-hint');
-  if(hint)hint.style.display=f==='7'?'block':'none';
+  if(sel){const opts={'7':['1-2-3-1','1-2-1-2','1-1-3-2'],'9':['3-2-3','2-4-2','3-3-2'],'11':['4-3-3','4-4-2','4-2-3-1']};
+    sel.innerHTML=opts[f].map(o=>`<option>${o}</option>`).join('');}
+  const h=document.getElementById('offs-hint');if(h)h.style.display=f==='7'?'block':'none';
   renderField();
 }
 function adjT(d){const e=document.getElementById('szt');if(e)e.value=Math.max(5,Math.min(90,parseInt(e.value||15)+d));}
-function selHz(btn,h){document.querySelectorAll('[onclick^="selHz"]').forEach(b=>b.className='btn btn-o btn-sm');btn.className='btn btn-b btn-sm';}
+function selHz(btn){document.querySelectorAll('[onclick="selHz(this)"]').forEach(b=>b.className='btn btn-o btn-sm');btn.className='btn btn-b btn-sm';}
 
-// Drag & Drop für Aufstellung
 let dragging=null,dragOffX=0,dragOffY=0;
 function initDrag(){
-  const field=document.querySelector('.field-wrap');
-  if(!field)return;
+  const field=document.querySelector('.field-wrap');if(!field)return;
   field.addEventListener('mousemove',onDrag);
-  field.addEventListener('mouseup',stopDrag);
+  field.addEventListener('mouseup',()=>{dragging=null;});
   field.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];onDragXY(t.clientX,t.clientY);},{passive:false});
-  field.addEventListener('touchend',stopDrag);
+  field.addEventListener('touchend',()=>{dragging=null;});
 }
 function startDrag(e,el){
   e.preventDefault();dragging=el;
-  const r=el.closest('.field-wrap').getBoundingClientRect();
   const er=el.getBoundingClientRect();
   dragOffX=e.clientX-er.left-er.width/2;
   dragOffY=e.clientY-er.top-er.height/2;
@@ -1040,257 +1372,99 @@ function startDrag(e,el){
 function onDrag(e){onDragXY(e.clientX,e.clientY);}
 function onDragXY(cx,cy){
   if(!dragging)return;
-  const field=dragging.closest('.field-wrap');
-  const r=field.getBoundingClientRect();
-  let x=((cx-dragOffX-r.left)/r.width)*100;
-  let y=((cy-dragOffY-r.top)/r.height)*100;
-  x=Math.max(5,Math.min(95,x));y=Math.max(2,Math.min(98,y));
+  const f=dragging.closest('.field-wrap');
+  const r=f.getBoundingClientRect();
+  let x=Math.max(5,Math.min(95,((cx-dragOffX-r.left)/r.width)*100));
+  let y=Math.max(2,Math.min(98,((cy-dragOffY-r.top)/r.height)*100));
   dragging.style.left=x+'%';dragging.style.top=y+'%';
 }
-function stopDrag(){dragging=null;}
 
-// ── TAKTIKTAFEL ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// TAKTIKTAFEL
+// ═══════════════════════════════════════════════════════════════
+let tkMode='move',tkCol='#FFD700',tkDrawing=false,tkPath=null;
 function pTaktik(el){
   el.innerHTML=`
-  <div style="display:grid;grid-template-columns:1fr 190px;gap:12px">
+  <div style="display:grid;grid-template-columns:1fr 180px;gap:12px">
     <div>
       <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
         <button class="btn btn-b btn-sm" id="tk-move" onclick="tkTool('move',this)">↕ Spieler</button>
         <button class="btn btn-o btn-sm" id="tk-arrow" onclick="tkTool('arrow',this)">→ Pfeil</button>
         <button class="btn btn-o btn-sm" id="tk-zone" onclick="tkTool('zone',this)">⬜ Zone</button>
-        <button class="btn btn-o btn-sm" id="tk-ball-t" onclick="tkTool('ball',this)">⚽ Ball setzen</button>
-        <button class="btn btn-o btn-sm" id="tk-draw" onclick="tkTool('draw',this)">✏️ Zeichnen</button>
+        <button class="btn btn-o btn-sm" id="tk-draw" onclick="tkTool('draw',this)">✏️ Freihand</button>
         <div style="margin-left:auto;display:flex;gap:5px">
-          <button class="btn btn-o btn-sm" onclick="tkClear()">🗑 Clear</button>
-          <button class="btn btn-o btn-sm" onclick="tkSave()">💾 Speichern</button>
+          <button class="btn btn-o btn-sm" onclick="tkClear()">🗑</button>
+          <button class="btn btn-o btn-sm" onclick="alert('Gespeichert!')">💾</button>
           <button class="btn btn-o btn-sm">📤 PDF</button>
         </div>
       </div>
-      <div class="tk-wrap" id="tkw" style="aspect-ratio:0.65"
-        onmousedown="tkDown(event)" onmousemove="tkMove(event)" onmouseup="tkUp(event)"
-        ontouchstart="tkTDown(event)" ontouchmove="tkTMove(event)" ontouchend="tkUp(event)">
-        <!-- Field lines -->
+      <div class="tk-wrap" id="tkw" style="aspect-ratio:.65"
+        onmousedown="tkDown(event)" onmousemove="tkMove(event)" onmouseup="tkUp()"
+        ontouchstart="tkTDown(event)" ontouchmove="tkTMove(event)" ontouchend="tkUp()">
         <div style="position:absolute;top:5%;left:5%;right:5%;height:1px;background:rgba(255,255,255,.3)"></div>
         <div style="position:absolute;bottom:5%;left:5%;right:5%;height:1px;background:rgba(255,255,255,.3)"></div>
         <div style="position:absolute;top:5%;bottom:5%;left:5%;width:1px;background:rgba(255,255,255,.3)"></div>
         <div style="position:absolute;top:5%;bottom:5%;right:5%;width:1px;background:rgba(255,255,255,.3)"></div>
         <div style="position:absolute;top:50%;left:5%;right:5%;height:1px;background:rgba(255,255,255,.3)"></div>
-        <div style="position:absolute;top:35%;left:5%;right:5%;height:1px;background:rgba(255,255,255,.15)"></div>
-        <div style="position:absolute;bottom:35%;left:5%;right:5%;height:1px;background:rgba(255,255,255,.15)"></div>
-        <!-- Center circle -->
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:12%;padding-top:12%;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:transparent"></div>
-        <!-- Goals -->
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:12%;padding-top:12%;border-radius:50%;border:1px solid rgba(255,255,255,.25)"></div>
         <div style="position:absolute;top:5%;left:37%;right:37%;height:3.5%;background:rgba(255,255,255,.4)"></div>
         <div style="position:absolute;bottom:5%;left:37%;right:37%;height:3.5%;background:rgba(255,255,255,.4)"></div>
-        <!-- SVG for drawings -->
         <svg id="tk-svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5"></svg>
-        <!-- Players -->
         ${buildTkPlayers()}
-        <!-- Ball -->
-        <div class="tk-ball" id="tk-ball" style="left:50%;top:50%"
-          onmousedown="tkBallDown(event)"></div>
-        <div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.5);color:#fff;font-size:9px;padding:3px 8px;border-radius:4px" id="tk-hint">Modus: Spieler ziehen</div>
+        <div style="position:absolute;width:20px;height:20px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff 0%,#e8e8e8 60%,#ccc 100%);box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:grab;z-index:15;transform:translate(-50%,-50%);left:50%;top:50%" id="tk-ball" onmousedown="tkBallDown(event)"></div>
+        <div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.5);color:#fff;font-size:9px;padding:3px 8px;border-radius:4px" id="tk-hint">Spieler ziehen</div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:8px">
-      <div class="card">
-        <div class="cb" style="padding:10px">
-          <div class="flbl" style="margin-bottom:6px">FORMAT</div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            <button class="btn btn-b btn-sm">7er Feld</button>
-            <button class="btn btn-o btn-sm">9er Feld</button>
-            <button class="btn btn-o btn-sm">11er Feld</button>
-          </div>
+      <div class="card"><div class="cb" style="padding:10px">
+        <div class="flbl" style="margin-bottom:6px">FARBE</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap">
+          ${['#fff','#FFD700','#EF4444','#3B82F6','#10B981','#EC4899'].map((c,i)=>
+            `<div onclick="tkCol='${c}';document.querySelectorAll('.tk-col-swatch').forEach(s=>s.style.boxShadow='');this.style.boxShadow='0 0 0 2px var(--accent)'"
+              class="tk-col-swatch" style="width:22px;height:22px;border-radius:5px;background:${c};border:2px solid rgba(0,0,0,.15);cursor:pointer${i===1?';box-shadow:0 0 0 2px var(--accent)':''}"></div>`).join('')}
         </div>
-      </div>
-      <div class="card">
-        <div class="cb" style="padding:10px">
-          <div class="flbl" style="margin-bottom:6px">FARBE</div>
-          <div style="display:flex;gap:5px;flex-wrap:wrap">
-            ${['#fff','#FFD700','#EF4444','#3B82F6','#10B981','#EC4899'].map((c,i)=>
-              `<div onclick="tkCol='${c}'" style="width:22px;height:22px;border-radius:5px;background:${c};border:2px solid rgba(0,0,0,.15);cursor:pointer${i===0?';box-shadow:0 0 0 2px var(--accent)':''}" title="${c}"></div>`).join('')}
-          </div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="cb" style="padding:10px">
-          <div class="flbl" style="margin-bottom:6px">GEGNER HINZUFÜGEN</div>
-          <button class="btn btn-o btn-sm" style="width:100%;margin-bottom:4px" onclick="addTkOpp()">+ Gegner</button>
-          <div class="flbl" style="margin-top:8px;margin-bottom:6px">SEQUENZEN</div>
-          ${['Ecke links','Freistoss Mitte','Einwurf rechts'].map(s=>
-            `<div style="padding:5px 4px;border-radius:5px;font-size:11px;cursor:pointer" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">▶ ${s}</div>`).join('')}
-          <button class="btn btn-o btn-sm" style="width:100%;margin-top:6px">+ Sequenz</button>
-        </div>
-      </div>
-      <button class="btn btn-o btn-sm" onclick="alert('Querformat für iPad fixieren')" style="font-size:11px">🔄 Querformat fixieren</button>
+      </div></div>
+      <div class="card"><div class="cb" style="padding:10px">
+        <div class="flbl" style="margin-bottom:6px">SEQUENZEN</div>
+        ${['Ecke links','Freistoss Mitte','Einwurf rechts'].map(s=>`
+        <div style="padding:5px 4px;border-radius:5px;font-size:11px;cursor:pointer" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">▶ ${s}</div>`).join('')}
+        <button class="btn btn-o btn-sm" style="width:100%;margin-top:6px">+ Sequenz</button>
+      </div></div>
+      <div class="card"><div class="cb" style="padding:10px">
+        <div class="flbl" style="margin-bottom:6px">GEGNER</div>
+        <button class="btn btn-o btn-sm" style="width:100%" onclick="addTkOpp()">+ Gegner</button>
+      </div></div>
     </div>
   </div>`;
-  initTaktik();
 }
 
-let tkMode='move',tkCol='#FFD700',tkDrawing=false,tkPath=null,tkDragEl=null,tkBallDrag=false;
-function tkTool(t,btn){
-  tkMode=t;
-  document.querySelectorAll('[id^="tk-"]').forEach(b=>{if(b.classList.contains('btn'))b.className='btn btn-o btn-sm';});
-  btn.className='btn btn-b btn-sm';
-  const hint=document.getElementById('tk-hint');
-  if(hint)hint.textContent='Modus: '+{move:'Spieler ziehen',arrow:'Pfeil zeichnen',zone:'Zone markieren',ball:'Ball setzen',draw:'Freihand zeichnen'}[t];
-}
 function buildTkPlayers(){
-  const ps=[
-    {x:50,y:85,c:'#FFD700',l:'TW',n:'Fischer'},
-    {x:25,y:68,c:'#3B82F6',l:'LV',n:'Braun'},
-    {x:50,y:68,c:'#3B82F6',l:'IV',n:'Meier'},
-    {x:75,y:68,c:'#3B82F6',l:'RV',n:'Schulz'},
-    {x:22,y:46,c:'#fff',l:'LF',n:'Keller'},
-    {x:50,y:44,c:'#fff',l:'ZM',n:'Becker'},
-    {x:78,y:46,c:'#fff',l:'RF',n:'Huber'},
-    {x:50,y:20,c:'#EF4444',l:'ST',n:'Müller'},
-  ];
-  return ps.map((p,i)=>`
-  <div class="tk-player" style="left:${p.x}%;top:${p.y}%" id="tkp-${i}"
+  const ps=[{x:50,y:85,c:'#FFD700',l:'TW',n:'Fischer'},{x:25,y:68,c:'#3B82F6',l:'LV',n:'Braun'},
+    {x:50,y:68,c:'#3B82F6',l:'IV',n:'Meier'},{x:75,y:68,c:'#3B82F6',l:'RV',n:'Schulz'},
+    {x:22,y:46,c:'#fff',l:'LF',n:'Keller'},{x:50,y:44,c:'#fff',l:'ZM',n:'Becker'},
+    {x:78,y:46,c:'#fff',l:'RF',n:'Huber'},{x:50,y:20,c:'#EF4444',l:'ST',n:'Müller'}];
+  return ps.map((p,i)=>`<div class="tk-player" style="left:${p.x}%;top:${p.y}%" id="tkp-${i}"
     onmousedown="tkPDown(event,this)" ontouchstart="tkPTDown(event,this)">
     <div class="tk-pd" style="background:${p.c};color:${p.c==='#fff'?'#1B4FDB':'#fff'}">${p.l}</div>
     <div style="font-size:8px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);text-align:center;margin-top:1px">${p.n}</div>
   </div>`).join('');
 }
-function initTaktik(){
-  // Ball drag
-  const ball=document.getElementById('tk-ball');
-  if(ball){
-    ball.onmousedown=tkBallDown;
-    ball.ontouchstart=(e)=>{e.stopPropagation();tkBallDrag=true;};
-  }
-}
-function tkPDown(e,el){
-  if(tkMode!=='move')return;
-  e.preventDefault();e.stopPropagation();
-  tkDragEl=el;
-  const onMove=(ev)=>{
-    const wrap=document.getElementById('tkw');
-    const r=wrap.getBoundingClientRect();
-    const cx=ev.clientX||ev.touches?.[0]?.clientX;
-    const cy=ev.clientY||ev.touches?.[0]?.clientY;
-    if(!cx)return;
-    let x=((cx-r.left)/r.width)*100;
-    let y=((cy-r.top)/r.height)*100;
-    x=Math.max(3,Math.min(97,x));y=Math.max(3,Math.min(97,y));
-    el.style.left=x+'%';el.style.top=y+'%';
-  };
-  const onUp=()=>{document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};
-  document.addEventListener('mousemove',onMove);
-  document.addEventListener('mouseup',onUp);
-}
-function tkPTDown(e,el){
-  if(tkMode!=='move')return;
-  e.preventDefault();e.stopPropagation();
-  const onMove=(ev)=>{
-    const t=ev.touches[0];
-    const wrap=document.getElementById('tkw');
-    const r=wrap.getBoundingClientRect();
-    let x=((t.clientX-r.left)/r.width)*100;
-    let y=((t.clientY-r.top)/r.height)*100;
-    x=Math.max(3,Math.min(97,x));y=Math.max(3,Math.min(97,y));
-    el.style.left=x+'%';el.style.top=y+'%';
-  };
-  const onUp=()=>{document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onUp);};
-  document.addEventListener('touchmove',onMove,{passive:false});
-  document.addEventListener('touchend',onUp);
-}
-function tkBallDown(e){
-  if(tkMode!=='move'&&tkMode!=='ball')return;
-  e.preventDefault();e.stopPropagation();
-  const ball=document.getElementById('tk-ball');
-  const onMove=(ev)=>{
-    const wrap=document.getElementById('tkw');
-    const r=wrap.getBoundingClientRect();
-    const cx=ev.clientX||(ev.touches?.[0]?.clientX);
-    const cy=ev.clientY||(ev.touches?.[0]?.clientY);
-    if(!cx)return;
-    let x=((cx-r.left)/r.width)*100;
-    let y=((cy-r.top)/r.height)*100;
-    x=Math.max(2,Math.min(98,x));y=Math.max(2,Math.min(98,y));
-    ball.style.left=x+'%';ball.style.top=y+'%';
-  };
-  const onUp=()=>{document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};
-  document.addEventListener('mousemove',onMove);
-  document.addEventListener('mouseup',onUp);
-}
-
+function tkTool(t,btn){tkMode=t;document.querySelectorAll('[id^="tk-"]').forEach(b=>{if(b.classList.contains('btn'))b.className='btn btn-o btn-sm';});btn.className='btn btn-b btn-sm';const h=document.getElementById('tk-hint');if(h)h.textContent={move:'Spieler ziehen',arrow:'Pfeil zeichnen',zone:'Zone markieren',draw:'Freihand zeichnen'}[t]||t;}
+function tkPDown(e,el){if(tkMode!=='move')return;e.preventDefault();e.stopPropagation();const onMove=ev=>{const w=document.getElementById('tkw');const r=w.getBoundingClientRect();let x=Math.max(3,Math.min(97,((ev.clientX-r.left)/r.width)*100));let y=Math.max(3,Math.min(97,((ev.clientY-r.top)/r.height)*100));el.style.left=x+'%';el.style.top=y+'%';};const onUp=()=>{document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);}
+function tkPTDown(e,el){if(tkMode!=='move')return;e.preventDefault();e.stopPropagation();const onMove=ev=>{const t=ev.touches[0];const w=document.getElementById('tkw');const r=w.getBoundingClientRect();let x=Math.max(3,Math.min(97,((t.clientX-r.left)/r.width)*100));let y=Math.max(3,Math.min(97,((t.clientY-r.top)/r.height)*100));el.style.left=x+'%';el.style.top=y+'%';};const onUp=()=>{document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onUp);};document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onUp);}
+function tkBallDown(e){e.preventDefault();e.stopPropagation();const ball=document.getElementById('tk-ball');const onMove=ev=>{const w=document.getElementById('tkw');const r=w.getBoundingClientRect();let x=Math.max(2,Math.min(98,((ev.clientX-r.left)/r.width)*100));let y=Math.max(2,Math.min(98,((ev.clientY-r.top)/r.height)*100));ball.style.left=x+'%';ball.style.top=y+'%';};const onUp=()=>{document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);}
 let tkPts=[];
-function tkDown(e){
-  if(tkMode==='move'||tkMode==='ball')return;
-  tkDrawing=true;tkPts=[];
-  const r=e.currentTarget.getBoundingClientRect();
-  const x=((e.clientX-r.left)/r.width)*100;
-  const y=((e.clientY-r.top)/r.height)*100;
-  tkPts.push({x,y});
-  if(tkMode==='arrow'||tkMode==='draw'){
-    const svg=document.getElementById('tk-svg');
-    tkPath=document.createElementNS('http://www.w3.org/2000/svg','path');
-    tkPath.setAttribute('stroke',tkCol);
-    tkPath.setAttribute('stroke-width','2.5');
-    tkPath.setAttribute('fill','none');
-    tkPath.setAttribute('stroke-linecap','round');
-    if(tkMode==='arrow'){
-      tkPath.setAttribute('marker-end','url(#arrowhead)');
-      if(!document.getElementById('tk-arrow-marker')){
-        const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
-        defs.innerHTML=`<marker id="arrowhead" markerWidth="6" markerHeight="4" refX="3" refY="2" orient="auto">
-          <polygon points="0 0, 6 2, 0 4" fill="${tkCol}"/>
-        </marker>`;
-        svg.appendChild(defs);
-      }
-    }
-    svg.appendChild(tkPath);
-  }
-}
-function tkMove(e){
-  if(!tkDrawing)return;
-  const r=e.currentTarget.getBoundingClientRect();
-  const x=((e.clientX-r.left)/r.width)*100;
-  const y=((e.clientY-r.top)/r.height)*100;
-  tkPts.push({x,y});
-  if(tkMode==='arrow'||tkMode==='draw'){
-    if(tkPath){
-      const d='M'+tkPts.map(p=>`${p.x} ${p.y}`).join(' L');
-      tkPath.setAttribute('d',d);
-    }
-  } else if(tkMode==='zone'){
-    const svg=document.getElementById('tk-svg');
-    if(tkPts.length>1){
-      const s=tkPts[0];
-      let existing=document.getElementById('tk-zone-rect');
-      if(!existing){existing=document.createElementNS('http://www.w3.org/2000/svg','rect');existing.id='tk-zone-rect';svg.appendChild(existing);}
-      existing.setAttribute('x',Math.min(s.x,x));
-      existing.setAttribute('y',Math.min(s.y,y));
-      existing.setAttribute('width',Math.abs(x-s.x));
-      existing.setAttribute('height',Math.abs(y-s.y));
-      existing.setAttribute('fill',tkCol+'33');
-      existing.setAttribute('stroke',tkCol);
-      existing.setAttribute('stroke-width','1.5');
-    }
-  }
-}
-function tkTDown(e){if(tkMode==='move'||tkMode==='ball')return;e.preventDefault();const t=e.touches[0];tkDown({currentTarget:e.currentTarget,clientX:t.clientX,clientY:t.clientY});}
-function tkTMove(e){if(tkMode==='move'||tkMode==='ball')return;e.preventDefault();const t=e.touches[0];tkMove({currentTarget:e.currentTarget,clientX:t.clientX,clientY:t.clientY});}
+function tkDown(e){if(tkMode==='move')return;tkDrawing=true;tkPts=[];const r=e.currentTarget.getBoundingClientRect();tkPts.push({x:((e.clientX-r.left)/r.width)*100,y:((e.clientY-r.top)/r.height)*100});if(tkMode==='arrow'||tkMode==='draw'){const svg=document.getElementById('tk-svg');tkPath=document.createElementNS('http://www.w3.org/2000/svg','path');tkPath.setAttribute('stroke',tkCol);tkPath.setAttribute('stroke-width','2.5');tkPath.setAttribute('fill','none');tkPath.setAttribute('stroke-linecap','round');if(tkMode==='arrow'){tkPath.setAttribute('marker-end','url(#ah)');if(!svg.querySelector('#ah')){const d=document.createElementNS('http://www.w3.org/2000/svg','defs');d.innerHTML=`<marker id="ah" markerWidth="6" markerHeight="4" refX="3" refY="2" orient="auto"><polygon points="0 0,6 2,0 4" fill="${tkCol}"/></marker>`;svg.appendChild(d);}}svg.appendChild(tkPath);}}
+function tkMove(e){if(!tkDrawing)return;const r=e.currentTarget.getBoundingClientRect();const x=((e.clientX-r.left)/r.width)*100;const y=((e.clientY-r.top)/r.height)*100;tkPts.push({x,y});if(tkPath)tkPath.setAttribute('d','M'+tkPts.map(p=>`${p.x} ${p.y}`).join(' L'));else if(tkMode==='zone'&&tkPts.length>1){const svg=document.getElementById('tk-svg');const s=tkPts[0];let ex=document.getElementById('tk-zr');if(!ex){ex=document.createElementNS('http://www.w3.org/2000/svg','rect');ex.id='tk-zr';svg.appendChild(ex);}ex.setAttribute('x',Math.min(s.x,x));ex.setAttribute('y',Math.min(s.y,y));ex.setAttribute('width',Math.abs(x-s.x));ex.setAttribute('height',Math.abs(y-s.y));ex.setAttribute('fill',tkCol+'33');ex.setAttribute('stroke',tkCol);ex.setAttribute('stroke-width','1.5');}}
+function tkTDown(e){if(tkMode==='move')return;e.preventDefault();const t=e.touches[0];tkDown({currentTarget:e.currentTarget,clientX:t.clientX,clientY:t.clientY});}
+function tkTMove(e){if(tkMode==='move')return;e.preventDefault();const t=e.touches[0];tkMove({currentTarget:e.currentTarget,clientX:t.clientX,clientY:t.clientY});}
 function tkUp(){tkDrawing=false;tkPts=[];}
-function tkClear(){const svg=document.getElementById('tk-svg');if(svg)svg.innerHTML='';}
-function tkSave(){alert('Taktik-Session gespeichert!');}
-function addTkOpp(){
-  const wrap=document.getElementById('tkw');
-  if(!wrap)return;
-  const opp=document.createElement('div');
-  opp.className='tk-player';
-  opp.style.left='50%';opp.style.top='35%';
-  opp.innerHTML=`<div class="tk-pd" style="background:#DC2626;color:#fff;border:2px dashed #fff">GG</div>`;
-  opp.onmousedown=(e)=>tkPDown(e,opp);
-  opp.ontouchstart=(e)=>tkPTDown(e,opp);
-  wrap.appendChild(opp);
-}
+function tkClear(){const s=document.getElementById('tk-svg');if(s)s.innerHTML='';}
+function addTkOpp(){const w=document.getElementById('tkw');if(!w)return;const o=document.createElement('div');o.className='tk-player';o.style.left='50%';o.style.top='35%';o.innerHTML=`<div class="tk-pd" style="background:#DC2626;color:#fff;border:2px dashed #fff">GG</div>`;o.onmousedown=e=>tkPDown(e,o);o.ontouchstart=e=>tkPTDown(e,o);w.appendChild(o);}
 
-// ── MAKROZYKLUS ───────────────────────────────────────
-let mzOpen={};
+// ═══════════════════════════════════════════════════════════════
+// MAKROZYKLUS
+// ═══════════════════════════════════════════════════════════════
 function pMakro(el){
   el.innerHTML=`
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
@@ -1298,97 +1472,49 @@ function pMakro(el){
       <button class="btn btn-b btn-sm">Vorrunde (Jul–Dez)</button>
       <button class="btn btn-o btn-sm">Rückrunde (Jan–Jun)</button>
     </div>
-    <button class="btn btn-b btn-sm" onclick="addMzPhase()">+ Phase</button>
+    ${canWrite()?`<button class="btn btn-b btn-sm">+ Phase</button>`:''}
   </div>
-  <div id="mz-phases">${buildMzPhases()}</div>`;
+  <div>${MZ_PHASES.map((p,i)=>buildMzPhase(p,i)).join('')}</div>`;
 }
-
-const MZ_PHASES=[
-  {lb:'Vorbereitung',dates:'Jul–Aug',col:'#1B4FDB',sfv:null,typ:'vorbereitung'},
-  {lb:'Aufbauphase',dates:'Aug–Sep',col:'#16A34A',sfv:'wir_haben_ball',typ:'normal'},
-  {lb:'Intensivphase',dates:'Sep–Okt',col:'#D97706',sfv:'wir_verlieren_ball',typ:'normal'},
-  {lb:'Wettkampfphase',dates:'Okt–Nov',col:'#DC2626',sfv:'wir_haben_ball_nicht',typ:'normal'},
-  {lb:'Ferienphase',dates:'Okt',col:'#6B7280',sfv:null,typ:'ferien'},
-  {lb:'Abschluss',dates:'Nov–Dez',col:'#8B5CF6',sfv:'wir_erobern_ball',typ:'normal'},
-];
-
-function buildMzPhases(){
-  return MZ_PHASES.map((p,i)=>{
-    const sfv=p.sfv?SFV[p.sfv]:null;
-    return `
-    <div class="mz-phase">
-      <div class="mz-ph" onclick="toggleMz(${i})" style="background:${mzOpen[i]?'var(--surface2)':''}">
-        <div style="display:flex;align-items:center;gap:10px;flex:1">
-          <div style="width:10px;height:10px;border-radius:50%;background:${p.col};flex-shrink:0"></div>
-          <span style="font-weight:700;font-size:13px">${p.lb}</span>
-          <span style="font-size:11px;color:var(--text2)">${p.dates}</span>
-          ${sfv?`<span class="bdg" style="background:${sfv.bg};color:${sfv.col}">${sfv.label}</span>`:''}
-          ${p.typ==='ferien'?`<span class="bdg bdg-gold">🏖 Ferien/Pause</span>`:''}
-          ${p.typ==='vorbereitung'?`<span class="bdg bdg-b">Athletik · Grundlagen</span>`:''}
-        </div>
-        <span style="color:var(--text3);font-size:14px">${mzOpen[i]?'▲':'▼'}</span>
+function buildMzPhase(p,i){
+  const sfv=p.sfv?SFV[p.sfv]:null;
+  return `<div class="mz-phase">
+    <div class="mz-ph" onclick="this.nextElementSibling&&(this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block')">
+      <div style="display:flex;align-items:center;gap:10px;flex:1">
+        <div style="width:10px;height:10px;border-radius:50%;background:${p.col};flex-shrink:0"></div>
+        <span style="font-weight:700;font-size:13px">${p.lb}</span>
+        <span style="font-size:11px;color:var(--text2)">${p.dates}</span>
+        ${sfv?`<span class="bdg" style="background:${sfv.bg};color:${sfv.col}">${sfv.label}</span>`:''}
+        ${p.typ==='ferien'?`<span class="bdg bdg-gold">🏖 Ferien</span>`:''}
+        ${p.typ==='vorbereitung'?`<span class="bdg bdg-b">Athletik · Grundlagen</span>`:''}
       </div>
-      ${mzOpen[i]?buildMzBody(p,sfv,i):''}
-    </div>`;
-  }).join('');
-}
-
-function buildMzBody(p,sfv,i){
-  let html=`<div class="mz-body">`;
-  if(p.typ==='ferien'){
-    html+=`<div style="background:var(--gold-l);border-radius:7px;padding:12px;margin-bottom:10px">
-      <div style="font-weight:700;font-size:12px;color:var(--gold);margin-bottom:4px">🏖 Ferienpause / Regeneration</div>
-      <div style="font-size:11px;color:var(--text2)">Individuelle Erhaltungsarbeit · Kein Mannschaftstraining</div>
-    </div>`;
-  } else if(p.typ==='vorbereitung'){
-    html+=`<div style="background:var(--accent-l);border-radius:7px;padding:12px;margin-bottom:10px">
-      <div style="font-weight:700;font-size:12px;color:var(--accent);margin-bottom:4px">🏃 Vorbereitung — Athletik & Grundlagen</div>
-      <div style="font-size:11px;color:var(--text2)">Kondition · Technikgrundlagen · Teambuilding</div>
-    </div>`;
-  }
-  if(sfv){
-    html+=`<div style="background:${sfv.bg};border-radius:7px;padding:12px;margin-bottom:12px;border-left:3px solid ${sfv.col}">
-      <div style="font-weight:700;font-size:13px;color:${sfv.col};margin-bottom:6px">${sfv.label}</div>
-      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px;text-transform:uppercase">ZIELE</div>
-      ${sfv.ziele.map(z=>`<div style="font-size:11px;color:var(--text);margin-bottom:2px;padding-left:10px">• ${z}</div>`).join('')}
-    </div>`;
-    Object.entries(sfv.zonen).forEach(([zname,zdata])=>{
-      html+=`<div class="mz-zone">
-        <div class="mz-zt" style="color:${sfv.col}">${zname}</div>
-        ${zdata.prinzipien.map(pr=>`<div class="mz-zp">${pr}</div>`).join('')}
-      </div>`;
-    });
-  }
-  html+=`<div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
-    <div class="flbl" style="width:100%;margin-bottom:4px">TRAININGSSCHWERPUNKTE WÄHLEN</div>
-    ${['Technik','Spielintelligenz','Persönlichkeit','Athletik','Schnelligkeit'].map(sw=>
-      `<button class="btn btn-o btn-sm" onclick="this.className=this.className.includes('btn-b')?'btn btn-o btn-sm':'btn btn-b btn-sm'">${sw}</button>`
-    ).join('')}
-  </div>
-  <div style="margin-top:10px">
-    <div class="flbl" style="margin-bottom:4px">NOTIZ ZUR PHASE</div>
-    <textarea class="fi" style="height:60px;resize:vertical;font-size:12px" placeholder="Trainer-Notizen zu dieser Phase..."></textarea>
-  </div>
+      <span style="color:var(--text3)">▼</span>
+    </div>
+    <div style="display:none;padding:14px;border-top:1px solid var(--border)">
+      ${sfv?`<div style="background:${sfv.bg};border-radius:7px;padding:12px;margin-bottom:12px;border-left:3px solid ${sfv.col}">
+        <div style="font-weight:700;font-size:13px;color:${sfv.col};margin-bottom:6px">${sfv.label}</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">ZIELE</div>
+        ${sfv.ziele.map(z=>`<div style="font-size:11px;margin-bottom:2px;padding-left:10px">• ${z}</div>`).join('')}
+      </div>
+      ${Object.entries(sfv.zonen).map(([zn,zd])=>`<div style="margin-bottom:10px">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:${sfv.col};margin-bottom:5px">${zn}</div>
+        ${zd.prinzipien.map(pr=>`<div class="mz-zp">${pr}</div>`).join('')}
+      </div>`).join('')}`:''}
+      <div style="margin-top:10px">
+        <div class="flbl" style="margin-bottom:4px">NOTIZ</div>
+        <textarea class="fi" style="height:50px;resize:vertical;font-size:12px" placeholder="Trainer-Notizen..."></textarea>
+      </div>
+    </div>
   </div>`;
-  return html;
 }
 
-function toggleMz(i){
-  mzOpen[i]=!mzOpen[i];
-  document.getElementById('mz-phases').innerHTML=buildMzPhases();
-}
-
-// ── TEAMS ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// TEAMS
+// ═══════════════════════════════════════════════════════════════
 function pTeams(el){
-  el.innerHTML=`
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
-    ${[
-      {n:'FE12 Blau',fmt:'7er',sp:18,tr:'Marco Becker',s:'2025/26'},
-      {n:'FE12 Rot',fmt:'7er',sp:16,tr:'Andrea Mäder',s:'2025/26'},
-      {n:'FE14 A',fmt:'9er',sp:20,tr:'Stefan Wolf',s:'2025/26'},
-    ].map(t=>`
-    <div class="card" style="cursor:pointer" onclick="alert('Team öffnen...')"
-      onmouseenter="this.style.boxShadow='var(--sh2)'" onmouseleave="this.style.boxShadow='var(--sh)'">
+  const teams=[{n:'FE12 Blau',fmt:'7er',sp:18,tr:'Marco Becker',s:'2025/26'},{n:'FE12 Rot',fmt:'7er',sp:16,tr:'Andrea Mäder',s:'2025/26'},{n:'FE14 A',fmt:'9er',sp:20,tr:'Stefan Wolf',s:'2025/26'}];
+  el.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+    ${teams.map(t=>`<div class="card" style="cursor:pointer" onmouseenter="this.style.boxShadow='var(--sh2)'" onmouseleave="this.style.boxShadow='var(--sh)'">
       <div class="cb">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
           <div style="width:40px;height:40px;background:var(--accent-l);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:var(--accent)">${t.n[0]}</div>
@@ -1397,75 +1523,115 @@ function pTeams(el){
         <div style="font-size:11px;color:var(--text2)">👥 ${t.sp} Spieler · 👤 ${t.tr}</div>
       </div>
     </div>`).join('')}
-    <div class="card" style="cursor:pointer;border:2px dashed var(--border);background:transparent;box-shadow:none"
-      onclick="alert('Neues Team erstellen...')">
+    ${['cheftrainer','vereinsleiter','superadmin'].includes(STATE.role)?`<div class="card" style="cursor:pointer;border:2px dashed var(--border);background:transparent;box-shadow:none">
       <div class="cb" style="text-align:center;padding:36px;color:var(--text2)">
         <div style="font-size:26px;margin-bottom:6px">+</div>
         <div style="font-weight:600;font-size:13px">Team hinzufügen</div>
       </div>
-    </div>
+    </div>`:''}
   </div>`;
 }
 
-// ── VEREINE / LIZENZEN ────────────────────────────────
+// ═══════════════════════════════════════════════════════════════
+// SUPERADMIN SEITEN
+// ═══════════════════════════════════════════════════════════════
 function pVereine(el){pSuperDash(el);}
 function pLiz(el){
-  el.innerHTML=`
+  el.innerHTML=`<div class="dg">
   <div class="card">
     <div class="ch"><span class="ct">🔑 Lizenzpakete</span></div>
     <div class="cb">
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px">
-        ${[
-          {n:'Starter',t:2,l:5,p:'49'},
-          {n:'Pro',t:5,l:15,p:'99'},
-          {n:'Enterprise',t:15,l:'∞',p:'199'},
-        ].map((l,i)=>`
-        <div class="card" style="border:${i===1?'2px solid var(--accent)':'1px solid var(--border)'}">
-          <div class="cb" style="text-align:center">
-            <div style="font-family:'Space Grotesk';font-weight:800;font-size:16px;margin-bottom:4px">${l.n}</div>
-            <div style="font-size:24px;font-weight:800;color:var(--accent)">CHF ${l.p}<span style="font-size:12px;color:var(--text2)">/Mo</span></div>
-            <div style="font-size:11px;color:var(--text2);margin:8px 0">${l.t} Teams · ${l.l} Logins</div>
-            <button class="btn ${i===1?'btn-b':'btn-o'} btn-sm" style="width:100%">Zuweisen</button>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+        ${[{n:'Solo',t:1,l:2,m:'19.90',j:'199.90'},{n:'Starter',t:2,l:5,m:'29.90',j:'319.90'},{n:'Pro',t:5,l:15,m:'49.90',j:'499.90'},{n:'Enterprise',t:15,l:'∞',m:'129.90',j:"1'199.90"}].map((l,i)=>`
+        <div class="card" style="border:${i===2?'2px solid var(--accent)':'1px solid var(--border)'}">
+          <div class="cb" style="text-align:center;padding:14px">
+            <div style="font-family:'Space Grotesk';font-weight:800;font-size:14px;margin-bottom:6px">${l.n}</div>
+            <div style="font-size:20px;font-weight:800;color:var(--accent)">CHF ${l.m}<span style="font-size:10px;color:var(--text2)">/Mo</span></div>
+            <div style="font-size:10px;color:var(--text2);margin:6px 0">${l.t} ${l.t===1?'Team':'Teams'} · ${l.l} Logins</div>
+            <div style="font-size:10px;color:var(--text2);margin-bottom:8px">CHF ${l.j}/Jahr</div>
+            <button class="btn ${i===2?'btn-b':'btn-o'} btn-sm" style="width:100%">Zuweisen</button>
           </div>
         </div>`).join('')}
       </div>
+      <div style="background:var(--accent-l);border-radius:8px;padding:12px;font-size:12px;color:var(--accent)">
+        🎁 <strong>Erste 10 Pilotvereine:</strong> 5 Jahre kostenlos (Vollzugriff auf alle Module)
+      </div>
+    </div>
+  </div></div>`;
+}
+
+function pAnfragen(el){
+  const anfragen=[
+    {name:'SC Allschwil',email:'info@sc-allschwil.ch',funktion:'Cheftrainer',teams:'2',datum:'20.08.2025',status:'neu'},
+    {name:'FC Birsfelden',email:'trainer@fc-birsfelden.ch',funktion:'Vereinsleiter',teams:'4',datum:'18.08.2025',status:'neu'},
+    {name:'BSC Old Boys',email:'jugend@bsc-oldboys.ch',funktion:'Sportchef',teams:'6',datum:'15.08.2025',status:'in_bearbeitung'},
+  ];
+  el.innerHTML=`<div class="card">
+    <div class="ch"><span class="ct">📩 Anmelde-Anfragen</span><span class="bdg bdg-r">2 neu</span></div>
+    <div style="padding:0 18px">
+      ${anfragen.map(a=>`<div style="display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-weight:700;font-size:13px">${a.name}</div>
+          <div style="font-size:11px;color:var(--text2)">${a.email} · ${a.funktion} · ${a.teams} Teams · ${a.datum}</div>
+        </div>
+        <span class="bdg ${a.status==='neu'?'bdg-r':'bdg-gold'}">${a.status}</span>
+        <button class="btn btn-o btn-sm">Details</button>
+        <button class="btn btn-b btn-sm">✓ Aktivieren</button>
+      </div>`).join('')}
     </div>
   </div>`;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// EINSTELLUNGEN
+// ═══════════════════════════════════════════════════════════════
 function pSet(el){
-  el.innerHTML=`
+  el.innerHTML=`<div class="dg">
   <div class="card">
-    <div class="ch"><span class="ct">⚙️ Darstellung & Präferenzen</span></div>
+    <div class="ch"><span class="ct">👤 Mein Profil</span></div>
     <div class="cb">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
-        <div><div style="font-weight:600">Sidebar-Position</div><div style="font-size:11px;color:var(--text2)">Für Links- oder Rechtshänder</div></div>
+      <div class="fl2" style="margin-bottom:12px">
+        <div class="fi-wrap"><label class="fi-label">Vorname</label><input class="fi" value="${STATE.profile?.vorname||''}" style="margin-top:4px"></div>
+        <div class="fi-wrap"><label class="fi-label">Nachname</label><input class="fi" value="${STATE.profile?.nachname||''}" style="margin-top:4px"></div>
+      </div>
+      <div class="fi-wrap"><label class="fi-label">E-Mail</label><input class="fi" value="${STATE.profile?.email||STATE.user?.email||''}" disabled style="margin-top:4px;background:var(--surface2);color:var(--text2)"></div>
+      <div style="padding:10px;background:var(--accent-l);border-radius:8px;font-size:11px;color:var(--accent);margin-top:4px">
+        🔐 E-Mail kann nur vom Super-Admin geändert werden. Anmeldung erfolgt via Magic Link.
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><span class="ct">⚙️ Darstellung</span></div>
+    <div class="cb">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div><div style="font-weight:600">Sidebar-Position</div><div style="font-size:11px;color:var(--text2)">Links oder rechts</div></div>
         <div style="display:flex;gap:6px">
-          <button class="btn btn-b btn-sm">Links</button>
-          <button class="btn btn-o btn-sm" onclick="toggleSide()">Rechts</button>
+          <button class="btn ${!STATE.sideRight?'btn-b':'btn-o'} btn-sm" onclick="if(STATE.sideRight){toggleSide();}">Links</button>
+          <button class="btn ${STATE.sideRight?'btn-b':'btn-o'} btn-sm" onclick="if(!STATE.sideRight){toggleSide();}">Rechts</button>
         </div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
-        <div><div style="font-weight:600">Verein-Logo hochladen</div><div style="font-size:11px;color:var(--text2)">Erscheint in Sidebar und Dashboard</div></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0">
+        <div><div style="font-weight:600">Verein-Logo</div><div style="font-size:11px;color:var(--text2)">Erscheint in der Sidebar</div></div>
         <input type="file" accept="image/*" onchange="previewLogo(this)" style="display:none" id="logo-inp">
         <button class="btn btn-o btn-sm" onclick="document.getElementById('logo-inp').click()">📁 Logo wählen</button>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">
-        <div><div style="font-weight:600">Team wechseln</div><div style="font-size:11px;color:var(--text2)">Deine zugewiesenen Teams</div></div>
-        <select class="fi" style="width:auto;font-size:12px">
-          <option>FE12 Blau</option><option>FE12 Rot</option>
-        </select>
-      </div>
     </div>
+  </div>
+  ${STATE.isDemo?`<div style="background:var(--gold-l);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--gold)">
+    🎭 <strong>Demo-Modus.</strong> Echte Daten werden nur nach Anmeldung mit Magic Link geladen.
+    <button class="btn btn-sm" style="background:var(--gold);color:#fff;border:none;margin-left:8px" onclick="doLogout()">Zur Anmeldung →</button>
+  </div>`:''}
   </div>`;
 }
-function previewLogo(inp){
-  if(!inp.files[0])return;
-  const url=URL.createObjectURL(inp.files[0]);
-  const vl=document.getElementById('vb-logo');
-  if(vl){vl.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">`;vl.style.padding='0';}
-}
 
-// ── OVERLAYS ──────────────────────────────────────────
+function previewLogo(inp){if(!inp.files[0])return;const url=URL.createObjectURL(inp.files[0]);const vl=document.getElementById('vb-logo');if(vl){vl.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">`;vl.style.padding='0';}}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS & OVERLAYS
+// ═══════════════════════════════════════════════════════════════
+function canWrite(){return ['superadmin','vereinsleiter','cheftrainer','assistent'].includes(STATE.role)&&(STATE.lizenzOk||STATE.graceMode);}
+function canDelete(){return ['superadmin','vereinsleiter','cheftrainer'].includes(STATE.role);}
+
 function showOv(html){document.getElementById('ovc').innerHTML=html;document.getElementById('ov').classList.remove('hidden');}
 function closeOv(){document.getElementById('ov').classList.add('hidden');}
 
@@ -1476,62 +1642,55 @@ function showAddSp(){
       <div><label class="flbl">NACHNAME</label><input class="fi" placeholder="Nachname" style="margin-top:3px"></div>
       <div><label class="flbl">GEBURTSDATUM</label><input type="date" class="fi" style="margin-top:3px"></div>
       <div><label class="flbl">STARKER FUSS</label><select class="fi" style="margin-top:3px"><option>Rechts</option><option>Links</option><option>Beide</option></select></div>
-      <div><label class="flbl">POSITION (HAUPT)</label><select class="fi" style="margin-top:3px">${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}</select></div>
-      <div><label class="flbl">POSITION ALT 1</label><select class="fi" style="margin-top:3px"><option>—</option>${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}</select></div>
-      <div><label class="flbl">POSITION ALT 2</label><select class="fi" style="margin-top:3px"><option>—</option>${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}</select></div>
-      <div><label class="flbl">TRIKOTNUMMER</label><input type="number" class="fi" placeholder="7" style="margin-top:3px"></div>
+      <div><label class="flbl">POSITION</label><select class="fi" style="margin-top:3px">${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}</select></div>
+      <div><label class="flbl">ALT-POSITION</label><select class="fi" style="margin-top:3px"><option>—</option>${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}</select></div>
+      <div><label class="flbl">TRIKOT-NR.</label><input type="number" class="fi" placeholder="7" style="margin-top:3px"></div>
+      <div><label class="flbl">TORWART</label><select class="fi" style="margin-top:3px"><option>Nein</option><option>Ja</option></select></div>
     </div>
-    <div style="margin-top:10px"><label class="flbl">FOTO (optional)</label>
-    <input type="file" accept="image/*" class="fi" style="margin-top:3px;padding:6px"></div>
     <div style="display:flex;gap:8px;margin-top:14px">
-      <button class="btn btn-b" style="flex:1" onclick="closeOv()">Spieler speichern</button>
+      <button class="btn btn-b" style="flex:1" onclick="closeOv()">Speichern</button>
       <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
     </div>`);
 }
-function showSpDetail(name){
-  const p=SPIELER_DATA.find(s=>s.name===name)||{name,pos:'—',min:0,tore:0,rating:0};
-  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">👤 ${name}</div>
+
+function showSpDetail(id){
+  const p=SPIELER_DATA.find(s=>s.id===id);if(!p)return;
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">👤 ${p.vorname} ${p.nachname}</div>
     <div class="fl2" style="margin-bottom:14px">
-      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">POSITION</div><div style="font-weight:700">${p.pos}</div></div>
+      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">POSITION</div><div style="font-weight:700">${p.pos}${p.pos2?' / '+p.pos2:''}</div></div>
+      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">FUSS</div><div style="font-weight:700">${p.fuss}</div></div>
       <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">SPIELZEIT</div><div style="font-weight:700">${p.min} Min</div></div>
       <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">TORE</div><div style="font-weight:700">${p.tore}</div></div>
-      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">Ø BEWERTUNG</div><div style="font-weight:700;color:var(--green)">${p.rating}</div></div>
     </div>
-    <button class="btn btn-b" style="width:100%" onclick="closeOv();goPage('bewertungen')">Zur Bewertung →</button>`);
+    ${hasModule('bewertungen')?`<button class="btn btn-b" style="width:100%" onclick="closeOv();goPage('bewertungen')">Zur Bewertung →</button>`:'<div style="font-size:11px;color:var(--text2)">Bewertungs-Modul nicht aktiv.</div>'}`);
 }
+
 function showPickerFor(el,pos){
   showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">Position ${pos} — Spieler wählen</div>
-    ${SPIELER_DATA.map(s=>`
-    <div onclick="closeOv()" style="display:flex;align-items:center;gap:10px;padding:9px;border-radius:7px;cursor:pointer"
+    ${SPIELER_DATA.map(s=>`<div onclick="closeOv()" style="display:flex;align-items:center;gap:10px;padding:9px;border-radius:7px;cursor:pointer"
       onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
-      <div class="pav">${s.name.split(' ').map(n=>n[0]).join('')}</div>
-      <div style="flex:1"><div style="font-weight:600;font-size:13px">${s.name}</div><div style="font-size:10px;color:var(--text2)">${s.pos}</div></div>
+      <div class="pav">${s.vorname[0]}${s.nachname[0]}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${s.vorname} ${s.nachname}</div><div style="font-size:10px;color:var(--text2)">${s.pos}</div></div>
       <button class="btn btn-b btn-sm">Wählen</button>
     </div>`).join('')}`);
 }
+
 function showNewBew(){
   showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">⭐ Neue Bewertung</div>
-    <div style="margin-bottom:10px"><label class="flbl">QUARTAL</label>
-    <select class="fi" style="margin-top:3px"><option>Q3 2025</option><option>Q2 2025</option><option>Q1 2025</option><option>Q4 2024</option></select></div>
-    ${[
-      {lb:'Technik',v:7},
-      {lb:'Spielintelligenz',v:7},
-      {lb:'Persönlichkeit',v:7},
-      {lb:'Athletik',v:7},
-      {lb:'Schnelligkeit (physisch & gedanklich)',v:7},
-      {lb:'Umfeld (Schule / Ausbildung / Familie)',v:7},
-    ].map(r=>`
+    <div class="fi-wrap"><label class="flbl">QUARTAL</label>
+    <select class="fi" style="margin-top:3px"><option>Q3 2025</option><option>Q2 2025</option><option>Q1 2025</option></select></div>
+    ${['Technik','Spielintelligenz','Persönlichkeit','Athletik','Schnelligkeit','Umfeld'].map(r=>`
     <div style="margin-bottom:12px">
       <div style="display:flex;justify-content:space-between;margin-bottom:3px">
-        <label class="flbl">${r.lb}</label>
-        <span id="nv-${r.lb}" style="font-weight:800;color:var(--accent);font-size:13px">${r.v}</span>
+        <label class="flbl">${r}</label>
+        <span id="nv-${r}" style="font-weight:800;color:var(--accent);font-size:13px">7</span>
       </div>
-      <input type="range" min="1" max="10" value="${r.v}" style="width:100%;margin-bottom:5px"
-        oninput="document.getElementById('nv-${r.lb}').textContent=this.value">
-      <textarea class="fi" style="min-height:36px;resize:vertical;font-size:11px" placeholder="Kommentar zu ${r.lb}..."></textarea>
+      <input type="range" min="1" max="10" value="7" style="width:100%;margin-bottom:4px" oninput="document.getElementById('nv-${r}').textContent=this.value">
+      <textarea class="fi" style="min-height:34px;resize:vertical;font-size:11px" placeholder="Kommentar..."></textarea>
     </div>`).join('')}
     <button class="btn btn-b" style="width:100%;margin-top:6px" onclick="closeOv()">Bewertung speichern</button>`);
 }
+
 function showSpielForm(typ){
   showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">📋 ${typ}</div>
     <div style="display:grid;gap:8px">
@@ -1540,47 +1699,46 @@ function showSpielForm(typ){
       <div><label class="flbl">ORT</label><input class="fi" placeholder="Spielort" style="margin-top:3px"></div>
       <div><label class="flbl">FORMAT</label>
         <div style="display:flex;gap:6px;margin-top:4px">
-          <button class="btn btn-b btn-sm">7er</button>
-          <button class="btn btn-o btn-sm">9er</button>
-          <button class="btn btn-o btn-sm">11er</button>
+          <button class="btn btn-b btn-sm">7er</button><button class="btn btn-o btn-sm">9er</button><button class="btn btn-o btn-sm">11er</button>
         </div>
       </div>
-      ${typ==='Turnier'?`<div><label class="flbl">ANZAHL AUFSTELLUNGEN</label>
-        <div style="display:flex;gap:6px;margin-top:4px">
-          ${[1,2,3,4].map((n,i)=>`<button class="btn ${i===1?'btn-b':'btn-o'} btn-sm">${n}×</button>`).join('')}
-        </div></div>`:''}
     </div>
     <div style="display:flex;gap:8px;margin-top:14px">
       <button class="btn btn-b" style="flex:1" onclick="closeOv();goPage('aufstellung')">Zur Aufstellung →</button>
       <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
     </div>`);
 }
+
 function confirmDel(name){
   showOv(`<div style="text-align:center;padding:10px">
     <div style="font-size:28px;margin-bottom:10px">⚠️</div>
     <div style="font-weight:700;font-size:15px;margin-bottom:6px">Spieler löschen?</div>
-    <div style="color:var(--text2);font-size:12px;margin-bottom:18px">${name} und alle Daten werden dauerhaft gelöscht.</div>
+    <div style="color:var(--text2);font-size:12px;margin-bottom:18px">${name} — Alle Daten werden dauerhaft gelöscht.</div>
     <div style="display:flex;gap:8px">
-      <button class="btn btn-r" style="flex:1" onclick="closeOv()">Löschen</button>
+      <button class="btn btn-r" style="flex:1" onclick="closeOv()">Definitiv löschen</button>
       <button class="btn btn-o" style="flex:1" onclick="closeOv()">Abbrechen</button>
     </div>
   </div>`);
 }
+
 function selSp(el,name){
-  el.closest('.card').querySelectorAll('div[onclick]').forEach(e=>{e.style.background='';e.querySelector('.pav').style.background='';e.querySelector('.pav').style.color='';});
+  el.closest('.card').querySelectorAll('div[onclick]').forEach(e=>{e.style.background='';const a=e.querySelector('.pav');if(a){a.style.background='';a.style.color='';}});
   el.style.background='var(--accent-l)';
-  el.querySelector('.pav').style.background='var(--accent)';
-  el.querySelector('.pav').style.color='#fff';
-  document.querySelector('#bw-dp .ct').textContent=name+' — Q2 2025';
+  const a=el.querySelector('.pav');if(a){a.style.background='var(--accent)';a.style.color='#fff';}
+  const bnt=document.getElementById('bw-name');if(bnt)bnt.textContent=name+' — Q2 2025';
 }
+
 function swTab(tab,tid){
   tab.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   tab.classList.add('active');
   document.querySelectorAll('[id^="bw-"]').forEach(e=>e.classList.add('hidden'));
-  const t=document.getElementById(tid);
-  if(t)t.classList.remove('hidden');
+  const t=document.getElementById(tid);if(t)t.classList.remove('hidden');
 }
-function addMzPhase(){alert('Neue Phase hinzufügen — in der echten Version öffnet ein Formular.');}
+
+// ═══════════════════════════════════════════════════════════════
+// START
+// ═══════════════════════════════════════════════════════════════
+boot();
 </script>
 </body>
 </html>

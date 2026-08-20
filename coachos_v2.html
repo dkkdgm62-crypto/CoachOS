@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CoachOS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4F6F9;--surface:#FFFFFF;--surface2:#F0F2F6;--border:#E2E6EE;
+  --text:#0F172A;--text2:#5A6478;--text3:#9CA3AF;
+  --accent:#1B4FDB;--accent-l:#EBF0FF;--accent-d:#1340B8;
+  --green:#16A34A;--green-l:#DCFCE7;
+  --red:#DC2626;--red-l:#FEE2E2;
+  --orange:#EA580C;--orange-l:#FFF3EB;
+  --gold:#D97706;--gold-l:#FEF3C7;
+  --sw:252px;--hh:58px;--r:10px;
+  --sh:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.04);
+  --sh2:0 8px 32px rgba(0,0,0,.10);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:13px;min-height:100vh;}
+.hidden{display:none!important;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+
+/* ── LOGIN ── */
+#ls{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(140deg,#050E25 0%,#0D2563 55%,#1B4FDB 100%);
+  position:relative;overflow:hidden;}
+#ls::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(27,79,219,.25) 0%,transparent 70%);
+  top:-100px;right:-100px;}
+#ls::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(22,163,74,.12) 0%,transparent 70%);
+  bottom:-80px;left:-80px;}
+.lc{background:#fff;border-radius:16px;padding:36px;width:100%;max-width:400px;
+  position:relative;z-index:1;box-shadow:0 32px 80px rgba(0,0,0,.35);}
+.ll{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
+.li{width:38px;height:38px;background:var(--accent);border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;font-size:17px;}
+.lt{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:20px;}
+.lt span{color:var(--accent);}
+.lh{font-size:17px;font-weight:700;margin-bottom:4px;}
+.ls2{color:var(--text2);font-size:12px;margin-bottom:24px;}
+.db{padding:11px 14px;border-radius:8px;border:1.5px solid var(--border);
+  cursor:pointer;background:#fff;transition:all .15s;
+  display:flex;align-items:center;gap:12px;margin-bottom:8px;width:100%;text-align:left;}
+.db:hover{border-color:var(--accent);background:var(--accent-l);}
+.db .ri{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;}
+.db .rl{font-weight:700;font-size:13px;}
+.db .rd{font-size:11px;color:var(--text2);}
+
+/* ── SHELL ── */
+#app{display:flex;min-height:100vh;}
+.sb{width:var(--sw);background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:fixed;top:0;bottom:0;left:0;z-index:100;
+  transition:left .2s;}
+.sb.right{left:auto;right:0;border-right:none;border-left:1px solid var(--border);}
+.sb-head{padding:0 16px;height:var(--hh);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;}
+.sb-logo{width:30px;height:30px;background:var(--accent);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Space Grotesk',sans-serif;font-weight:800;color:#fff;font-size:13px;flex-shrink:0;}
+.sb-lt{font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;}
+.sb-lt span{color:var(--accent);}
+
+/* Verein-Box in Sidebar */
+.vb{margin:10px;border-radius:9px;overflow:hidden;}
+.vb-inner{padding:10px 12px;background:var(--accent-l);display:flex;align-items:center;gap:10px;}
+.vb-logo{width:36px;height:36px;border-radius:7px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;
+  overflow:hidden;flex-shrink:0;}
+.vb-logo img{width:100%;height:100%;object-fit:cover;}
+.vb-name{font-weight:700;font-size:12px;color:var(--accent);}
+.vb-sub{font-size:10px;color:var(--text2);}
+
+.sbn{flex:1;overflow-y:auto;padding:8px;}
+.ns{margin-bottom:2px;}
+.nl{padding:9px 8px 3px;font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.8px;text-transform:uppercase;}
+.ni{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;
+  cursor:pointer;transition:all .12s;color:var(--text2);font-weight:500;font-size:13px;margin-bottom:1px;}
+.ni:hover{background:var(--surface2);color:var(--text);}
+.ni.active{background:var(--accent-l);color:var(--accent);font-weight:600;}
+.ni .ic{font-size:15px;width:18px;text-align:center;}
+.ni .nb{margin-left:auto;background:var(--red);color:#fff;border-radius:20px;
+  padding:1px 5px;font-size:10px;font-weight:700;}
+.sb-foot{padding:10px;border-top:1px solid var(--border);}
+.uc{display:flex;align-items:center;gap:9px;padding:7px;border-radius:7px;cursor:pointer;}
+.uc:hover{background:var(--surface2);}
+.ua{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0;}
+.un{font-size:12px;font-weight:600;}
+.ur{font-size:10px;color:var(--text2);}
+
+/* ── MAIN ── */
+.main{flex:1;margin-left:var(--sw);display:flex;flex-direction:column;min-height:100vh;}
+.main.sr{margin-left:0;margin-right:var(--sw);}
+.tb{height:var(--hh);background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 22px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;}
+.tb-t{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;}
+.tb-a{display:flex;align-items:center;gap:8px;}
+.btn{padding:6px 13px;border-radius:7px;font-size:12px;font-weight:600;
+  cursor:pointer;border:none;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
+.btn-o{background:transparent;border:1.5px solid var(--border);color:var(--text);}
+.btn-o:hover{border-color:var(--accent);color:var(--accent);}
+.btn-b{background:var(--accent);color:#fff;}
+.btn-b:hover{background:var(--accent-d);}
+.btn-g{background:var(--green);color:#fff;}
+.btn-r{background:var(--red);color:#fff;}
+.btn-sm{padding:4px 9px;font-size:11px;}
+.pc{padding:20px;}
+
+/* ── CARDS ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);}
+.ch{padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;}
+.ct{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;}
+.cb{padding:18px;}
+
+/* ── BADGE ── */
+.bdg{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;}
+.bdg-b{background:var(--accent-l);color:var(--accent);}
+.bdg-g{background:var(--green-l);color:var(--green);}
+.bdg-r{background:var(--red-l);color:var(--red);}
+.bdg-o{background:var(--orange-l);color:var(--orange);}
+.bdg-gold{background:var(--gold-l);color:var(--gold);}
+
+/* ── DASHBOARD ── */
+.dg{display:grid;gap:14px;}
+.sr4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 18px;box-shadow:var(--sh);}
+.sv{font-family:'Space Grotesk',sans-serif;font-size:26px;font-weight:800;margin:4px 0 2px;}
+.sl{font-size:11px;color:var(--text2);}
+.sd{font-size:11px;font-weight:600;margin-top:4px;}
+.sd.up{color:var(--green);}
+.sd.warn{color:var(--orange);}
+
+/* ── KALENDER ── */
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.ch2{text-align:center;font-size:10px;font-weight:700;color:var(--text3);padding:5px 0;}
+.cd{min-height:52px;border-radius:6px;padding:4px;cursor:pointer;transition:background .1s;
+  position:relative;font-size:11px;font-weight:600;}
+.cd:hover{background:var(--surface2);}
+.cd.today{background:var(--accent);color:#fff;}
+.cd.today .cd-num{color:#fff;}
+.cd-num{font-size:12px;font-weight:700;display:block;margin-bottom:2px;}
+.cd.om .cd-num{color:var(--text3);}
+.ev-dot{font-size:9px;font-weight:700;padding:1px 3px;border-radius:3px;display:inline-block;margin-top:1px;line-height:1.3;}
+.ev-ms{background:#1B4FDB;color:#fff;}
+.ev-ts{background:#16A34A;color:#fff;}
+.ev-tu{background:#EA580C;color:#fff;}
+
+/* ── NEXT GAMES ── */
+.ng{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.ng:last-child{border-bottom:none;}
+.nd{width:42px;height:46px;border-radius:8px;background:var(--accent-l);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.ndd{font-family:'Space Grotesk',sans-serif;font-size:17px;font-weight:800;color:var(--accent);}
+.ndm{font-size:9px;font-weight:700;color:var(--text2);text-transform:uppercase;}
+.nv{font-weight:700;font-size:13px;}
+.nm{font-size:11px;color:var(--text2);margin-top:1px;}
+
+/* ── SPIELER ── */
+.pr{display:grid;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);}
+.pr:last-child{border-bottom:none;}
+.pav{width:32px;height:32px;border-radius:7px;background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;
+  color:var(--text2);overflow:hidden;flex-shrink:0;}
+.pav img{width:100%;height:100%;object-fit:cover;}
+.pn{font-weight:600;font-size:13px;}
+.pp{font-size:11px;color:var(--text2);}
+.rp{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;font-weight:800;font-size:12px;}
+.rh{background:#DCFCE7;color:#16A34A;}
+.rm2{background:#FEF3C7;color:#D97706;}
+.rl{background:#FEE2E2;color:#DC2626;}
+
+/* ── SPIELFELD ── */
+.field-wrap{position:relative;width:100%;max-width:340px;margin:0 auto;
+  background:linear-gradient(180deg,#2A6B35 0%,#2E7A3C 50%,#2A6B35 100%);
+  border-radius:8px;overflow:hidden;}
+.field-wrap::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0px,rgba(255,255,255,.03) 1px,transparent 1px,transparent 40px);}
+.fw7{aspect-ratio:.62;}
+.fw9{aspect-ratio:.62;}
+.fw11{aspect-ratio:.62;}
+.fl{position:absolute;background:rgba(255,255,255,.3);}
+.fc{position:absolute;border:1px solid rgba(255,255,255,.3);background:transparent;border-radius:50%;}
+/* Mittellinig */
+.fl-mid{top:50%;left:5%;right:5%;height:1px;}
+.fc-mid{width:15%;padding-top:15%;top:50%;left:50%;transform:translate(-50%,-50%);}
+/* Strafraumlinie 7er = Abseitsregel */
+.fl-pen-t{top:22%;left:15%;right:15%;height:2px;background:rgba(255,200,0,.6);}
+.fl-pen-b{bottom:22%;left:15%;right:15%;height:2px;background:rgba(255,200,0,.6);}
+.fl-offs-label-t{position:absolute;top:23%;left:16%;font-size:8px;color:rgba(255,220,0,.9);font-weight:700;}
+.fl-offs-label-b{position:absolute;bottom:23%;left:16%;font-size:8px;color:rgba(255,220,0,.9);font-weight:700;}
+/* Tore */
+.fl-goal-t{top:0;left:35%;right:35%;height:4%;background:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.6);}
+.fl-goal-b{bottom:0;left:35%;right:35%;height:4%;background:rgba(255,255,255,.5);border-top:1px solid rgba(255,255,255,.6);}
+/* Außenlinien */
+.fl-out-l{top:0;bottom:0;left:5%;width:1px;}
+.fl-out-r{top:0;bottom:0;right:5%;width:1px;}
+.fl-out-t{top:0;left:5%;right:5%;height:1px;}
+.fl-out-b{bottom:0;left:5%;right:5%;height:1px;}
+/* Penalty box normal */
+.fl-pb-t{top:0;left:25%;right:25%;height:14%;background:transparent;border:1px solid rgba(255,255,255,.3);border-top:none;}
+.fl-pb-b{bottom:0;left:25%;right:25%;height:14%;background:transparent;border:1px solid rgba(255,255,255,.3);border-bottom:none;}
+
+.fp{position:absolute;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  cursor:grab;user-select:none;z-index:10;}
+.fp:active{cursor:grabbing;z-index:20;}
+.fd{width:32px;height:32px;border-radius:50%;background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:9px;color:var(--accent);
+  box-shadow:0 2px 8px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.9);
+  transition:transform .1s;pointer-events:none;}
+.fp:hover .fd{transform:scale(1.1);}
+.fd.k{background:var(--gold);color:#fff;}
+.fd.s{background:var(--orange);color:#fff;}
+.fn{font-size:8px;font-weight:700;color:#fff;
+  text-shadow:0 1px 3px rgba(0,0,0,.8);
+  background:rgba(0,0,0,.45);padding:1px 3px;border-radius:3px;
+  white-space:nowrap;pointer-events:none;}
+
+/* ── BEWERTUNG ── */
+.bw-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.bw-item{background:var(--surface2);border-radius:8px;padding:12px;}
+.bw-lbl{font-size:10px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;}
+.bw-track{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:4px;}
+.bw-fill{height:100%;border-radius:3px;transition:width .5s;}
+.bw-fill.h{background:var(--green);}
+.bw-fill.m{background:var(--gold);}
+.bw-fill.l{background:var(--red);}
+.bw-val{font-size:18px;font-weight:800;font-family:'Space Grotesk',sans-serif;}
+.bw-kom{margin-top:6px;}
+.bw-kom textarea{width:100%;padding:5px 7px;border:1.5px solid var(--border);
+  border-radius:6px;font-size:11px;resize:vertical;min-height:40px;
+  background:var(--surface);font-family:inherit;color:var(--text);}
+.bw-kom textarea:focus{outline:none;border-color:var(--accent);}
+
+/* ── MAKROZYKLUS ── */
+.mz-phase{margin-bottom:16px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+.mz-ph{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;user-select:none;}
+.mz-ph:hover{background:var(--surface2);}
+.mz-body{padding:14px;background:var(--surface);border-top:1px solid var(--border);}
+.mz-zone{margin-bottom:10px;}
+.mz-zt{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.mz-zl{font-size:12px;color:var(--text2);margin-bottom:3px;padding-left:10px;line-height:1.5;}
+.mz-zp{font-size:11px;color:var(--text2);padding-left:18px;margin-bottom:2px;
+  position:relative;}
+.mz-zp::before{content:'•';position:absolute;left:8px;}
+
+/* ── TAKTIK ── */
+.tk-wrap{position:relative;width:100%;
+  background:linear-gradient(180deg,#2A6B35,#2E7A3C,#2A6B35);
+  border-radius:10px;overflow:hidden;touch-action:none;}
+.tk-wrap::before{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0px,rgba(255,255,255,.03) 1px,transparent 1px,transparent 38px);}
+.tk-ball{position:absolute;width:20px;height:20px;border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#fff 0%,#e8e8e8 60%,#ccc 100%);
+  box-shadow:0 2px 6px rgba(0,0,0,.4);cursor:grab;z-index:15;transform:translate(-50%,-50%);}
+.tk-player{position:absolute;transform:translate(-50%,-50%);cursor:grab;z-index:10;}
+.tk-pd{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-weight:800;font-size:10px;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.8);}
+.tk-svg{position:absolute;inset:0;pointer-events:none;z-index:5;}
+.tk-draw-canvas{position:absolute;inset:0;z-index:20;display:none;}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:16px;}
+.tab{padding:9px 15px;font-size:12px;font-weight:600;color:var(--text2);
+  cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .12s;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* ── OVERLAY ── */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;
+  display:flex;align-items:flex-end;justify-content:center;}
+.bs{background:#fff;border-radius:16px 16px 0 0;padding:22px;
+  width:100%;max-width:500px;max-height:80vh;overflow-y:auto;}
+.bsh{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 18px;}
+.fi{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:7px;
+  font-size:13px;font-family:inherit;outline:none;transition:border-color .1s;}
+.fi:focus{border-color:var(--accent);}
+.fl2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.flbl{font-size:10px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="ls">
+  <div class="lc">
+    <div class="ll">
+      <div class="li">C</div>
+      <div class="lt">Coach<span>OS</span></div>
+    </div>
+    <div class="lh">Willkommen zurück</div>
+    <div class="ls2">Demo — Rolle wählen zum Starten</div>
+    <button class="db" onclick="loginAs('superadmin')">
+      <div class="ri" style="background:#EBF0FF">🛡️</div>
+      <div><div class="rl">Super-Admin (Dogus)</div><div class="rd">Alle Vereine · Vollzugriff · Lizenzen</div></div>
+    </button>
+    <button class="db" onclick="loginAs('vereinsleiter')">
+      <div class="ri" style="background:#DCFCE7">👔</div>
+      <div><div class="rl">Vereinsleiter</div><div class="rd">FC Musterstadt · Lesen / Bearbeiten / Löschen</div></div>
+    </button>
+    <button class="db" onclick="loginAs('cheftrainer')">
+      <div class="ri" style="background:#FEF3C7">⚽</div>
+      <div><div class="rl">Cheftrainer</div><div class="rd">FE12 Blau · Bearbeiten / Löschen</div></div>
+    </button>
+    <button class="db" onclick="loginAs('assistent')">
+      <div class="ri" style="background:#F3F4F6">📋</div>
+      <div><div class="rl">Assistent</div><div class="rd">FE12 Rot · Erstellen / Bearbeiten (kein Löschen)</div></div>
+    </button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <nav class="sb" id="sb">
+    <div class="sb-head">
+      <div class="sb-logo">C</div>
+      <div class="sb-lt">Coach<span>OS</span></div>
+    </div>
+    <div class="vb" id="vb">
+      <div class="vb-inner">
+        <div class="vb-logo" id="vb-logo">FC</div>
+        <div>
+          <div class="vb-name" id="vb-name">FC Musterstadt</div>
+          <div class="vb-sub" id="vb-sub">FE12 Blau · 7er</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sbn" id="sbn"></nav>
+    <div class="sb-foot">
+      <div class="uc" onclick="goPage('settings')">
+        <div class="ua" id="ua">DK</div>
+        <div>
+          <div class="un" id="un">Dogus Kaplan</div>
+          <div class="ur" id="ur">Super-Admin</div>
+        </div>
+        <div style="margin-left:auto;color:var(--text3);font-size:10px" onclick="event.stopPropagation();doLogout()">↩</div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="main" id="mc">
+    <div class="tb">
+      <div class="tb-t" id="pt">Dashboard</div>
+      <div class="tb-a">
+        <button class="btn btn-o btn-sm" onclick="toggleSide()">⇄ Seite</button>
+        <button class="btn btn-b btn-sm" onclick="goPage('matchvorbereitung')">+ Spiel</button>
+      </div>
+    </div>
+    <div class="pc" id="pc"></div>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="ov hidden" id="ov" onclick="closeOv()">
+  <div class="bs" onclick="event.stopPropagation()">
+    <div class="bsh"></div>
+    <div id="ovc"></div>
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────
+const ROLES_DATA = {
+  superadmin:   {name:'Dogus Kaplan',    ab:'DK', role:'Super-Admin',     col:'#1B4FDB'},
+  vereinsleiter:{name:'Thomas Müller',   ab:'TM', role:'Vereinsleiter',   col:'#16A34A'},
+  cheftrainer:  {name:'Marco Becker',    ab:'MB', role:'Cheftrainer',     col:'#D97706'},
+  assistent:    {name:'Sara Lehmann',    ab:'SL', role:'Assistentin',     col:'#6B7280'},
+};
+
+const NAV = {
+  superadmin:[
+    {s:'System',items:[
+      {id:'dashboard',ic:'🏠',lb:'Dashboard'},
+      {id:'vereine',ic:'🏟️',lb:'Vereine',nb:'4'},
+      {id:'lizenzen',ic:'🔑',lb:'Lizenzen'},
+    ]},
+  ],
+  default:[
+    {s:'Übersicht',items:[
+      {id:'dashboard',ic:'🏠',lb:'Dashboard'},
+      {id:'kalender',ic:'📅',lb:'Kalender'},
+    ]},
+    {s:'Verein & Team',items:[
+      {id:'teams',ic:'👥',lb:'Teams'},
+      {id:'spieler',ic:'⚽',lb:'Spieler'},
+      {id:'makrozyklus',ic:'📈',lb:'Makrozyklus'},
+      {id:'bewertungen',ic:'⭐',lb:'Bewertungen'},
+    ]},
+    {s:'Spielbetrieb',items:[
+      {id:'matchvorbereitung',ic:'📋',lb:'Matchvorbereitung',nb:'2'},
+      {id:'aufstellung',ic:'🗂️',lb:'Aufstellungen'},
+      {id:'taktiktafel',ic:'🎯',lb:'Taktiktafel'},
+    ]},
+  ],
+};
+
+const POSITIONEN = ['TW','IV','LV','RV','DM','ZM','OM','LF','RF','ST'];
+
+const SFV = {
+  'wir_haben_ball':{
+    label:'🟢 Wir haben den Ball',col:'#16A34A',bg:'#DCFCE7',
+    ziele:['Initiativ sein, dynamisch nach vorne spielen','Eigenes Spiel durchsetzen und Gegner dominieren','Lösungen finden, Spiel beschleunigen und Tore erzielen'],
+    zonen:{
+      'Zone 1 — Spiel aufbauen':{
+        prinzipien:['Breite nutzen & präzise Pässe mit Variation kurz, lang oder diagonal','Initiative der Innenverteidiger und Einbezug der zentralen Mittelfeldspieler','Freilaufbewegungen, Orientierung, Signale erkennen','Einen «Zielspieler» einbeziehen','Den freien Raum erkennen und nutzen; Pass oder Dribbling in Zone 2'],
+      },
+      'Zone 2 — Spiel bestimmen':{
+        prinzipien:['Spiel zwischen den Linien (Vertikalpass) mit Dreiecks- und Rhombusbildung','Gegner fixieren im 1:1, Spielverlagerung (Diagonal) oder Dribbling','Dosierte, präzise Pässe und Timing der Freilaufbewegungen','Vertikales Spiel, «Zielspieler» finden','Räume schaffen und besetzen, Signale erkennen'],
+      },
+      'Zone 3/BOX — Angriff abschliessen':{
+        prinzipien:['Den freien Raum nutzen, um Richtung gegnerisches Tor zu gelangen','Kombinationsspiel mit hoher Intensität: Doppelpass, Hinterlaufen, Kreuzen, Virgola','Besetzung der Box: Entschlossenheit und Qualität im Abschluss','Sprints, Signale erkennen','1:1 suchen und gewinnen'],
+      },
+    },
+  },
+  'wir_verlieren_ball':{
+    label:'🔴 Wir verlieren den Ball',col:'#DC2626',bg:'#FEE2E2',
+    ziele:['Initiative behalten, weiterhin agieren','Spielsituation rasch erkennen und blitzschnell entscheiden','Raum und Zeit für den Gegner einschränken, um Gegentor zu verhindern'],
+    zonen:{
+      'Zone 1/BOX — Tor verteidigen':{
+        prinzipien:['Direkten Weg zum Tor schützen','So schnell wie möglich Überzahl in Ballnähe schaffen (Pyramide bilden)','Ballführenden Spieler unter Druck setzen','Duell suchen, Schuss und Flanke blockieren','Duell 1:1 in der Box gewinnen'],
+      },
+      'Zone 2 — Gegenangriff bremsen':{
+        prinzipien:['Ballführenden Spieler sofort unter Druck setzen, Nähe zum Gegenspieler','Vertikalen Pass verhindern (Tiefe absichern)','So schnell wie möglich Überzahl in Ballnähe schaffen (Pyramide bilden)','Falls nicht möglich: fallen lassen, sich organisieren'],
+      },
+      'Zone 3 — Gegenpressing':{
+        prinzipien:['Nach vorne verteidigen','Ballführenden Spieler sofort unter Druck setzen','Prinzip der 3 Kreise','Falls nicht möglich: fallen lassen, sich organisieren mit dem Ziel Ballgewinn'],
+      },
+    },
+  },
+  'wir_haben_ball_nicht':{
+    label:'🔵 Wir haben den Ball nicht',col:'#1B4FDB',bg:'#EBF0FF',
+    ziele:['Initiativ sein, agieren','Ball zurückerobern und Tor verhindern','Spiel des Gegners stören und ihn zu Fehlern zwingen (Raum und Zeit)'],
+    zonen:{
+      'Zone 1/BOX — Tief verteidigen':{
+        prinzipien:['Ballführenden Spieler permanent unter Druck setzen, Überzahl in Ballnähe schaffen','Steuern: Von der Gefahr weg (nach aussen)','Tiefe absichern (Pyramide oder Diagonale)','Flanken und Torschüsse blocken','In der Box: situativ zwischen Mann- oder Raumdeckung entscheiden'],
+      },
+      'Zone 2 — Gegner kontrollieren':{
+        prinzipien:['Ballführenden Spieler permanent unter Druck setzen (Mittelfeldpressing)','Prinzip der 3 Kreise','Wenn Druck nicht möglich: fallen lassen und schnell wieder unter Druck setzen','Steuern: a) Zur Überzahl (zur Mitte) b) Von der Gefahr weg (nach aussen)'],
+      },
+      'Zone 3 — Hoch verteidigen':{
+        prinzipien:['Angriffspressing','Nach vorne verteidigen: Bei Quer-/Rückpass des Gegners','Prinzip der 3 Kreise','Ballführenden Spieler permanent unter Druck setzen, falls nicht möglich: fallen lassen','Den Angriff des Gegners in eine «günstige Position» steuern'],
+      },
+    },
+  },
+  'wir_erobern_ball':{
+    label:'🟠 Wir erobern den Ball',col:'#EA580C',bg:'#FFF3EB',
+    ziele:['Initiative behalten, weiterhin agieren','Spielsituation rasch erkennen und blitzschnell entscheiden','Verfügbaren Raum und Zeit nutzen, um Tore zu erzielen'],
+    zonen:{
+      'Zone 1 — Nach vorne spielen':{
+        prinzipien:['Tiefe nutzen: Direkt oder nach dem zweiten oder dritten Pass (Freilaufbewegungen)','Die Zone 2 oder 3 mit «Zielspielern» suchen','Gezielter langer Ball in den Raum (in den Rücken der gegnerischen Defensive)','Wenn nicht möglich: Ballsicherung mit dem Ziel Neuaufbau'],
+      },
+      'Zone 2 — In die Zone 3 spielen':{
+        prinzipien:['«Zielspieler» in der Zone 3 finden','Schnittstellenpass aus Zone 2 in Zone 3 oder gezielter langer Ball in den Rücken','Individuelle Aktion: Einzeldurchbruch mit oder ohne Ball','Wenn nicht möglich: Ballsicherung (Spielrhythmus kontrollieren)'],
+      },
+      'Zone 3/BOX — Tor erzielen':{
+        prinzipien:['Gegner fixieren, 1:1 suchen und gewinnen','Dosierter, präziser 1. Pass','Pässe und Laufwege aufeinander abstimmen','Raschmöglichst, mit Entschlossenheit und Qualität abschliessen','Wenn nicht möglich: Ballsicherung mit dem Ziel, neue Spielsituation zu schaffen'],
+      },
+    },
+  },
+};
+
+const SPIELER_DATA = [
+  {name:'Ben Fischer',pos:'TW',pos2:'',fuss:'R',rating:7,tw:true,min:160,tore:0},
+  {name:'Luis König',pos:'TW',pos2:'',fuss:'L',rating:6,tw:true,min:80,tore:0},
+  {name:'Jan Meier',pos:'IV',pos2:'DM',fuss:'R',rating:9,tw:false,min:180,tore:0},
+  {name:'Max Schulz',pos:'IV',pos2:'LV',fuss:'R',rating:8,tw:false,min:165,tore:1},
+  {name:'Tom Braun',pos:'LV',pos2:'',fuss:'L',rating:7,tw:false,min:140,tore:0},
+  {name:'Noah Becker',pos:'ZM',pos2:'DM',fuss:'R',rating:8,tw:false,min:195,tore:1},
+  {name:'Luca Müller',pos:'ST',pos2:'RF',fuss:'R',rating:9,tw:false,min:210,tore:4},
+  {name:'Tim Keller',pos:'LF',pos2:'ZM',fuss:'L',rating:7,tw:false,min:165,tore:2},
+  {name:'Nico Huber',pos:'RF',pos2:'ST',fuss:'R',rating:7,tw:false,min:120,tore:1},
+  {name:'Paul Suter',pos:'DM',pos2:'IV',fuss:'R',rating:6,tw:false,min:90,tore:0},
+];
+
+let role='',sideRight=false;
+
+// ── LOGIN ─────────────────────────────────────────────
+function loginAs(r){
+  role=r;
+  const u=ROLES_DATA[r];
+  document.getElementById('ls').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  const av=document.getElementById('ua');
+  av.textContent=u.ab; av.style.background=u.col;
+  document.getElementById('un').textContent=u.name;
+  document.getElementById('ur').textContent=u.role;
+  if(r==='superadmin'){
+    document.getElementById('vb-logo').textContent='SA';
+    document.getElementById('vb-name').textContent='Super-Admin';
+    document.getElementById('vb-sub').textContent='4 Vereine · Vollzugriff';
+  } else if(r==='vereinsleiter'){
+    document.getElementById('vb-logo').textContent='FC';
+    document.getElementById('vb-name').textContent='FC Musterstadt';
+    document.getElementById('vb-sub').textContent='3 Teams · Leiter';
+  } else {
+    document.getElementById('vb-logo').textContent='FB';
+    document.getElementById('vb-name').textContent='FC Musterstadt';
+    document.getElementById('vb-sub').textContent=r==='cheftrainer'?'FE12 Blau · Cheftrainer':'FE12 Rot · Assistentin';
+  }
+  buildNav(); goPage('dashboard');
+}
+function doLogout(){
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('ls').classList.remove('hidden');
+}
+function toggleSide(){
+  sideRight=!sideRight;
+  document.getElementById('sb').classList.toggle('right',sideRight);
+  document.getElementById('mc').classList.toggle('sr',sideRight);
+}
+
+// ── NAV ───────────────────────────────────────────────
+function buildNav(){
+  const nav=document.getElementById('sbn');
+  nav.innerHTML='';
+  const items=role==='superadmin'?NAV.superadmin:NAV.default;
+  items.forEach(sec=>{
+    const s=document.createElement('div');s.className='ns';
+    s.innerHTML=`<div class="nl">${sec.s}</div>`;
+    sec.items.forEach(it=>{
+      const e=document.createElement('div');
+      e.className='ni'+(it.id===currentPage?' active':'');
+      e.id='n-'+it.id;
+      e.innerHTML=`<span class="ic">${it.ic}</span>${it.lb}${it.nb?`<span class="nb">${it.nb}</span>`:''}`;
+      e.onclick=()=>goPage(it.id);
+      s.appendChild(e);
+    });
+    nav.appendChild(s);
+  });
+}
+let currentPage='';
+function goPage(id){
+  currentPage=id;
+  document.querySelectorAll('.ni').forEach(e=>e.classList.remove('active'));
+  const nel=document.getElementById('n-'+id);
+  if(nel)nel.classList.add('active');
+  const titles={dashboard:'Dashboard',kalender:'Kalender',teams:'Teams',spieler:'Spieler',
+    bewertungen:'Bewertungen',matchvorbereitung:'Matchvorbereitung',
+    aufstellung:'Aufstellungen',taktiktafel:'Taktiktafel',makrozyklus:'Makrozyklus',
+    vereine:'Vereinsverwaltung',lizenzen:'Lizenzen',settings:'Einstellungen'};
+  document.getElementById('pt').textContent=titles[id]||id;
+  const el=document.getElementById('pc');
+  el.innerHTML='';
+  ({dashboard:pDash,kalender:pKal,spieler:pSpieler,bewertungen:pBew,
+    matchvorbereitung:pMatch,aufstellung:pAufst,taktiktafel:pTaktik,
+    makrozyklus:pMakro,vereine:pVereine,lizenzen:pLiz,settings:pSet,teams:pTeams}[id]||((e)=>e.innerHTML='<div style="padding:40px;color:var(--text2);text-align:center">In Entwicklung</div>'))(el);
+}
+
+// ── DASHBOARD ─────────────────────────────────────────
+function pDash(el){
+  if(role==='superadmin'){pSuperDash(el);return;}
+  el.innerHTML=`
+  <div class="dg">
+    <div class="sr4">
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">👥</div><div class="sv">18</div><div class="sl">Spieler im Kader</div><div class="sd up">▲ 2 neu</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">⚽</div><div class="sv">6</div><div class="sl">Spiele gespielt</div><div class="sd up">4S · 1U · 1N</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">⭐</div><div class="sv">7.4</div><div class="sl">Ø Bewertung Team</div><div class="sd up">▲ +0.3 vs Q1</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">📅</div><div class="sv">3</div><div class="sl">Nächste Spiele</div><div class="sd warn">⚡ Sa 24. Aug</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 320px;gap:14px">
+      <div class="card">
+        <div class="ch">
+          <span class="ct">📅 August 2025</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-o btn-sm">‹</button>
+            <button class="btn btn-o btn-sm">›</button>
+          </div>
+        </div>
+        <div class="cb">${buildCal()}</div>
+        <div style="padding:4px 18px 14px;display:flex;gap:10px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:4px"><span class="ev-dot ev-ms">MS</span><span style="font-size:10px;color:var(--text2)">Meisterschaft</span></div>
+          <div style="display:flex;align-items:center;gap:4px"><span class="ev-dot ev-ts">TS</span><span style="font-size:10px;color:var(--text2)">Testspiel</span></div>
+          <div style="display:flex;align-items:center;gap:4px"><span class="ev-dot ev-tu">TU</span><span style="font-size:10px;color:var(--text2)">Turnier</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">⚡ Nächste Spiele</span><button class="btn btn-b btn-sm" onclick="goPage('matchvorbereitung')">Vorbereiten</button></div>
+        <div style="padding:0 16px">${nextG()}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="card">
+        <div class="ch"><span class="ct">🏆 Einsätze & Tore</span><button class="btn btn-o btn-sm" onclick="goPage('spieler')">Alle</button></div>
+        <div style="padding:0 18px">${topSp()}</div>
+      </div>
+      <div class="card">
+        <div class="ch"><span class="ct">🧭 Aktueller SFV Fokus</span></div>
+        <div class="cb">
+          <div style="background:#DCFCE7;border-radius:8px;padding:12px;margin-bottom:10px;border-left:3px solid #16A34A">
+            <div style="font-weight:700;font-size:12px;color:#16A34A;margin-bottom:4px">✅ Aktive Phase: Wir haben den Ball</div>
+            <div style="font-size:11px;color:var(--text2)">Zone 2: Spiel bestimmen</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:2px">→ Dreiecksbildung · Vertikalpass · Zielspieler</div>
+          </div>
+          <div style="font-size:11px;color:var(--text2)">Nächste Phase:</div>
+          <div style="background:#FFF3EB;border-radius:8px;padding:10px;margin-top:6px;border-left:3px solid #EA580C">
+            <div style="font-weight:700;font-size:12px;color:#EA580C">Wir erobern den Ball</div>
+            <div style="font-size:11px;color:var(--text2)">Zone 1: Nach vorne spielen · Umschalten DEF→OFF</div>
+          </div>
+          <button class="btn btn-o btn-sm" style="margin-top:10px;width:100%" onclick="goPage('makrozyklus')">Makrozyklus öffnen →</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+const CAL_EVENTS={3:{type:'ms',vs:'FC Riehen'},10:{type:'ts',vs:'SC Bettlach'},22:{type:'tu',vs:'Turnier BB'},24:{type:'ms',vs:'FC Riehen B'}};
+function buildCal(){
+  const days=['Mo','Di','Mi','Do','Fr','Sa','So'];
+  let h=`<div class="cg">`;
+  days.forEach(d=>h+=`<div class="ch2">${d}</div>`);
+  for(let i=0;i<3;i++)h+=`<div class="cd om"><span class="cd-num">${29+i}</span></div>`;
+  for(let d=1;d<=31;d++){
+    const ev=CAL_EVENTS[d];
+    h+=`<div class="cd${d===20?' today':''}" onclick="calClick(${d})">
+      <span class="cd-num">${d}</span>
+      ${ev?`<span class="ev-dot ev-${ev.type}">${ev.type.toUpperCase()}</span><div style="font-size:8px;color:${d===20?'#fff':'var(--text2)'};margin-top:1px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${ev.vs}</div>`:''}
+    </div>`;
+  }
+  h+='</div>';
+  return h;
+}
+function calClick(d){
+  const ev=CAL_EVENTS[d];
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">📅 ${d}. August 2025</div>
+    ${ev?`<div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:14px">
+      <div style="font-weight:700;font-size:13px">${ev.type==='ms'?'Meisterschaft':ev.type==='ts'?'Testspiel':'Turnier'} · vs ${ev.vs}</div>
+    </div>`:'<div style="color:var(--text2);margin-bottom:14px">Kein Spiel an diesem Tag.</div>'}
+    <label class="flbl">Notiz hinzufügen</label>
+    <textarea class="fi" style="height:80px;resize:vertical;margin-top:4px;margin-bottom:12px" placeholder="z.B. Treffpunkt 13:30, Trikot mitbringen..."></textarea>
+    <button class="btn btn-b" style="width:100%" onclick="closeOv()">Speichern</button>`);
+}
+function nextG(){
+  const g=[{d:'24',m:'AUG',vs:'FC Riehen B',t:'Meisterschaft',o:'Herti, Basel',fmt:'7er'},
+           {d:'31',m:'AUG',vs:'SC Bettlach',t:'Meisterschaft',o:'Auswärts',fmt:'7er'},
+           {d:'07',m:'SEP',vs:'Turnier Bruderholz',t:'Turnier',o:'Bruderholz',fmt:'7er'}];
+  return g.map(x=>`<div class="ng">
+    <div class="nd"><div class="ndd">${x.d}</div><div class="ndm">${x.m}</div></div>
+    <div style="flex:1"><div class="nv">vs ${x.vs}</div><div class="nm">${x.t} · ${x.o} · ${x.fmt}</div></div>
+    <button class="btn btn-o btn-sm" onclick="goPage('aufstellung')">→</button>
+  </div>`).join('');
+}
+function topSp(){
+  return SPIELER_DATA.slice(0,6).sort((a,b)=>b.min-a.min).map(p=>`
+  <div class="pr" style="grid-template-columns:32px 1fr 40px 30px">
+    <div class="pav">${p.name.split(' ').map(n=>n[0]).join('')}</div>
+    <div><div class="pn">${p.name}</div><div class="pp">${p.pos}${p.pos2?' · '+p.pos2:''} · ${p.min}min</div></div>
+    <div style="font-size:11px;color:var(--text2)">${p.tore}⚽</div>
+    <div class="rp ${p.rating>=8?'rh':p.rating>=6?'rm2':'rl'}">${p.rating}</div>
+  </div>`).join('');
+}
+
+// ── SUPERADMIN DASH ───────────────────────────────────
+function pSuperDash(el){
+  el.innerHTML=`
+  <div class="dg">
+    <div class="sr4">
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">🏟️</div><div class="sv">4</div><div class="sl">Aktive Vereine</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">👥</div><div class="sv">23</div><div class="sl">Total Logins</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">⚠️</div><div class="sv" style="color:var(--orange)">1</div><div class="sl">Lizenz läuft ab</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">✅</div><div class="sv" style="color:var(--green)">12</div><div class="sl">Teams total</div></div>
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">🏟️ Vereinsübersicht</span><button class="btn btn-b btn-sm">+ Verein</button></div>
+      <div style="padding:0 18px">
+        ${[
+          {n:'FC Musterstadt',t:3,u:8,l:'Pro',s:'aktiv',c:'#1B4FDB',ab:'FC'},
+          {n:'SC Riehen',t:2,u:5,l:'Starter',s:'aktiv',c:'#16A34A',ab:'SC'},
+          {n:'BS United',t:5,u:12,l:'Pro',s:'aktiv',c:'#D97706',ab:'BS'},
+          {n:'Old Boys Demo',t:2,u:5,l:'Starter',s:'abläuft',c:'#DC2626',ab:'OB'},
+        ].map(v=>`
+        <div style="display:grid;grid-template-columns:1fr auto auto auto auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:7px;background:${v.c};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px">${v.ab}</div>
+            <div><div style="font-weight:700;font-size:13px">${v.n}</div><div style="font-size:11px;color:var(--text2)">${v.t} Teams · ${v.u} Logins</div></div>
+          </div>
+          <span class="bdg ${v.s==='aktiv'?'bdg-g':'bdg-r'}">${v.s}</span>
+          <span class="bdg bdg-b">${v.l}</span>
+          <button class="btn btn-o btn-sm">Details</button>
+          <button class="btn btn-b btn-sm">🔑</button>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── KALENDER ─────────────────────────────────────────
+function pKal(el){
+  el.innerHTML=`
+  <div class="card">
+    <div class="ch"><span class="ct">📅 August 2025</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-o btn-sm">‹ Jul</button>
+        <button class="btn btn-o btn-sm">Sep ›</button>
+        <button class="btn btn-b btn-sm">+ Termin</button>
+      </div>
+    </div>
+    <div class="cb">${buildCal()}</div>
+    <div style="padding:4px 18px 14px;display:flex;gap:10px">
+      <span class="ev-dot ev-ms" style="padding:2px 6px">MS</span>
+      <span class="ev-dot ev-ts" style="padding:2px 6px">TS</span>
+      <span class="ev-dot ev-tu" style="padding:2px 6px">TU</span>
+      <span style="font-size:10px;color:var(--text2);align-self:center">Klick auf Tag für Details / Notiz</span>
+    </div>
+  </div>`;
+}
+
+// ── SPIELER ───────────────────────────────────────────
+function pSpieler(el){
+  const canDel=['cheftrainer','vereinsleiter','superadmin'].includes(role);
+  el.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="display:flex;gap:6px">
+      <span class="bdg bdg-b">${SPIELER_DATA.length} Spieler</span>
+      <span class="bdg bdg-gold">2 TW</span>
+      <span class="bdg bdg-g">7er Format</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-o btn-sm">📤 PDF</button>
+      <button class="btn btn-b btn-sm" onclick="showAddSp()">+ Spieler</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch">
+      <span class="ct">Kader — FE12 Blau</span>
+      <select class="fi" style="width:auto;padding:4px 8px;font-size:12px">
+        <option>Alle Positionen</option>${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}
+      </select>
+    </div>
+    <div style="padding:0 18px">
+      ${SPIELER_DATA.map(p=>{
+        const rc=p.rating>=8?'rh':p.rating>=6?'rm2':'rl';
+        return `<div class="pr" style="grid-template-columns:32px 1fr auto auto auto${canDel?' auto':''}">
+          <div class="pav${p.tw?' style=background:var(--gold-l);color:var(--gold)':''}">${p.name.split(' ').map(n=>n[0]).join('')}</div>
+          <div>
+            <div class="pn">${p.name}${p.tw?` <span style="font-size:9px;padding:1px 4px;background:var(--gold-l);color:var(--gold);border-radius:3px;font-weight:700">TW</span>`:''}</div>
+            <div class="pp">${p.pos}${p.pos2?' · '+p.pos2:''} · ${p.fuss}${p.fuss2?' / '+p.fuss2:''}</div>
+          </div>
+          <div class="rp ${rc}">${p.rating}</div>
+          <button class="btn btn-o btn-sm" onclick="showSpDetail('${p.name}')">Detail</button>
+          <button class="btn btn-o btn-sm" onclick="goPage('bewertungen')">⭐</button>
+          ${canDel?`<button class="btn btn-sm" style="background:var(--red-l);color:var(--red)" onclick="confirmDel('${p.name}')">✕</button>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+// ── BEWERTUNGEN ───────────────────────────────────────
+function pBew(el){
+  el.innerHTML=`
+  <div class="tabs">
+    <div class="tab active" onclick="swTab(this,'bw-einzel')">Einzelbewertung</div>
+    <div class="tab" onclick="swTab(this,'bw-vgl')">Vergleich</div>
+    <div class="tab" onclick="swTab(this,'bw-verl')">Verlauf</div>
+  </div>
+  <div id="bw-einzel">
+    <div style="display:grid;grid-template-columns:260px 1fr;gap:14px">
+      <div class="card">
+        <div class="ch"><span class="ct">Spieler</span></div>
+        <div style="padding:10px">
+          ${SPIELER_DATA.map((p,i)=>`
+          <div onclick="selSp(this,'${p.name}')" style="padding:9px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:9px;${i===0?'background:var(--accent-l)':''}">
+            <div class="pav" style="${i===0?'background:var(--accent);color:#fff':''}">
+              ${p.name.split(' ').map(n=>n[0]).join('')}
+            </div>
+            <div>
+              <div style="font-weight:600;font-size:12px">${p.name}</div>
+              <div style="font-size:10px;color:var(--text2)">${p.pos}</div>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="card" id="bw-dp">
+        <div class="ch">
+          <span class="ct">Jan Meier — Q2 2025</span>
+          <div style="display:flex;gap:6px">
+            <select class="fi" style="width:auto;padding:4px 8px;font-size:11px">
+              <option>Q2 2025</option><option>Q1 2025</option><option>Q4 2024</option><option>Q3 2024</option>
+            </select>
+            <button class="btn btn-o btn-sm">📤 PDF</button>
+            <button class="btn btn-b btn-sm" onclick="showNewBew()">+ Bewertung</button>
+          </div>
+        </div>
+        <div class="cb">
+          <div class="bw-grid">
+            ${[
+              {lb:'Technik',v:8,cls:'h',kom:'Gute Ballkontrolle, Passgenauigkeit verbessert.'},
+              {lb:'Spielintelligenz',v:9,cls:'h',kom:'Sehr gutes Lesen des Spiels. Positionierung top.'},
+              {lb:'Persönlichkeit',v:7,cls:'m',kom:'Führungsqualität vorhanden, kann noch mehr kommunizieren.'},
+              {lb:'Athletik',v:8,cls:'h',kom:'Ausdauer und Zweikampfstärke sehr gut.'},
+              {lb:'Schnelligkeit (auch gedanklich)',v:8,cls:'h',kom:'Schnelle Entscheidungen. Antritt verbessert.'},
+              {lb:'Umfeld (Schule, Familie, Arbeit)',v:6,cls:'m',kom:'Familiäre Situation stabil. Schulleistungen gut.'},
+            ].map(r=>`
+            <div class="bw-item">
+              <div class="bw-lbl">${r.lb}</div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                <div class="bw-track" style="flex:1"><div class="bw-fill ${r.cls}" style="width:${r.v*10}%"></div></div>
+                <div class="bw-val" style="color:${r.cls==='h'?'var(--green)':r.cls==='m'?'var(--gold)':'var(--red)'}">${r.v}</div>
+              </div>
+              <div class="bw-kom">
+                <textarea class="fi" style="font-size:11px;min-height:40px;resize:vertical">${r.kom}</textarea>
+              </div>
+            </div>`).join('')}
+          </div>
+          <div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:7px;font-size:11px;color:var(--text2)">
+            Bewertet von: <strong>Marco Becker</strong> · 15.08.2025 · Q2 2025
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="bw-vgl" class="hidden">
+    <div class="card"><div class="cb" style="text-align:center;padding:40px;color:var(--text2)">
+      🔄 Radar-Chart Vergleich mehrerer Spieler<br>
+      <button class="btn btn-b btn-sm" style="margin-top:14px">Spieler auswählen</button>
+    </div></div>
+  </div>
+  <div id="bw-verl" class="hidden">
+    <div class="card"><div class="cb" style="text-align:center;padding:40px;color:var(--text2)">
+      📈 Verlauf Q1 → Q4 pro Spieler — Langzeitanalyse
+    </div></div>
+  </div>`;
+}
+
+// ── MATCHVORBEREITUNG ─────────────────────────────────
+function pMatch(el){
+  el.innerHTML=`
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">
+    ${[
+      {ic:'🏆',lb:'Meisterschaft',desc:'1 Aufstellung'},
+      {ic:'🤝',lb:'Testspiel',desc:'1 Aufstellung'},
+      {ic:'🎪',lb:'Turnier',desc:'Mehrere Aufstellungen · Doppelfeld'},
+    ].map(t=>`
+    <div class="card" style="cursor:pointer" onclick="showSpielForm('${t.lb}')"
+      onmouseenter="this.style.boxShadow='var(--sh2)'" onmouseleave="this.style.boxShadow='var(--sh)'">
+      <div class="cb" style="text-align:center;padding:28px">
+        <div style="font-size:32px;margin-bottom:8px">${t.ic}</div>
+        <div style="font-weight:700;font-size:14px">${t.lb}</div>
+        <div style="font-size:11px;color:var(--text2);margin-top:4px">${t.desc}</div>
+      </div>
+    </div>`).join('')}
+  </div>
+  <div class="card">
+    <div class="ch"><span class="ct">⏳ Offene Aufstellungen</span></div>
+    <div style="padding:0 18px">
+      ${[
+        {vs:'FC Riehen B',d:'24. Aug',fmt:'7er',s:'Aufstellung fehlt'},
+        {vs:'SC Bettlach',d:'31. Aug',fmt:'7er',s:'Aufstellung fehlt'},
+      ].map(g=>`
+      <div class="ng">
+        <div class="nd"><div class="ndd">${g.d.split('.')[0]}</div><div class="ndm">AUG</div></div>
+        <div style="flex:1"><div class="nv">vs ${g.vs}</div><div class="nm">${g.fmt} · ${g.s}</div></div>
+        <button class="btn btn-b btn-sm" onclick="goPage('aufstellung')">Aufstellung →</button>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ── AUFSTELLUNG ───────────────────────────────────────
+function pAufst(el){
+  el.innerHTML=`
+  <div style="display:grid;grid-template-columns:200px 1fr;gap:16px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div class="card">
+        <div class="cb" style="padding:12px">
+          <div class="flbl" style="margin-bottom:6px">FORMAT</div>
+          <div style="display:flex;gap:4px;margin-bottom:10px">
+            <button class="btn btn-b btn-sm" id="fmt-7" onclick="setFmt('7',this)">7er</button>
+            <button class="btn btn-o btn-sm" id="fmt-9" onclick="setFmt('9',this)">9er</button>
+            <button class="btn btn-o btn-sm" id="fmt-11" onclick="setFmt('11',this)">11er</button>
+          </div>
+          <div class="flbl" style="margin-bottom:6px">FORMATION</div>
+          <select id="formation-sel" class="fi" style="font-size:12px;margin-bottom:10px" onchange="renderField()">
+            <option value="1-2-3-1">1-2-3-1</option>
+            <option value="1-2-1-2">1-2-1-2</option>
+            <option value="1-1-3-2">1-1-3-2</option>
+          </select>
+          <div class="flbl" style="margin-bottom:4px">SPIELZEIT (Min)</div>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+            <button class="btn btn-o btn-sm" onclick="adjT(-5)">-</button>
+            <input id="szt" type="number" value="15" class="fi" style="width:48px;text-align:center;font-weight:700;font-size:14px;padding:4px">
+            <button class="btn btn-o btn-sm" onclick="adjT(5)">+</button>
+          </div>
+          <input type="range" min="5" max="45" value="15" style="width:100%;margin-bottom:10px" oninput="document.getElementById('szt').value=this.value">
+          <div id="offs-hint" style="font-size:10px;background:var(--gold-l);color:var(--gold);border-radius:5px;padding:5px 8px;margin-bottom:10px">
+            ⚠️ 7er: Abseits ab Strafraumhöhe
+          </div>
+          <div class="flbl" style="margin-bottom:4px">FELD (7er Doppel)</div>
+          <div style="display:flex;gap:4px;margin-bottom:10px">
+            <button class="btn btn-b btn-sm" style="flex:1">Feld 1</button>
+            <button class="btn btn-o btn-sm" style="flex:1">Feld 2</button>
+          </div>
+          <div class="flbl" style="margin-bottom:4px">HALBZEIT</div>
+          <div style="display:flex;gap:3px;margin-bottom:10px">
+            ${[1,2,3,4].map((h,i)=>`<button class="btn ${i===0?'btn-b':'btn-o'} btn-sm" style="flex:1" onclick="selHz(this,${h})">${h}</button>`).join('')}
+          </div>
+          <div class="flbl" style="margin-bottom:4px">SPIEL-INFO</div>
+          <input placeholder="Gegner" class="fi" style="font-size:12px;margin-bottom:5px">
+          <input type="date" class="fi" style="font-size:12px;margin-bottom:5px">
+          <input placeholder="Ort" class="fi" style="font-size:12px;margin-bottom:10px">
+          <button class="btn btn-b btn-sm" style="width:100%" onclick="alert('PDF wird generiert...')">📤 PDF Aufstellung</button>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div id="field-cont"></div>
+      <div style="margin-top:12px">
+        <div class="flbl" style="margin-bottom:6px">ERSATZBANK</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          ${['P. Suter','N. Huber','R. Vogel','L. Egli'].map(n=>`
+          <div style="padding:6px 10px;background:var(--surface);border:1.5px solid var(--border);border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px"
+            onclick="alert('${n} einwechseln?')"
+            onmouseenter="this.style.borderColor='var(--accent)'" onmouseleave="this.style.borderColor='var(--border)'">
+            <span style="width:20px;height:20px;background:var(--orange);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:9px;font-weight:700">${n.split(' ').map(x=>x[0]).join('')}</span>${n}
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+  renderField();
+}
+
+let curFmt='7';
+const FORMATIONS={
+  '7':{
+    '1-2-3-1':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:28,y:70},{pos:'RV',x:72,y:70},
+               {pos:'LF',x:20,y:50},{pos:'ZM',x:50,y:48},{pos:'RF',x:80,y:50},{pos:'ST',x:50,y:22}],
+    '1-2-1-2':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:28,y:70},{pos:'RV',x:72,y:70},
+               {pos:'ZM',x:50,y:52},{pos:'LF',x:30,y:28},{pos:'ST',x:70,y:28}],
+    '1-1-3-2':[{pos:'TW',x:50,y:88,k:true},{pos:'IV',x:50,y:70},
+               {pos:'LF',x:20,y:50},{pos:'ZM',x:50,y:48},{pos:'RF',x:80,y:50},{pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}],
+  },
+  '9':{
+    '3-2-3':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:22,y:72},{pos:'IV',x:50,y:72},{pos:'RV',x:78,y:72},
+             {pos:'LF',x:30,y:52},{pos:'ZM',x:70,y:52},
+             {pos:'LA',x:18,y:28},{pos:'ST',x:50,y:22},{pos:'RA',x:82,y:28}],
+    '2-4-2':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:28,y:72},{pos:'RV',x:72,y:72},
+             {pos:'LF',x:18,y:48},{pos:'LM',x:38,y:48},{pos:'RM',x:62,y:48},{pos:'RF',x:82,y:48},
+             {pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}],
+    '3-3-2':[{pos:'TW',x:50,y:88,k:true},{pos:'LV',x:22,y:72},{pos:'IV',x:50,y:72},{pos:'RV',x:78,y:72},
+             {pos:'LF',x:22,y:50},{pos:'ZM',x:50,y:48},{pos:'RF',x:78,y:50},
+             {pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}],
+  },
+  '11':{
+    '4-3-3':[{pos:'TW',x:50,y:90,k:true},{pos:'LV',x:18,y:73},{pos:'IV',x:38,y:73},{pos:'IV2',x:62,y:73},{pos:'RV',x:82,y:73},
+             {pos:'LM',x:25,y:52},{pos:'ZM',x:50,y:50},{pos:'RM',x:75,y:52},
+             {pos:'LF',x:22,y:25},{pos:'ST',x:50,y:20},{pos:'RF',x:78,y:25}],
+    '4-4-2':[{pos:'TW',x:50,y:90,k:true},{pos:'LV',x:18,y:73},{pos:'IV',x:38,y:73},{pos:'IV2',x:62,y:73},{pos:'RV',x:82,y:73},
+             {pos:'LF',x:15,y:50},{pos:'LM',x:38,y:50},{pos:'RM',x:62,y:50},{pos:'RF',x:85,y:50},
+             {pos:'ST',x:35,y:22},{pos:'ST2',x:65,y:22}],
+    '4-2-3-1':[{pos:'TW',x:50,y:90,k:true},{pos:'LV',x:18,y:73},{pos:'IV',x:38,y:73},{pos:'IV2',x:62,y:73},{pos:'RV',x:82,y:73},
+              {pos:'DM',x:35,y:57},{pos:'DM2',x:65,y:57},
+              {pos:'LF',x:18,y:38},{pos:'OM',x:50,y:36},{pos:'RF',x:82,y:38},{pos:'ST',x:50,y:18}],
+  },
+};
+
+function renderField(){
+  const cont=document.getElementById('field-cont');
+  if(!cont)return;
+  const fsel=document.getElementById('formation-sel');
+  const formation=fsel?fsel.value:'1-2-3-1';
+  const players=FORMATIONS[curFmt]?.[formation]||FORMATIONS['7']['1-2-3-1'];
+  const isSevenField=curFmt==='7';
+  cont.innerHTML=`
+  <div class="field-wrap ${curFmt==='7'?'fw7':curFmt==='9'?'fw9':'fw11'}">
+    <div class="fl fl-out-l"></div><div class="fl fl-out-r"></div>
+    <div class="fl fl-out-t"></div><div class="fl fl-out-b"></div>
+    <div class="fl fl-mid"></div>
+    <div class="fc fc-mid"></div>
+    <div class="fl" style="top:0;left:35%;right:35%;height:4%;background:rgba(255,255,255,.45)"></div>
+    <div class="fl" style="bottom:0;left:35%;right:35%;height:4%;background:rgba(255,255,255,.45)"></div>
+    <div class="fl" style="top:0;left:25%;right:25%;height:14%;background:transparent;border:1px solid rgba(255,255,255,.3);border-top:none;pointer-events:none"></div>
+    <div class="fl" style="bottom:0;left:25%;right:25%;height:14%;background:transparent;border:1px solid rgba(255,255,255,.3);border-bottom:none;pointer-events:none"></div>
+    ${isSevenField?`
+    <div class="fl" style="top:22%;left:5%;right:5%;height:2px;background:rgba(255,220,0,.7)"></div>
+    <div class="fl" style="bottom:22%;left:5%;right:5%;height:2px;background:rgba(255,220,0,.7)"></div>
+    <div style="position:absolute;top:23%;left:7%;font-size:8px;color:rgba(255,220,0,.95);font-weight:700">⚠️ ABSEITS AB HIER</div>
+    <div style="position:absolute;bottom:23%;left:7%;font-size:8px;color:rgba(255,220,0,.95);font-weight:700">⚠️ ABSEITS AB HIER</div>`:''}
+    ${players.map(p=>{
+      const sn=SPIELER_DATA.find(s=>s.pos===p.pos||s.pos2===p.pos)||{name:'—'};
+      return `<div class="fp" style="left:${p.x}%;top:${p.y}%"
+        data-x="${p.x}" data-y="${p.y}"
+        onmousedown="startDrag(event,this)"
+        onclick="showPickerFor(this,'${p.pos}')">
+        <div class="fd${p.k?' k':''}">${p.pos}</div>
+        <div class="fn">${sn.name.split(' ')[1]||sn.name}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+  initDrag();
+}
+
+function setFmt(f,btn){
+  curFmt=f;
+  document.querySelectorAll('[id^="fmt-"]').forEach(b=>{b.className='btn btn-o btn-sm';});
+  btn.className='btn btn-b btn-sm';
+  // Update formations list
+  const sel=document.getElementById('formation-sel');
+  if(sel){
+    const opts={'7':['1-2-3-1','1-2-1-2','1-1-3-2'],'9':['3-2-3','2-4-2','3-3-2'],'11':['4-3-3','4-4-2','4-2-3-1']};
+    sel.innerHTML=opts[f].map(o=>`<option>${o}</option>`).join('');
+  }
+  const hint=document.getElementById('offs-hint');
+  if(hint)hint.style.display=f==='7'?'block':'none';
+  renderField();
+}
+function adjT(d){const e=document.getElementById('szt');if(e)e.value=Math.max(5,Math.min(90,parseInt(e.value||15)+d));}
+function selHz(btn,h){document.querySelectorAll('[onclick^="selHz"]').forEach(b=>b.className='btn btn-o btn-sm');btn.className='btn btn-b btn-sm';}
+
+// Drag & Drop für Aufstellung
+let dragging=null,dragOffX=0,dragOffY=0;
+function initDrag(){
+  const field=document.querySelector('.field-wrap');
+  if(!field)return;
+  field.addEventListener('mousemove',onDrag);
+  field.addEventListener('mouseup',stopDrag);
+  field.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];onDragXY(t.clientX,t.clientY);},{passive:false});
+  field.addEventListener('touchend',stopDrag);
+}
+function startDrag(e,el){
+  e.preventDefault();dragging=el;
+  const r=el.closest('.field-wrap').getBoundingClientRect();
+  const er=el.getBoundingClientRect();
+  dragOffX=e.clientX-er.left-er.width/2;
+  dragOffY=e.clientY-er.top-er.height/2;
+}
+function onDrag(e){onDragXY(e.clientX,e.clientY);}
+function onDragXY(cx,cy){
+  if(!dragging)return;
+  const field=dragging.closest('.field-wrap');
+  const r=field.getBoundingClientRect();
+  let x=((cx-dragOffX-r.left)/r.width)*100;
+  let y=((cy-dragOffY-r.top)/r.height)*100;
+  x=Math.max(5,Math.min(95,x));y=Math.max(2,Math.min(98,y));
+  dragging.style.left=x+'%';dragging.style.top=y+'%';
+}
+function stopDrag(){dragging=null;}
+
+// ── TAKTIKTAFEL ───────────────────────────────────────
+function pTaktik(el){
+  el.innerHTML=`
+  <div style="display:grid;grid-template-columns:1fr 190px;gap:12px">
+    <div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">
+        <button class="btn btn-b btn-sm" id="tk-move" onclick="tkTool('move',this)">↕ Spieler</button>
+        <button class="btn btn-o btn-sm" id="tk-arrow" onclick="tkTool('arrow',this)">→ Pfeil</button>
+        <button class="btn btn-o btn-sm" id="tk-zone" onclick="tkTool('zone',this)">⬜ Zone</button>
+        <button class="btn btn-o btn-sm" id="tk-ball-t" onclick="tkTool('ball',this)">⚽ Ball setzen</button>
+        <button class="btn btn-o btn-sm" id="tk-draw" onclick="tkTool('draw',this)">✏️ Zeichnen</button>
+        <div style="margin-left:auto;display:flex;gap:5px">
+          <button class="btn btn-o btn-sm" onclick="tkClear()">🗑 Clear</button>
+          <button class="btn btn-o btn-sm" onclick="tkSave()">💾 Speichern</button>
+          <button class="btn btn-o btn-sm">📤 PDF</button>
+        </div>
+      </div>
+      <div class="tk-wrap" id="tkw" style="aspect-ratio:0.65"
+        onmousedown="tkDown(event)" onmousemove="tkMove(event)" onmouseup="tkUp(event)"
+        ontouchstart="tkTDown(event)" ontouchmove="tkTMove(event)" ontouchend="tkUp(event)">
+        <!-- Field lines -->
+        <div style="position:absolute;top:5%;left:5%;right:5%;height:1px;background:rgba(255,255,255,.3)"></div>
+        <div style="position:absolute;bottom:5%;left:5%;right:5%;height:1px;background:rgba(255,255,255,.3)"></div>
+        <div style="position:absolute;top:5%;bottom:5%;left:5%;width:1px;background:rgba(255,255,255,.3)"></div>
+        <div style="position:absolute;top:5%;bottom:5%;right:5%;width:1px;background:rgba(255,255,255,.3)"></div>
+        <div style="position:absolute;top:50%;left:5%;right:5%;height:1px;background:rgba(255,255,255,.3)"></div>
+        <div style="position:absolute;top:35%;left:5%;right:5%;height:1px;background:rgba(255,255,255,.15)"></div>
+        <div style="position:absolute;bottom:35%;left:5%;right:5%;height:1px;background:rgba(255,255,255,.15)"></div>
+        <!-- Center circle -->
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:12%;padding-top:12%;border-radius:50%;border:1px solid rgba(255,255,255,.25);background:transparent"></div>
+        <!-- Goals -->
+        <div style="position:absolute;top:5%;left:37%;right:37%;height:3.5%;background:rgba(255,255,255,.4)"></div>
+        <div style="position:absolute;bottom:5%;left:37%;right:37%;height:3.5%;background:rgba(255,255,255,.4)"></div>
+        <!-- SVG for drawings -->
+        <svg id="tk-svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5"></svg>
+        <!-- Players -->
+        ${buildTkPlayers()}
+        <!-- Ball -->
+        <div class="tk-ball" id="tk-ball" style="left:50%;top:50%"
+          onmousedown="tkBallDown(event)"></div>
+        <div style="position:absolute;top:8px;left:8px;background:rgba(0,0,0,.5);color:#fff;font-size:9px;padding:3px 8px;border-radius:4px" id="tk-hint">Modus: Spieler ziehen</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="card">
+        <div class="cb" style="padding:10px">
+          <div class="flbl" style="margin-bottom:6px">FORMAT</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <button class="btn btn-b btn-sm">7er Feld</button>
+            <button class="btn btn-o btn-sm">9er Feld</button>
+            <button class="btn btn-o btn-sm">11er Feld</button>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="cb" style="padding:10px">
+          <div class="flbl" style="margin-bottom:6px">FARBE</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap">
+            ${['#fff','#FFD700','#EF4444','#3B82F6','#10B981','#EC4899'].map((c,i)=>
+              `<div onclick="tkCol='${c}'" style="width:22px;height:22px;border-radius:5px;background:${c};border:2px solid rgba(0,0,0,.15);cursor:pointer${i===0?';box-shadow:0 0 0 2px var(--accent)':''}" title="${c}"></div>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="cb" style="padding:10px">
+          <div class="flbl" style="margin-bottom:6px">GEGNER HINZUFÜGEN</div>
+          <button class="btn btn-o btn-sm" style="width:100%;margin-bottom:4px" onclick="addTkOpp()">+ Gegner</button>
+          <div class="flbl" style="margin-top:8px;margin-bottom:6px">SEQUENZEN</div>
+          ${['Ecke links','Freistoss Mitte','Einwurf rechts'].map(s=>
+            `<div style="padding:5px 4px;border-radius:5px;font-size:11px;cursor:pointer" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">▶ ${s}</div>`).join('')}
+          <button class="btn btn-o btn-sm" style="width:100%;margin-top:6px">+ Sequenz</button>
+        </div>
+      </div>
+      <button class="btn btn-o btn-sm" onclick="alert('Querformat für iPad fixieren')" style="font-size:11px">🔄 Querformat fixieren</button>
+    </div>
+  </div>`;
+  initTaktik();
+}
+
+let tkMode='move',tkCol='#FFD700',tkDrawing=false,tkPath=null,tkDragEl=null,tkBallDrag=false;
+function tkTool(t,btn){
+  tkMode=t;
+  document.querySelectorAll('[id^="tk-"]').forEach(b=>{if(b.classList.contains('btn'))b.className='btn btn-o btn-sm';});
+  btn.className='btn btn-b btn-sm';
+  const hint=document.getElementById('tk-hint');
+  if(hint)hint.textContent='Modus: '+{move:'Spieler ziehen',arrow:'Pfeil zeichnen',zone:'Zone markieren',ball:'Ball setzen',draw:'Freihand zeichnen'}[t];
+}
+function buildTkPlayers(){
+  const ps=[
+    {x:50,y:85,c:'#FFD700',l:'TW',n:'Fischer'},
+    {x:25,y:68,c:'#3B82F6',l:'LV',n:'Braun'},
+    {x:50,y:68,c:'#3B82F6',l:'IV',n:'Meier'},
+    {x:75,y:68,c:'#3B82F6',l:'RV',n:'Schulz'},
+    {x:22,y:46,c:'#fff',l:'LF',n:'Keller'},
+    {x:50,y:44,c:'#fff',l:'ZM',n:'Becker'},
+    {x:78,y:46,c:'#fff',l:'RF',n:'Huber'},
+    {x:50,y:20,c:'#EF4444',l:'ST',n:'Müller'},
+  ];
+  return ps.map((p,i)=>`
+  <div class="tk-player" style="left:${p.x}%;top:${p.y}%" id="tkp-${i}"
+    onmousedown="tkPDown(event,this)" ontouchstart="tkPTDown(event,this)">
+    <div class="tk-pd" style="background:${p.c};color:${p.c==='#fff'?'#1B4FDB':'#fff'}">${p.l}</div>
+    <div style="font-size:8px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);text-align:center;margin-top:1px">${p.n}</div>
+  </div>`).join('');
+}
+function initTaktik(){
+  // Ball drag
+  const ball=document.getElementById('tk-ball');
+  if(ball){
+    ball.onmousedown=tkBallDown;
+    ball.ontouchstart=(e)=>{e.stopPropagation();tkBallDrag=true;};
+  }
+}
+function tkPDown(e,el){
+  if(tkMode!=='move')return;
+  e.preventDefault();e.stopPropagation();
+  tkDragEl=el;
+  const onMove=(ev)=>{
+    const wrap=document.getElementById('tkw');
+    const r=wrap.getBoundingClientRect();
+    const cx=ev.clientX||ev.touches?.[0]?.clientX;
+    const cy=ev.clientY||ev.touches?.[0]?.clientY;
+    if(!cx)return;
+    let x=((cx-r.left)/r.width)*100;
+    let y=((cy-r.top)/r.height)*100;
+    x=Math.max(3,Math.min(97,x));y=Math.max(3,Math.min(97,y));
+    el.style.left=x+'%';el.style.top=y+'%';
+  };
+  const onUp=()=>{document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onUp);
+}
+function tkPTDown(e,el){
+  if(tkMode!=='move')return;
+  e.preventDefault();e.stopPropagation();
+  const onMove=(ev)=>{
+    const t=ev.touches[0];
+    const wrap=document.getElementById('tkw');
+    const r=wrap.getBoundingClientRect();
+    let x=((t.clientX-r.left)/r.width)*100;
+    let y=((t.clientY-r.top)/r.height)*100;
+    x=Math.max(3,Math.min(97,x));y=Math.max(3,Math.min(97,y));
+    el.style.left=x+'%';el.style.top=y+'%';
+  };
+  const onUp=()=>{document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onUp);};
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('touchend',onUp);
+}
+function tkBallDown(e){
+  if(tkMode!=='move'&&tkMode!=='ball')return;
+  e.preventDefault();e.stopPropagation();
+  const ball=document.getElementById('tk-ball');
+  const onMove=(ev)=>{
+    const wrap=document.getElementById('tkw');
+    const r=wrap.getBoundingClientRect();
+    const cx=ev.clientX||(ev.touches?.[0]?.clientX);
+    const cy=ev.clientY||(ev.touches?.[0]?.clientY);
+    if(!cx)return;
+    let x=((cx-r.left)/r.width)*100;
+    let y=((cy-r.top)/r.height)*100;
+    x=Math.max(2,Math.min(98,x));y=Math.max(2,Math.min(98,y));
+    ball.style.left=x+'%';ball.style.top=y+'%';
+  };
+  const onUp=()=>{document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('mouseup',onUp);
+}
+
+let tkPts=[];
+function tkDown(e){
+  if(tkMode==='move'||tkMode==='ball')return;
+  tkDrawing=true;tkPts=[];
+  const r=e.currentTarget.getBoundingClientRect();
+  const x=((e.clientX-r.left)/r.width)*100;
+  const y=((e.clientY-r.top)/r.height)*100;
+  tkPts.push({x,y});
+  if(tkMode==='arrow'||tkMode==='draw'){
+    const svg=document.getElementById('tk-svg');
+    tkPath=document.createElementNS('http://www.w3.org/2000/svg','path');
+    tkPath.setAttribute('stroke',tkCol);
+    tkPath.setAttribute('stroke-width','2.5');
+    tkPath.setAttribute('fill','none');
+    tkPath.setAttribute('stroke-linecap','round');
+    if(tkMode==='arrow'){
+      tkPath.setAttribute('marker-end','url(#arrowhead)');
+      if(!document.getElementById('tk-arrow-marker')){
+        const defs=document.createElementNS('http://www.w3.org/2000/svg','defs');
+        defs.innerHTML=`<marker id="arrowhead" markerWidth="6" markerHeight="4" refX="3" refY="2" orient="auto">
+          <polygon points="0 0, 6 2, 0 4" fill="${tkCol}"/>
+        </marker>`;
+        svg.appendChild(defs);
+      }
+    }
+    svg.appendChild(tkPath);
+  }
+}
+function tkMove(e){
+  if(!tkDrawing)return;
+  const r=e.currentTarget.getBoundingClientRect();
+  const x=((e.clientX-r.left)/r.width)*100;
+  const y=((e.clientY-r.top)/r.height)*100;
+  tkPts.push({x,y});
+  if(tkMode==='arrow'||tkMode==='draw'){
+    if(tkPath){
+      const d='M'+tkPts.map(p=>`${p.x} ${p.y}`).join(' L');
+      tkPath.setAttribute('d',d);
+    }
+  } else if(tkMode==='zone'){
+    const svg=document.getElementById('tk-svg');
+    if(tkPts.length>1){
+      const s=tkPts[0];
+      let existing=document.getElementById('tk-zone-rect');
+      if(!existing){existing=document.createElementNS('http://www.w3.org/2000/svg','rect');existing.id='tk-zone-rect';svg.appendChild(existing);}
+      existing.setAttribute('x',Math.min(s.x,x));
+      existing.setAttribute('y',Math.min(s.y,y));
+      existing.setAttribute('width',Math.abs(x-s.x));
+      existing.setAttribute('height',Math.abs(y-s.y));
+      existing.setAttribute('fill',tkCol+'33');
+      existing.setAttribute('stroke',tkCol);
+      existing.setAttribute('stroke-width','1.5');
+    }
+  }
+}
+function tkTDown(e){if(tkMode==='move'||tkMode==='ball')return;e.preventDefault();const t=e.touches[0];tkDown({currentTarget:e.currentTarget,clientX:t.clientX,clientY:t.clientY});}
+function tkTMove(e){if(tkMode==='move'||tkMode==='ball')return;e.preventDefault();const t=e.touches[0];tkMove({currentTarget:e.currentTarget,clientX:t.clientX,clientY:t.clientY});}
+function tkUp(){tkDrawing=false;tkPts=[];}
+function tkClear(){const svg=document.getElementById('tk-svg');if(svg)svg.innerHTML='';}
+function tkSave(){alert('Taktik-Session gespeichert!');}
+function addTkOpp(){
+  const wrap=document.getElementById('tkw');
+  if(!wrap)return;
+  const opp=document.createElement('div');
+  opp.className='tk-player';
+  opp.style.left='50%';opp.style.top='35%';
+  opp.innerHTML=`<div class="tk-pd" style="background:#DC2626;color:#fff;border:2px dashed #fff">GG</div>`;
+  opp.onmousedown=(e)=>tkPDown(e,opp);
+  opp.ontouchstart=(e)=>tkPTDown(e,opp);
+  wrap.appendChild(opp);
+}
+
+// ── MAKROZYKLUS ───────────────────────────────────────
+let mzOpen={};
+function pMakro(el){
+  el.innerHTML=`
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-b btn-sm">Vorrunde (Jul–Dez)</button>
+      <button class="btn btn-o btn-sm">Rückrunde (Jan–Jun)</button>
+    </div>
+    <button class="btn btn-b btn-sm" onclick="addMzPhase()">+ Phase</button>
+  </div>
+  <div id="mz-phases">${buildMzPhases()}</div>`;
+}
+
+const MZ_PHASES=[
+  {lb:'Vorbereitung',dates:'Jul–Aug',col:'#1B4FDB',sfv:null,typ:'vorbereitung'},
+  {lb:'Aufbauphase',dates:'Aug–Sep',col:'#16A34A',sfv:'wir_haben_ball',typ:'normal'},
+  {lb:'Intensivphase',dates:'Sep–Okt',col:'#D97706',sfv:'wir_verlieren_ball',typ:'normal'},
+  {lb:'Wettkampfphase',dates:'Okt–Nov',col:'#DC2626',sfv:'wir_haben_ball_nicht',typ:'normal'},
+  {lb:'Ferienphase',dates:'Okt',col:'#6B7280',sfv:null,typ:'ferien'},
+  {lb:'Abschluss',dates:'Nov–Dez',col:'#8B5CF6',sfv:'wir_erobern_ball',typ:'normal'},
+];
+
+function buildMzPhases(){
+  return MZ_PHASES.map((p,i)=>{
+    const sfv=p.sfv?SFV[p.sfv]:null;
+    return `
+    <div class="mz-phase">
+      <div class="mz-ph" onclick="toggleMz(${i})" style="background:${mzOpen[i]?'var(--surface2)':''}">
+        <div style="display:flex;align-items:center;gap:10px;flex:1">
+          <div style="width:10px;height:10px;border-radius:50%;background:${p.col};flex-shrink:0"></div>
+          <span style="font-weight:700;font-size:13px">${p.lb}</span>
+          <span style="font-size:11px;color:var(--text2)">${p.dates}</span>
+          ${sfv?`<span class="bdg" style="background:${sfv.bg};color:${sfv.col}">${sfv.label}</span>`:''}
+          ${p.typ==='ferien'?`<span class="bdg bdg-gold">🏖 Ferien/Pause</span>`:''}
+          ${p.typ==='vorbereitung'?`<span class="bdg bdg-b">Athletik · Grundlagen</span>`:''}
+        </div>
+        <span style="color:var(--text3);font-size:14px">${mzOpen[i]?'▲':'▼'}</span>
+      </div>
+      ${mzOpen[i]?buildMzBody(p,sfv,i):''}
+    </div>`;
+  }).join('');
+}
+
+function buildMzBody(p,sfv,i){
+  let html=`<div class="mz-body">`;
+  if(p.typ==='ferien'){
+    html+=`<div style="background:var(--gold-l);border-radius:7px;padding:12px;margin-bottom:10px">
+      <div style="font-weight:700;font-size:12px;color:var(--gold);margin-bottom:4px">🏖 Ferienpause / Regeneration</div>
+      <div style="font-size:11px;color:var(--text2)">Individuelle Erhaltungsarbeit · Kein Mannschaftstraining</div>
+    </div>`;
+  } else if(p.typ==='vorbereitung'){
+    html+=`<div style="background:var(--accent-l);border-radius:7px;padding:12px;margin-bottom:10px">
+      <div style="font-weight:700;font-size:12px;color:var(--accent);margin-bottom:4px">🏃 Vorbereitung — Athletik & Grundlagen</div>
+      <div style="font-size:11px;color:var(--text2)">Kondition · Technikgrundlagen · Teambuilding</div>
+    </div>`;
+  }
+  if(sfv){
+    html+=`<div style="background:${sfv.bg};border-radius:7px;padding:12px;margin-bottom:12px;border-left:3px solid ${sfv.col}">
+      <div style="font-weight:700;font-size:13px;color:${sfv.col};margin-bottom:6px">${sfv.label}</div>
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px;text-transform:uppercase">ZIELE</div>
+      ${sfv.ziele.map(z=>`<div style="font-size:11px;color:var(--text);margin-bottom:2px;padding-left:10px">• ${z}</div>`).join('')}
+    </div>`;
+    Object.entries(sfv.zonen).forEach(([zname,zdata])=>{
+      html+=`<div class="mz-zone">
+        <div class="mz-zt" style="color:${sfv.col}">${zname}</div>
+        ${zdata.prinzipien.map(pr=>`<div class="mz-zp">${pr}</div>`).join('')}
+      </div>`;
+    });
+  }
+  html+=`<div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
+    <div class="flbl" style="width:100%;margin-bottom:4px">TRAININGSSCHWERPUNKTE WÄHLEN</div>
+    ${['Technik','Spielintelligenz','Persönlichkeit','Athletik','Schnelligkeit'].map(sw=>
+      `<button class="btn btn-o btn-sm" onclick="this.className=this.className.includes('btn-b')?'btn btn-o btn-sm':'btn btn-b btn-sm'">${sw}</button>`
+    ).join('')}
+  </div>
+  <div style="margin-top:10px">
+    <div class="flbl" style="margin-bottom:4px">NOTIZ ZUR PHASE</div>
+    <textarea class="fi" style="height:60px;resize:vertical;font-size:12px" placeholder="Trainer-Notizen zu dieser Phase..."></textarea>
+  </div>
+  </div>`;
+  return html;
+}
+
+function toggleMz(i){
+  mzOpen[i]=!mzOpen[i];
+  document.getElementById('mz-phases').innerHTML=buildMzPhases();
+}
+
+// ── TEAMS ─────────────────────────────────────────────
+function pTeams(el){
+  el.innerHTML=`
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+    ${[
+      {n:'FE12 Blau',fmt:'7er',sp:18,tr:'Marco Becker',s:'2025/26'},
+      {n:'FE12 Rot',fmt:'7er',sp:16,tr:'Andrea Mäder',s:'2025/26'},
+      {n:'FE14 A',fmt:'9er',sp:20,tr:'Stefan Wolf',s:'2025/26'},
+    ].map(t=>`
+    <div class="card" style="cursor:pointer" onclick="alert('Team öffnen...')"
+      onmouseenter="this.style.boxShadow='var(--sh2)'" onmouseleave="this.style.boxShadow='var(--sh)'">
+      <div class="cb">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:40px;height:40px;background:var(--accent-l);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:var(--accent)">${t.n[0]}</div>
+          <div><div style="font-weight:700;font-size:14px">${t.n}</div><div style="font-size:11px;color:var(--text2)">${t.fmt} · ${t.s}</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--text2)">👥 ${t.sp} Spieler · 👤 ${t.tr}</div>
+      </div>
+    </div>`).join('')}
+    <div class="card" style="cursor:pointer;border:2px dashed var(--border);background:transparent;box-shadow:none"
+      onclick="alert('Neues Team erstellen...')">
+      <div class="cb" style="text-align:center;padding:36px;color:var(--text2)">
+        <div style="font-size:26px;margin-bottom:6px">+</div>
+        <div style="font-weight:600;font-size:13px">Team hinzufügen</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── VEREINE / LIZENZEN ────────────────────────────────
+function pVereine(el){pSuperDash(el);}
+function pLiz(el){
+  el.innerHTML=`
+  <div class="card">
+    <div class="ch"><span class="ct">🔑 Lizenzpakete</span></div>
+    <div class="cb">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px">
+        ${[
+          {n:'Starter',t:2,l:5,p:'49'},
+          {n:'Pro',t:5,l:15,p:'99'},
+          {n:'Enterprise',t:15,l:'∞',p:'199'},
+        ].map((l,i)=>`
+        <div class="card" style="border:${i===1?'2px solid var(--accent)':'1px solid var(--border)'}">
+          <div class="cb" style="text-align:center">
+            <div style="font-family:'Space Grotesk';font-weight:800;font-size:16px;margin-bottom:4px">${l.n}</div>
+            <div style="font-size:24px;font-weight:800;color:var(--accent)">CHF ${l.p}<span style="font-size:12px;color:var(--text2)">/Mo</span></div>
+            <div style="font-size:11px;color:var(--text2);margin:8px 0">${l.t} Teams · ${l.l} Logins</div>
+            <button class="btn ${i===1?'btn-b':'btn-o'} btn-sm" style="width:100%">Zuweisen</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+function pSet(el){
+  el.innerHTML=`
+  <div class="card">
+    <div class="ch"><span class="ct">⚙️ Darstellung & Präferenzen</span></div>
+    <div class="cb">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+        <div><div style="font-weight:600">Sidebar-Position</div><div style="font-size:11px;color:var(--text2)">Für Links- oder Rechtshänder</div></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-b btn-sm">Links</button>
+          <button class="btn btn-o btn-sm" onclick="toggleSide()">Rechts</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)">
+        <div><div style="font-weight:600">Verein-Logo hochladen</div><div style="font-size:11px;color:var(--text2)">Erscheint in Sidebar und Dashboard</div></div>
+        <input type="file" accept="image/*" onchange="previewLogo(this)" style="display:none" id="logo-inp">
+        <button class="btn btn-o btn-sm" onclick="document.getElementById('logo-inp').click()">📁 Logo wählen</button>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">
+        <div><div style="font-weight:600">Team wechseln</div><div style="font-size:11px;color:var(--text2)">Deine zugewiesenen Teams</div></div>
+        <select class="fi" style="width:auto;font-size:12px">
+          <option>FE12 Blau</option><option>FE12 Rot</option>
+        </select>
+      </div>
+    </div>
+  </div>`;
+}
+function previewLogo(inp){
+  if(!inp.files[0])return;
+  const url=URL.createObjectURL(inp.files[0]);
+  const vl=document.getElementById('vb-logo');
+  if(vl){vl.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">`;vl.style.padding='0';}
+}
+
+// ── OVERLAYS ──────────────────────────────────────────
+function showOv(html){document.getElementById('ovc').innerHTML=html;document.getElementById('ov').classList.remove('hidden');}
+function closeOv(){document.getElementById('ov').classList.add('hidden');}
+
+function showAddSp(){
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">➕ Spieler hinzufügen</div>
+    <div class="fl2">
+      <div><label class="flbl">VORNAME</label><input class="fi" placeholder="Vorname" style="margin-top:3px"></div>
+      <div><label class="flbl">NACHNAME</label><input class="fi" placeholder="Nachname" style="margin-top:3px"></div>
+      <div><label class="flbl">GEBURTSDATUM</label><input type="date" class="fi" style="margin-top:3px"></div>
+      <div><label class="flbl">STARKER FUSS</label><select class="fi" style="margin-top:3px"><option>Rechts</option><option>Links</option><option>Beide</option></select></div>
+      <div><label class="flbl">POSITION (HAUPT)</label><select class="fi" style="margin-top:3px">${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}</select></div>
+      <div><label class="flbl">POSITION ALT 1</label><select class="fi" style="margin-top:3px"><option>—</option>${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}</select></div>
+      <div><label class="flbl">POSITION ALT 2</label><select class="fi" style="margin-top:3px"><option>—</option>${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}</select></div>
+      <div><label class="flbl">TRIKOTNUMMER</label><input type="number" class="fi" placeholder="7" style="margin-top:3px"></div>
+    </div>
+    <div style="margin-top:10px"><label class="flbl">FOTO (optional)</label>
+    <input type="file" accept="image/*" class="fi" style="margin-top:3px;padding:6px"></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-b" style="flex:1" onclick="closeOv()">Spieler speichern</button>
+      <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
+    </div>`);
+}
+function showSpDetail(name){
+  const p=SPIELER_DATA.find(s=>s.name===name)||{name,pos:'—',min:0,tore:0,rating:0};
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">👤 ${name}</div>
+    <div class="fl2" style="margin-bottom:14px">
+      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">POSITION</div><div style="font-weight:700">${p.pos}</div></div>
+      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">SPIELZEIT</div><div style="font-weight:700">${p.min} Min</div></div>
+      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">TORE</div><div style="font-weight:700">${p.tore}</div></div>
+      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">Ø BEWERTUNG</div><div style="font-weight:700;color:var(--green)">${p.rating}</div></div>
+    </div>
+    <button class="btn btn-b" style="width:100%" onclick="closeOv();goPage('bewertungen')">Zur Bewertung →</button>`);
+}
+function showPickerFor(el,pos){
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">Position ${pos} — Spieler wählen</div>
+    ${SPIELER_DATA.map(s=>`
+    <div onclick="closeOv()" style="display:flex;align-items:center;gap:10px;padding:9px;border-radius:7px;cursor:pointer"
+      onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
+      <div class="pav">${s.name.split(' ').map(n=>n[0]).join('')}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${s.name}</div><div style="font-size:10px;color:var(--text2)">${s.pos}</div></div>
+      <button class="btn btn-b btn-sm">Wählen</button>
+    </div>`).join('')}`);
+}
+function showNewBew(){
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">⭐ Neue Bewertung</div>
+    <div style="margin-bottom:10px"><label class="flbl">QUARTAL</label>
+    <select class="fi" style="margin-top:3px"><option>Q3 2025</option><option>Q2 2025</option><option>Q1 2025</option><option>Q4 2024</option></select></div>
+    ${[
+      {lb:'Technik',v:7},
+      {lb:'Spielintelligenz',v:7},
+      {lb:'Persönlichkeit',v:7},
+      {lb:'Athletik',v:7},
+      {lb:'Schnelligkeit (physisch & gedanklich)',v:7},
+      {lb:'Umfeld (Schule / Ausbildung / Familie)',v:7},
+    ].map(r=>`
+    <div style="margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <label class="flbl">${r.lb}</label>
+        <span id="nv-${r.lb}" style="font-weight:800;color:var(--accent);font-size:13px">${r.v}</span>
+      </div>
+      <input type="range" min="1" max="10" value="${r.v}" style="width:100%;margin-bottom:5px"
+        oninput="document.getElementById('nv-${r.lb}').textContent=this.value">
+      <textarea class="fi" style="min-height:36px;resize:vertical;font-size:11px" placeholder="Kommentar zu ${r.lb}..."></textarea>
+    </div>`).join('')}
+    <button class="btn btn-b" style="width:100%;margin-top:6px" onclick="closeOv()">Bewertung speichern</button>`);
+}
+function showSpielForm(typ){
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">📋 ${typ}</div>
+    <div style="display:grid;gap:8px">
+      <div><label class="flbl">GEGNER</label><input class="fi" placeholder="Gegner" style="margin-top:3px"></div>
+      <div><label class="flbl">DATUM</label><input type="date" class="fi" style="margin-top:3px"></div>
+      <div><label class="flbl">ORT</label><input class="fi" placeholder="Spielort" style="margin-top:3px"></div>
+      <div><label class="flbl">FORMAT</label>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <button class="btn btn-b btn-sm">7er</button>
+          <button class="btn btn-o btn-sm">9er</button>
+          <button class="btn btn-o btn-sm">11er</button>
+        </div>
+      </div>
+      ${typ==='Turnier'?`<div><label class="flbl">ANZAHL AUFSTELLUNGEN</label>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          ${[1,2,3,4].map((n,i)=>`<button class="btn ${i===1?'btn-b':'btn-o'} btn-sm">${n}×</button>`).join('')}
+        </div></div>`:''}
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn btn-b" style="flex:1" onclick="closeOv();goPage('aufstellung')">Zur Aufstellung →</button>
+      <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
+    </div>`);
+}
+function confirmDel(name){
+  showOv(`<div style="text-align:center;padding:10px">
+    <div style="font-size:28px;margin-bottom:10px">⚠️</div>
+    <div style="font-weight:700;font-size:15px;margin-bottom:6px">Spieler löschen?</div>
+    <div style="color:var(--text2);font-size:12px;margin-bottom:18px">${name} und alle Daten werden dauerhaft gelöscht.</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-r" style="flex:1" onclick="closeOv()">Löschen</button>
+      <button class="btn btn-o" style="flex:1" onclick="closeOv()">Abbrechen</button>
+    </div>
+  </div>`);
+}
+function selSp(el,name){
+  el.closest('.card').querySelectorAll('div[onclick]').forEach(e=>{e.style.background='';e.querySelector('.pav').style.background='';e.querySelector('.pav').style.color='';});
+  el.style.background='var(--accent-l)';
+  el.querySelector('.pav').style.background='var(--accent)';
+  el.querySelector('.pav').style.color='#fff';
+  document.querySelector('#bw-dp .ct').textContent=name+' — Q2 2025';
+}
+function swTab(tab,tid){
+  tab.parentElement.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('[id^="bw-"]').forEach(e=>e.classList.add('hidden'));
+  const t=document.getElementById(tid);
+  if(t)t.classList.remove('hidden');
+}
+function addMzPhase(){alert('Neue Phase hinzufügen — in der echten Version öffnet ein Formular.');}
+</script>
+</body>
+</html>

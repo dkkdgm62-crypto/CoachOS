@@ -518,16 +518,16 @@ const DEMO_MODULE = ['dashboard','kalender','spieler','teams','matchvorbereitung
 const BASIS_MODULE = ['dashboard','kalender','spieler','teams'];
 
 const SPIELER_DATA = [
-  {id:'s1',vorname:'Ben',nachname:'Fischer',geb:'2013-03-12',pos:'TW',pos2:'',fuss:'R',rating:7,tw:true,min:160,tore:0},
-  {id:'s2',vorname:'Luis',nachname:'König',geb:'2013-07-22',pos:'TW',pos2:'',fuss:'L',rating:6,tw:true,min:80,tore:0},
-  {id:'s3',vorname:'Jan',nachname:'Meier',geb:'2013-01-05',pos:'IV',pos2:'DM',fuss:'R',rating:9,tw:false,min:180,tore:0},
-  {id:'s4',vorname:'Max',nachname:'Schulz',geb:'2013-05-18',pos:'IV',pos2:'LV',fuss:'R',rating:8,tw:false,min:165,tore:1},
-  {id:'s5',vorname:'Tom',nachname:'Braun',geb:'2013-09-30',pos:'LV',pos2:'',fuss:'L',rating:7,tw:false,min:140,tore:0},
-  {id:'s6',vorname:'Noah',nachname:'Becker',geb:'2013-02-14',pos:'ZM',pos2:'DM',fuss:'R',rating:8,tw:false,min:195,tore:1},
-  {id:'s7',vorname:'Luca',nachname:'Müller',geb:'2013-11-03',pos:'ST',pos2:'RF',fuss:'R',rating:9,tw:false,min:210,tore:4},
-  {id:'s8',vorname:'Tim',nachname:'Keller',geb:'2013-06-25',pos:'LF',pos2:'ZM',fuss:'L',rating:7,tw:false,min:165,tore:2},
-  {id:'s9',vorname:'Nico',nachname:'Huber',geb:'2013-04-07',pos:'RF',pos2:'ST',fuss:'R',rating:7,tw:false,min:120,tore:1},
-  {id:'s10',vorname:'Paul',nachname:'Suter',geb:'2013-08-19',pos:'DM',pos2:'IV',fuss:'R',rating:6,tw:false,min:90,tore:0},
+  {id:'s1',soll:8,vorname:'Ben',nachname:'Fischer',geb:'2013-03-12',pos:'TW',pos2:'',fuss:'R',rating:7,tw:true,min:160,tore:0},
+  {id:'s2',soll:7,vorname:'Luis',nachname:'König',geb:'2013-07-22',pos:'TW',pos2:'',fuss:'L',rating:6,tw:true,min:80,tore:0},
+  {id:'s3',soll:9,vorname:'Jan',nachname:'Meier',geb:'2013-01-05',pos:'IV',pos2:'DM',fuss:'R',rating:9,tw:false,min:180,tore:0},
+  {id:'s4',soll:9,vorname:'Max',nachname:'Schulz',geb:'2013-05-18',pos:'IV',pos2:'LV',fuss:'R',rating:8,tw:false,min:165,tore:1},
+  {id:'s5',soll:8,vorname:'Tom',nachname:'Braun',geb:'2013-09-30',pos:'LV',pos2:'',fuss:'L',rating:7,tw:false,min:140,tore:0},
+  {id:'s6',soll:9,vorname:'Noah',nachname:'Becker',geb:'2013-02-14',pos:'ZM',pos2:'DM',fuss:'R',rating:8,tw:false,min:195,tore:1},
+  {id:'s7',soll:10,vorname:'Luca',nachname:'Müller',geb:'2013-11-03',pos:'ST',pos2:'RF',fuss:'R',rating:9,tw:false,min:210,tore:4},
+  {id:'s8',soll:8,vorname:'Tim',nachname:'Keller',geb:'2013-06-25',pos:'LF',pos2:'ZM',fuss:'L',rating:7,tw:false,min:165,tore:2},
+  {id:'s9',soll:8,vorname:'Nico',nachname:'Huber',geb:'2013-04-07',pos:'RF',pos2:'ST',fuss:'R',rating:7,tw:false,min:120,tore:1},
+  {id:'s10',soll:7,vorname:'Paul',nachname:'Suter',geb:'2013-08-19',pos:'DM',pos2:'IV',fuss:'R',rating:6,tw:false,min:90,tore:0},
 ];
 const POSITIONEN = ['TW','IV','LV','RV','DM','ZM','OM','LF','RF','ST'];
 
@@ -546,12 +546,12 @@ const SFV={
     zonen:{'Zone 1 — Nach vorne spielen':{prinzipien:['Tiefe nutzen: Direkt oder nach zweitem Pass','Die Zone 2 oder 3 mit «Zielspielern» suchen','Gezielter langer Ball in den Raum','Wenn nicht möglich: Ballsicherung']},'Zone 2 — In die Zone 3 spielen':{prinzipien:['«Zielspieler» in der Zone 3 finden','Schnittstellenpass oder gezielter langer Ball','Individuelle Aktion: Einzeldurchbruch','Wenn nicht möglich: Ballsicherung']},'Zone 3/BOX — Tor erzielen':{prinzipien:['Gegner fixieren, 1:1 suchen und gewinnen','Dosierter, präziser 1. Pass','Pässe und Laufwege abstimmen','Raschmöglichst abschliessen']}}},
 };
 
-const MZ_PHASES=[
-  {lb:'Vorbereitung',dates:'Jul–Aug',col:'#1B4FDB',sfv:null,typ:'vorbereitung'},
-  {lb:'Aufbauphase',dates:'Aug–Sep',col:'#16A34A',sfv:'wir_haben_ball',typ:'normal'},
-  {lb:'Intensivphase',dates:'Sep–Okt',col:'#D97706',sfv:'wir_verlieren_ball',typ:'normal'},
-  {lb:'Wettkampfphase',dates:'Okt–Nov',col:'#DC2626',sfv:'wir_haben_ball_nicht',typ:'normal'},
-  {lb:'Ferienphase',dates:'Okt',col:'#6B7280',sfv:null,typ:'ferien'},
+let MZ_PHASES=[
+  {id:'mz1',lb:'Vorbereitung',dates:'Jul–Aug',col:'#1B4FDB',sfv:null,typ:'vorbereitung',sw:['Athletik','Technik'],notiz:''},
+  {id:'mz2',lb:'Aufbauphase',dates:'Aug–Sep',col:'#16A34A',sfv:'wir_haben_ball',typ:'normal',sw:['Technik','Spielintelligenz'],notiz:''},
+  {id:'mz3',lb:'Intensivphase',dates:'Sep–Okt',col:'#D97706',sfv:'wir_verlieren_ball',typ:'normal',sw:['Athletik','Schnelligkeit'],notiz:''},
+  {id:'mz4',lb:'Wettkampfphase',dates:'Okt–Nov',col:'#DC2626',sfv:'wir_haben_ball_nicht',typ:'normal',sw:['Spielintelligenz'],notiz:''},
+  {id:'mz5',lb:'Ferienphase',dates:'Okt',col:'#6B7280',sfv:null,typ:'ferien',sw:[],notiz:''},
   {lb:'Abschluss',dates:'Nov–Dez',col:'#8B5CF6',sfv:'wir_erobern_ball',typ:'normal'},
 ];
 
@@ -1215,7 +1215,7 @@ function showModuleManager(vid){
     {id:'matchvorbereitung',lb:'Matchvorbereitung',desc:'Spielvorbereitung & Statistiken'},
     {id:'aufstellung',lb:'Aufstellungen',desc:'Drag & Drop Aufstellung'},
   ];
-  const aktive=['makrozyklus','bewertungen','taktiktafel','matchvorbereitung','aufstellung'];
+  const aktive=DEMO_MODULE||['makrozyklus','bewertungen','taktiktafel','matchvorbereitung','aufstellung'];
   showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:6px">📦 Module — ${v.name}</div>
     <div style="font-size:11px;color:var(--text2);margin-bottom:14px">Basis ist immer aktiv. Zusatz-Module nach Bedarf.</div>
     <div class="card" style="box-shadow:none;border:1px solid var(--border)">
@@ -1379,7 +1379,7 @@ function buildBewDetail(spId){
       <span class="ct">\${p.vorname} \${p.nachname} — Q2 2025</span>
       <div style="display:flex;gap:6px">
         <select class="fi" style="width:auto;padding:4px 8px;font-size:11px"><option>Q2 2025</option><option>Q1 2025</option><option>Q4 2024</option></select>
-        \${hasMod('bewertungen')&&canWrite()?`<button class="btn btn-b btn-sm" onclick="showNewBew('\${spId}')">+ Bewertung</button>`:''}
+        \${hasModule('bewertungen')&&canWrite()?`<button class="btn btn-b btn-sm" onclick="showNewBew('\${spId}')">+ Bewertung</button>`:''}
         <button class="btn btn-o btn-sm" onclick="pdfBewertung('\${spId}')">📤 PDF</button>
       </div>
     </div>
@@ -1786,7 +1786,7 @@ function pMakro(el){
 
 function buildMzList(){
   return MZ_PHASES.map((p,i)=>{
-    const sfv=p.sfv?SFV_DATA[p.sfv]:null;
+    const sfv=p.sfv?SFV[p.sfv]:null;
     return `<div style="margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
       <div onclick="toggleMzOpen(${i})" style="padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
         <div style="display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap">
@@ -1858,7 +1858,7 @@ function showEditMzPhase(i){
     <div class="fi-wrap"><label class="flbl">SFV-Phase</label>
       <select class="fi" id="emp-sfv" style="margin-top:4px">
         <option value="">— keine —</option>
-        ${Object.entries(SFV_DATA).map(([k,v])=>`<option value="${k}"${p.sfv===k?' selected':''}>${v.label}</option>`).join('')}
+        ${Object.entries(SFV).map(([k,v])=>`<option value="${k}"${p.sfv===k?' selected':''}>${v.label}</option>`).join('')}
       </select>
     </div>
     <div style="display:flex;gap:8px;margin-top:12px">
@@ -2144,7 +2144,7 @@ function pMirwald(el){
   el.innerHTML=`<div class="dg">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <div style="font-size:12px;color:var(--text2)">2× pro Saison: Vorrunde (Aug) + Rückrunde (Feb/März)</div>
-      ${canWrite?`<button class="btn btn-b btn-sm" onclick="showAddMirwald()">+ Messung</button>`:''}
+      ${canWrite()?`<button class="btn btn-b btn-sm" onclick="showAddMirwald()">+ Messung</button>`:''}
     </div>
     <div class="card">
       <div class="ch"><span class="ct">📏 Messungen 2024/25</span>
@@ -2272,7 +2272,7 @@ function pGespraeche(el){
   el.innerHTML=`<div class="dg">
     <div style="display:flex;justify-content:space-between;align-items:center">
       <div style="font-size:12px;color:var(--text2)">2× pro Saison: Nov–Dez (Zwischenstand) · März–Mai (Jahresplanung)</div>
-      ${canWrite?`<button class="btn btn-b btn-sm" onclick="showAddGespraech()">+ Gespräch planen</button>`:''}
+      ${canWrite()?`<button class="btn btn-b btn-sm" onclick="showAddGespraech()">+ Gespräch planen</button>`:''}
     </div>
     <div class="card">
       <div class="ch"><span class="ct">💬 Gespräche 2024/25</span>
@@ -2463,7 +2463,7 @@ function pdfMakro(){
   let y=getPdfHeader(doc,'Makrozyklus');
   doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('Saisonplan — FE12 Blau 2025/26',14,y);y+=8;
   doc.autoTable({startY:y,head:[['Phase','Zeitraum','SFV-Phase','Schwerpunkte']],
-    body:MZ_PHASES.map(p=>[p.lb,p.dates,p.sfv?SFV_DATA[p.sfv]?.label||'—':'—',p.sw.join(', ')||'—']),
+    body:MZ_PHASES.map(p=>[p.lb,p.dates,p.sfv?SFV[p.sfv]?.label||'—':'—',p.sw.join(', ')||'—']),
     styles:{fontSize:9},headStyles:{fillColor:[27,79,219]},alternateRowStyles:{fillColor:[240,242,246]}});
   doc.save('CoachOS_Makrozyklus.pdf');
 }

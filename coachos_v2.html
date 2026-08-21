@@ -304,16 +304,7 @@ input,select,textarea{font-family:inherit;}
       <div class="lt">Coach<span>OS</span></div>
     </div>
     <div class="lh">Willkommen zurück</div>
-    <div class="ls2">Demo — Echte Anmeldung mit Supabase Auth</div>
-
-    <!-- DEMO BANNER -->
-    <div style="background:linear-gradient(135deg,#EBF0FF,#DCFCE7);border:1px solid #1B4FDB33;border-radius:8px;padding:10px 12px;margin-bottom:16px;display:flex;align-items:center;gap:8px">
-      <div style="font-size:18px">🧪</div>
-      <div>
-        <div style="font-size:11px;font-weight:700;color:#1B4FDB">DEMO-MODUS</div>
-        <div style="font-size:10px;color:#5A6478">Echte Anmeldung · Keine Daten werden gespeichert</div>
-      </div>
-    </div>
+    <div class="ls2">Für Trainer · Vereine · Ausbilder</div>
 
     <!-- ERROR BOX -->
     <div id="login-err" style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:7px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#DC2626;font-weight:600"></div>
@@ -334,18 +325,31 @@ input,select,textarea{font-family:inherit;}
       <button class="btn btn-b" style="width:100%;padding:11px;font-size:13px" onclick="doLogin()" id="login-btn">
         Anmelden
       </button>
+
+      <!-- TRENNLINIE -->
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <div style="font-size:10px;color:var(--text3);font-weight:600">ODER</div>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+
+      <!-- DEMO BUTTON -->
+      <button id="demo-btn" onclick="startDemo()" style="width:100%;padding:11px;border-radius:8px;border:2px solid var(--accent);background:var(--accent-l);color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .15s"
+        onmouseenter="this.style.background='var(--accent)';this.style.color='#fff'"
+        onmouseleave="this.style.background='var(--accent-l)';this.style.color='var(--accent)'">
+        🧪 Demo ausprobieren — kostenlos &amp; unverbindlich
+      </button>
+      <div style="text-align:center;font-size:10px;color:var(--text3);margin-top:6px">Keine Registrierung · Keine Daten werden gespeichert</div>
     </div>
 
     <!-- LOADING STATE -->
     <div id="login-loading" style="display:none;text-align:center;padding:24px">
       <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px"></div>
-      <div style="font-size:12px;color:var(--text2)">Anmeldung läuft...</div>
+      <div style="font-size:12px;color:var(--text2)" id="login-loading-txt">Anmeldung läuft...</div>
     </div>
 
-
-
-    <div style="margin-top:12px;text-align:center;font-size:10px;color:var(--text3)">
-      CoachOS Demo · Kaplan Digital · Basel 2025
+    <div style="margin-top:16px;text-align:center;font-size:10px;color:var(--text3)">
+      CoachOS · Kaplan Digital · Basel 2025
     </div>
   </div>
 </div>
@@ -601,26 +605,36 @@ const SFV = {
 };
 
 const SPIELER_DATA = [
-  {name:'Ben Fischer',pos:'TW',pos2:'',fuss:'R',rating:7,tw:true,min:160,tore:0},
-  {name:'Luis König',pos:'TW',pos2:'',fuss:'L',rating:6,tw:true,min:80,tore:0},
-  {name:'Jan Meier',pos:'IV',pos2:'DM',fuss:'R',rating:9,tw:false,min:180,tore:0},
-  {name:'Max Schulz',pos:'IV',pos2:'LV',fuss:'R',rating:8,tw:false,min:165,tore:1},
-  {name:'Tom Braun',pos:'LV',pos2:'',fuss:'L',rating:7,tw:false,min:140,tore:0},
-  {name:'Noah Becker',pos:'ZM',pos2:'DM',fuss:'R',rating:8,tw:false,min:195,tore:1},
-  {name:'Luca Müller',pos:'ST',pos2:'RF',fuss:'R',rating:9,tw:false,min:210,tore:4},
-  {name:'Tim Keller',pos:'LF',pos2:'ZM',fuss:'L',rating:7,tw:false,min:165,tore:2},
-  {name:'Nico Huber',pos:'RF',pos2:'ST',fuss:'R',rating:7,tw:false,min:120,tore:1},
-  {name:'Paul Suter',pos:'DM',pos2:'IV',fuss:'R',rating:6,tw:false,min:90,tore:0},
+  // 6 Demo-Spieler/innen mit Persönlichkeit — werden nicht gespeichert
+  {name:'Leon Müller',   pos:'TW', pos2:'',   fuss:'R', rating:8, tw:true,  min:270, tore:0,
+   persoenlichkeit:'Ruhig, lautstark im Strafraum, sicherer Rückhalt. Führungsqualität, kommuniziert viel.'},
+  {name:'Sara Kaya',     pos:'LV', pos2:'ZM', fuss:'L', rating:7, tw:false, min:200, tore:1,
+   persoenlichkeit:'Technisch stark, schnell. Manchmal ungeduldig, aber lernbegierig und ehrgeizig.'},
+  {name:'Nico Berger',   pos:'IV', pos2:'DM', fuss:'R', rating:9, tw:false, min:260, tore:2,
+   persoenlichkeit:'Taktisch sehr klug, ruhig am Ball. Anführer, gibt Struktur und Sicherheit ab.'},
+  {name:'Mia Steiner',   pos:'ZM', pos2:'OM', fuss:'R', rating:7, tw:false, min:220, tore:3,
+   persoenlichkeit:'Kreativ und verspielt. Braucht klare Struktur — wenn sie läuft ist sie nicht zu stoppen.'},
+  {name:'Jamal Hassan',  pos:'LF', pos2:'ST', fuss:'L', rating:8, tw:false, min:245, tore:5,
+   persoenlichkeit:'Explosiv, direkt, gefährlich. Manchmal zu individuell — lernt gerade Teamspiel.'},
+  {name:'Lena Vogel',    pos:'ST', pos2:'RF', fuss:'R', rating:9, tw:false, min:255, tore:7,
+   persoenlichkeit:'Torjägerin mit Instinkt. Führt sich selbst, motiviert andere. Topscorerin der Saison.'},
 ];
 
 let role='',sideRight=false;
 
 // ── LOGIN ─────────────────────────────────────────────
+let IS_DEMO = false;
+
+function startDemo(){
+  IS_DEMO = true;
+  loginAs('cheftrainer', '', 'Demo Trainer');
+}
+
 function loginAs(r, email, fullName){
   role = r;
-  const u = ROLES_DATA[r] || ROLES_DATA.demo;
+  const u = ROLES_DATA[r] || ROLES_DATA['cheftrainer'];
 
-  // Reset login form for next time
+  // Reset login form
   setLoginLoading(false);
   document.getElementById('li-email').value = '';
   document.getElementById('li-pw').value    = '';
@@ -632,8 +646,8 @@ function loginAs(r, email, fullName){
   const av = document.getElementById('ua');
   av.textContent = u.ab;
   av.style.background = u.col;
-  document.getElementById('un').textContent = fullName || u.name;
-  document.getElementById('ur').textContent = u.role;
+  document.getElementById('un').textContent = IS_DEMO ? 'Demo Trainer' : (fullName || u.name);
+  document.getElementById('ur').textContent = IS_DEMO ? 'Demo · Cheftrainer' : u.role;
 
   if(r === 'superadmin'){
     document.getElementById('vb-logo').textContent = 'SA';
@@ -644,17 +658,32 @@ function loginAs(r, email, fullName){
     document.getElementById('vb-name').textContent = 'FC Musterstadt';
     document.getElementById('vb-sub').textContent  = '3 Teams · Leiter';
   } else {
-    document.getElementById('vb-logo').textContent = 'FB';
-    document.getElementById('vb-name').textContent = 'FC Musterstadt';
-    document.getElementById('vb-sub').textContent  = r === 'cheftrainer' ? 'FE12 Blau · Cheftrainer' : 'FE12 Rot · Assistentin';
+    document.getElementById('vb-logo').textContent = IS_DEMO ? '🧪' : 'FC';
+    document.getElementById('vb-name').textContent = IS_DEMO ? 'Demo FC Basel' : 'FC Musterstadt';
+    document.getElementById('vb-sub').textContent  = IS_DEMO ? 'FE12 Demo · Cheftrainer' :
+      (r === 'cheftrainer' ? 'FE12 Blau · Cheftrainer' : 'FE12 Rot · Assistentin');
   }
+
+  // Demo-Banner in Topbar einblenden
+  const tb = document.querySelector('.tb-a');
+  const existingBanner = document.getElementById('demo-topbanner');
+  if(existingBanner) existingBanner.remove();
+  if(IS_DEMO && tb){
+    const banner = document.createElement('div');
+    banner.id = 'demo-topbanner';
+    banner.style.cssText = 'background:#EBF0FF;border:1px solid #1B4FDB44;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;color:#1B4FDB;display:flex;align-items:center;gap:5px';
+    banner.innerHTML = '🧪 DEMO · Keine Daten werden gespeichert';
+    tb.insertBefore(banner, tb.firstChild);
+  }
+
   buildNav();
   goPage('dashboard');
 }
+
 function doLogout(){
+  IS_DEMO = false;
   document.getElementById('app').classList.add('hidden');
   document.getElementById('ls').classList.remove('hidden');
-  // Reset to login form view
   setLoginLoading(false);
 }
 function toggleSide(){

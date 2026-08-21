@@ -6,6 +6,8 @@
 <title>CoachOS — Trainer Management</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <style>
 :root{
   --bg:#F4F6F9;--surface:#FFFFFF;--surface2:#F0F2F6;--border:#E2E6EE;
@@ -146,6 +148,14 @@ input,select,textarea{font-family:inherit;}
 .btn-sm{padding:4px 9px;font-size:11px;}
 .pc{padding:20px;}
 
+/* ── DEMO BANNER ── */
+.demo-banner{background:var(--surface2);border-bottom:1px solid var(--border);
+  padding:7px 22px;font-size:11px;color:var(--text2);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.demo-banner-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);
+  flex-shrink:0;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
 /* ── LIZENZ BANNER ── */
 .lizenz-banner{background:linear-gradient(90deg,#D97706,#EA580C);color:#fff;
   padding:8px 22px;font-size:12px;font-weight:600;display:flex;align-items:center;
@@ -160,6 +170,7 @@ input,select,textarea{font-family:inherit;}
 .cb{padding:18px;}
 .bdg{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:700;}
 .bdg-b{background:var(--accent-l);color:var(--accent);}
+.bdg-p{background:#EDE9FE;color:#7C3AED;}
 .bdg-g{background:var(--green-l);color:var(--green);}
 .bdg-r{background:var(--red-l);color:var(--red);}
 .bdg-o{background:var(--orange-l);color:var(--orange);}
@@ -281,6 +292,22 @@ input,select,textarea{font-family:inherit;}
 .tab:hover{color:var(--text);}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 
+
+/* ── IST-SOLL ── */
+.is-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.is-label{font-size:11px;font-weight:600;width:120px;flex-shrink:0;}
+.is-bar-wrap{flex:1;height:8px;background:var(--border);border-radius:4px;position:relative;overflow:hidden;}
+.is-ist{height:100%;border-radius:4px;background:var(--accent);position:absolute;top:0;left:0;transition:width .4s;}
+.is-soll-line{position:absolute;top:0;bottom:0;width:2px;background:var(--red);z-index:2;}
+.is-val{font-size:11px;font-weight:700;width:36px;text-align:right;flex-shrink:0;}
+/* ── RADAR ── */
+.radar-wrap{display:flex;justify-content:center;padding:8px 0;}
+/* ── MIRWALD ── */
+.phv-pre{background:#EBF0FF;color:#1B4FDB;}
+.phv-peri{background:#FEF3C7;color:#D97706;}
+.phv-post{background:#DCFCE7;color:#16A34A;}
+/* ── GESPRÄCHE ── */
+.gesp-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
 /* ── OVERLAY ── */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;
   display:flex;align-items:flex-end;justify-content:center;}
@@ -333,8 +360,8 @@ input,select,textarea{font-family:inherit;}
         <span id="magic-btn-text">🔐 Sicheren Link senden</span>
       </button>
       <div class="auth-divider">oder</div>
-      <button class="btn-full btn-secondary" onclick="showDemo()">Demo ansehen</button>
-      <div class="auth-hint">Kein Konto? <a onclick="window.open('https://coachos.ch','_blank')">Jetzt registrieren</a></div>
+      <button class="btn-full btn-secondary" onclick="loginDemo('cheftrainer')">Demo ansehen</button>
+      <div class="auth-hint">Noch kein Konto? <a onclick="window.open('https://coachos.ch','_blank')">Jetzt anmelden</a></div>
     </div>
 
     <!-- Step 2: Link verschickt -->
@@ -347,25 +374,6 @@ input,select,textarea{font-family:inherit;}
       <div style="margin-top:20px;padding:12px;background:var(--surface2);border-radius:8px;font-size:11px;color:var(--text2)">
         💡 Kein E-Mail erhalten? Spam-Ordner prüfen oder <a style="color:var(--accent);cursor:pointer" onclick="showStep('step-email')">nochmals versuchen</a>.
       </div>
-    </div>
-
-    <!-- Step 3: Demo-Modus -->
-    <div class="auth-step" id="step-demo">
-      <div class="auth-title">Demo-Modus</div>
-      <div class="auth-sub">Wähle eine Rolle zum Ausprobieren. Alle Daten sind Beispieldaten.</div>
-      <button class="btn-full btn-primary" style="margin-bottom:8px" onclick="loginDemo('superadmin')">
-        🛡️ Super-Admin — Vollzugriff
-      </button>
-      <button class="btn-full btn-secondary" style="margin-bottom:8px" onclick="loginDemo('vereinsleiter')">
-        👔 Vereinsleiter — FC Musterstadt
-      </button>
-      <button class="btn-full btn-secondary" style="margin-bottom:8px" onclick="loginDemo('cheftrainer')">
-        ⚽ Cheftrainer — FE12 Blau
-      </button>
-      <button class="btn-full btn-secondary" style="margin-bottom:8px" onclick="loginDemo('assistent')">
-        📋 Assistent — FE12 Rot
-      </button>
-      <button class="btn-full" style="background:transparent;border:none;color:var(--text2);font-size:12px;margin-top:8px" onclick="showStep('step-email')">← Zurück zur Anmeldung</button>
     </div>
   </div>
 </div>
@@ -397,6 +405,15 @@ input,select,textarea{font-family:inherit;}
 
 <!-- ── APP ── -->
 <div id="app" class="hidden">
+  <!-- Demo-Banner (nur im Demo-Modus) -->
+  <div id="demo-banner" class="demo-banner hidden">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="demo-banner-dot"></div>
+      <span>Demo-Modus — Beispieldaten, kein echter Account</span>
+    </div>
+    <button class="btn btn-b btn-sm" onclick="doLogout()">Jetzt anmelden →</button>
+  </div>
+
   <!-- Lizenz-Banner (wenn fast abgelaufen oder Grace-Period) -->
   <div id="lizenz-banner" class="lizenz-banner hidden">
     <span id="lizenz-banner-text"></span>
@@ -485,7 +502,7 @@ let STATE = {
 
 // Demo-Daten
 const DEMO_PROFILES = {
-  superadmin:   {id:'demo-sa', vorname:'Dogus', nachname:'Kaplan', email:'dogusk@fe.ch', rolle:'superadmin', aktiv:true},
+  superadmin:   {id:'demo-sa', vorname:'Admin', nachname:'', email:'', rolle:'superadmin', aktiv:true},
   vereinsleiter:{id:'demo-vl', vorname:'Thomas', nachname:'Müller', email:'t.mueller@fc-musterstadt.ch', rolle:'vereinsleiter', aktiv:true},
   cheftrainer:  {id:'demo-ct', vorname:'Marco', nachname:'Becker', email:'m.becker@fc-musterstadt.ch', rolle:'cheftrainer', aktiv:true},
   assistent:    {id:'demo-as', vorname:'Sara', nachname:'Lehmann', email:'s.lehmann@fc-musterstadt.ch', rolle:'assistent', aktiv:true},
@@ -501,16 +518,16 @@ const DEMO_MODULE = ['dashboard','kalender','spieler','teams','matchvorbereitung
 const BASIS_MODULE = ['dashboard','kalender','spieler','teams'];
 
 const SPIELER_DATA = [
-  {id:'s1',vorname:'Ben',nachname:'Fischer',pos:'TW',pos2:'',fuss:'R',rating:7,tw:true,min:160,tore:0},
-  {id:'s2',vorname:'Luis',nachname:'König',pos:'TW',pos2:'',fuss:'L',rating:6,tw:true,min:80,tore:0},
-  {id:'s3',vorname:'Jan',nachname:'Meier',pos:'IV',pos2:'DM',fuss:'R',rating:9,tw:false,min:180,tore:0},
-  {id:'s4',vorname:'Max',nachname:'Schulz',pos:'IV',pos2:'LV',fuss:'R',rating:8,tw:false,min:165,tore:1},
-  {id:'s5',vorname:'Tom',nachname:'Braun',pos:'LV',pos2:'',fuss:'L',rating:7,tw:false,min:140,tore:0},
-  {id:'s6',vorname:'Noah',nachname:'Becker',pos:'ZM',pos2:'DM',fuss:'R',rating:8,tw:false,min:195,tore:1},
-  {id:'s7',vorname:'Luca',nachname:'Müller',pos:'ST',pos2:'RF',fuss:'R',rating:9,tw:false,min:210,tore:4},
-  {id:'s8',vorname:'Tim',nachname:'Keller',pos:'LF',pos2:'ZM',fuss:'L',rating:7,tw:false,min:165,tore:2},
-  {id:'s9',vorname:'Nico',nachname:'Huber',pos:'RF',pos2:'ST',fuss:'R',rating:7,tw:false,min:120,tore:1},
-  {id:'s10',vorname:'Paul',nachname:'Suter',pos:'DM',pos2:'IV',fuss:'R',rating:6,tw:false,min:90,tore:0},
+  {id:'s1',vorname:'Ben',nachname:'Fischer',geb:'2013-03-12',pos:'TW',pos2:'',fuss:'R',rating:7,tw:true,min:160,tore:0},
+  {id:'s2',vorname:'Luis',nachname:'König',geb:'2013-07-22',pos:'TW',pos2:'',fuss:'L',rating:6,tw:true,min:80,tore:0},
+  {id:'s3',vorname:'Jan',nachname:'Meier',geb:'2013-01-05',pos:'IV',pos2:'DM',fuss:'R',rating:9,tw:false,min:180,tore:0},
+  {id:'s4',vorname:'Max',nachname:'Schulz',geb:'2013-05-18',pos:'IV',pos2:'LV',fuss:'R',rating:8,tw:false,min:165,tore:1},
+  {id:'s5',vorname:'Tom',nachname:'Braun',geb:'2013-09-30',pos:'LV',pos2:'',fuss:'L',rating:7,tw:false,min:140,tore:0},
+  {id:'s6',vorname:'Noah',nachname:'Becker',geb:'2013-02-14',pos:'ZM',pos2:'DM',fuss:'R',rating:8,tw:false,min:195,tore:1},
+  {id:'s7',vorname:'Luca',nachname:'Müller',geb:'2013-11-03',pos:'ST',pos2:'RF',fuss:'R',rating:9,tw:false,min:210,tore:4},
+  {id:'s8',vorname:'Tim',nachname:'Keller',geb:'2013-06-25',pos:'LF',pos2:'ZM',fuss:'L',rating:7,tw:false,min:165,tore:2},
+  {id:'s9',vorname:'Nico',nachname:'Huber',geb:'2013-04-07',pos:'RF',pos2:'ST',fuss:'R',rating:7,tw:false,min:120,tore:1},
+  {id:'s10',vorname:'Paul',nachname:'Suter',geb:'2013-08-19',pos:'DM',pos2:'IV',fuss:'R',rating:6,tw:false,min:90,tore:0},
 ];
 const POSITIONEN = ['TW','IV','LV','RV','DM','ZM','OM','LF','RF','ST'];
 
@@ -542,6 +559,26 @@ const CAL_EVENTS={3:{type:'ms',vs:'FC Riehen'},10:{type:'ts',vs:'SC Bettlach'},2
 
 const ROLE_COLORS={superadmin:'#1B4FDB',vereinsleiter:'#16A34A',cheftrainer:'#D97706',assistent:'#6B7280'};
 const ROLE_LABELS={superadmin:'Super-Admin',vereinsleiter:'Vereinsleiter',cheftrainer:'Cheftrainer',assistent:'Assistent'};
+
+
+const BEW_VERLAUF={
+  s3:[
+    {q:'Q4 2024',technik:6,spielintelligenz:7,persoenlichkeit:6,athletik:7,schnelligkeit:6,umfeld:6},
+    {q:'Q1 2025',technik:7,spielintelligenz:8,persoenlichkeit:7,athletik:7,schnelligkeit:7,umfeld:6},
+    {q:'Q2 2025',technik:8,spielintelligenz:9,persoenlichkeit:7,athletik:8,schnelligkeit:8,umfeld:6},
+  ],
+  s7:[
+    {q:'Q4 2024',technik:8,spielintelligenz:8,persoenlichkeit:8,athletik:8,schnelligkeit:8,umfeld:7},
+    {q:'Q1 2025',technik:9,spielintelligenz:9,persoenlichkeit:8,athletik:9,schnelligkeit:8,umfeld:8},
+    {q:'Q2 2025',technik:9,spielintelligenz:9,persoenlichkeit:9,athletik:9,schnelligkeit:9,umfeld:8},
+  ],
+};
+const BEW_DIMS=[
+  {k:'technik',lb:'Technik'},{k:'spielintelligenz',lb:'Spielintelligenz'},
+  {k:'persoenlichkeit',lb:'Persönlichkeit'},{k:'athletik',lb:'Athletik'},
+  {k:'schnelligkeit',lb:'Schnelligkeit'},{k:'umfeld',lb:'Umfeld'},
+];
+let selBewId='s3';
 
 // ═══════════════════════════════════════════════════════════════
 // AUTH FLOWS
@@ -576,12 +613,15 @@ async function sendMagicLink(){
   }finally{btn.disabled=false;txt.textContent='🔐 Sicheren Link senden';}
 }
 
-function showDemo(){showStep('step-demo');}
+// Demo-Zugang nur als Cheftrainer via loginDemo('cheftrainer')
 
 function loginDemo(role){
+  // Demo ist immer cheftrainer — egal was übergeben wird
+  // Superadmin und Systemzugang sind nur via echtem Magic Link erreichbar
+  const demoRole = 'cheftrainer';
   STATE.isDemo=true;
-  STATE.profile=DEMO_PROFILES[role];
-  STATE.role=role;
+  STATE.profile=DEMO_PROFILES[demoRole];
+  STATE.role=demoRole;
   STATE.verein=DEMO_VEREIN;
   STATE.module=DEMO_MODULE;
   STATE.lizenzOk=true;
@@ -680,6 +720,15 @@ function initApp(){
   document.getElementById('auth-screen').classList.add('hidden');
   document.getElementById('lizenz-screen').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
+
+  // Demo-Banner: zeigen wenn Demo, und Rolle auf cheftrainer fixieren
+  if(STATE.isDemo){
+    document.getElementById('demo-banner').classList.remove('hidden');
+    // Im Demo ist die Rolle immer cheftrainer — kein Zugang zu Admin-Bereichen
+    STATE.role = 'cheftrainer';
+    STATE.profile.rolle = 'cheftrainer';
+  }
+
   renderUserInfo();
   renderLizenzBanner();
   buildNav();
@@ -763,8 +812,7 @@ const NAV_DEFAULT=[
   {s:'Verein & Team',items:[
     {id:'teams',ic:'👥',lb:'Teams'},
     {id:'spieler',ic:'⚽',lb:'Spieler'},
-    {id:'makrozyklus',ic:'📈',lb:'Makrozyklus',mod:'makrozyklus'},
-    {id:'bewertungen',ic:'⭐',lb:'Bewertungen',mod:'bewertungen'},
+    {id:'makrozyklus',ic:'📈',lb:'Makrozyklus',mod:'makrozyklus'},{id:'bewertungen',ic:'⭐',lb:'Bewertungen',mod:'bewertungen'},{id:'mirwald',ic:'📏',lb:'Mirwald',mod:'mirwald'},{id:'gespraeche',ic:'💬',lb:'Gespräche',mod:'gespraeche'},
   ]},
   {s:'Spielbetrieb',items:[
     {id:'matchvorbereitung',ic:'📋',lb:'Matchvorbereitung',nb:'2',mod:'matchvorbereitung'},
@@ -809,7 +857,7 @@ function showModuleLocked(name){
 const PAGE_TITLES={dashboard:'Dashboard',kalender:'Kalender',teams:'Teams',spieler:'Spieler',
   bewertungen:'Bewertungen',matchvorbereitung:'Matchvorbereitung',
   aufstellung:'Aufstellungen',taktiktafel:'Taktiktafel',makrozyklus:'Makrozyklus',
-  vereine:'Vereinsverwaltung',lizenzen:'Lizenzen',anfragen:'Anmelde-Anfragen',settings:'Einstellungen'};
+  vereine:'Vereinsverwaltung',lizenzen:'Lizenzen',anfragen:'Anmelde-Anfragen',settings:'Einstellungen',mirwald:'Mirwald-Messung',gespraeche:'Gespräche'};
 
 function goPage(id){
   if(!hasModule(id)&&!['dashboard','kalender','teams','spieler','settings','vereine','lizenzen','anfragen'].includes(id)){
@@ -826,7 +874,7 @@ function goPage(id){
     dashboard:pDash,kalender:pKal,spieler:pSpieler,bewertungen:pBew,
     matchvorbereitung:pMatch,aufstellung:pAufst,taktiktafel:pTaktik,
     makrozyklus:pMakro,vereine:pVereine,lizenzen:pLiz,anfragen:pAnfragen,
-    settings:pSet,teams:pTeams
+    settings:pSet,mirwald:pMirwald,gespraeche:pGespraeche,teams:pTeams
   };
   (pages[id]||pInDev)(el);
 }
@@ -959,126 +1007,272 @@ function buildTopSp(){
   </div>`).join('');
 }
 
+
+// ═══════════════════════════════════════════════════════════════
+// RADAR CHART (SVG)
+// ═══════════════════════════════════════════════════════════════
+function buildRadar(data,label){
+  const dims=['Technik','Spielintell.','Persönl.','Athletik','Schnelligkeit','Umfeld'];
+  const keys=['technik','spielintelligenz','persoenlichkeit','athletik','schnelligkeit','umfeld'];
+  const vals=keys.map(k=>+(data[k]||0).toFixed(1));
+  const cx=120,cy=110,r=80,n=dims.length;
+  const angle=i=>(Math.PI*2*i/n)-Math.PI/2;
+  const pt=(i,v)=>{const a=angle(i);const d=v/10*r;return[cx+d*Math.cos(a),cy+d*Math.sin(a)];};
+  let svg=`<svg width="240" height="220" style="display:block;margin:0 auto">`;
+  for(let g=2;g<=10;g+=2){const pts=dims.map((_,i)=>pt(i,g)).map(p=>p.join(',')).join(' ');svg+=`<polygon points="${pts}" fill="none" stroke="var(--border)" stroke-width="1"/>`;}
+  dims.forEach((_,i)=>{const[x,y]=pt(i,10);svg+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--border)" stroke-width="1"/>`;});
+  const vpts=vals.map((v,i)=>pt(i,v)).map(p=>p.join(',')).join(' ');
+  svg+=`<polygon points="${vpts}" fill="rgba(27,79,219,.15)" stroke="var(--accent)" stroke-width="2"/>`;
+  vals.forEach((v,i)=>{const[x,y]=pt(i,v);svg+=`<circle cx="${x}" cy="${y}" r="3" fill="var(--accent)"/>`;});
+  dims.forEach((d,i)=>{const[x,y]=pt(i,11.5);const anchor=x<cx-5?'end':x>cx+5?'start':'middle';svg+=`<text x="${x}" y="${y}" text-anchor="${anchor}" font-size="9" fill="var(--text2)" font-family="Inter">${d}</text>`;});
+  vals.forEach((v,i)=>{const[x,y]=pt(i,v);if(v>0)svg+=`<text x="${x+4}" y="${y-4}" font-size="9" fill="var(--accent)" font-weight="700" font-family="Space Grotesk">${v}</text>`;});
+  if(label)svg+=`<text x="${cx}" y="${cy}" text-anchor="middle" font-size="10" fill="var(--text2)" font-family="Inter">${label}</text>`;
+  svg+='</svg>';
+  return svg;
+}
+
 // ═══════════════════════════════════════════════════════════════
 // SUPERADMIN DASHBOARD
 // ═══════════════════════════════════════════════════════════════
+// === PATCH: SUPERADMIN VEREINSVERWALTUNG (Schritt 2) ===
+// Ersetzt pSuperDash, showVereinDetails, showModuleManager, showLizenzManager, showAddVerein
+
+let VEREINE_DATA=[
+  {id:'v1',name:'FC Musterstadt',kuerzel:'FCM',teams:3,logins:8,paket:'Pro',aktiv:true,col:'#1B4FDB',pilot:false,aktivAb:null,aktivBis:'2026-08-01'},
+  {id:'v2',name:'SC Riehen',kuerzel:'SCR',teams:2,logins:5,paket:'Starter',aktiv:true,col:'#16A34A',pilot:false,aktivAb:null,aktivBis:'2026-06-01'},
+  {id:'v3',name:'BS United',kuerzel:'BSU',teams:5,logins:12,paket:'Pro',aktiv:true,col:'#D97706',pilot:true,aktivAb:null,aktivBis:'2030-01-01'},
+  {id:'v4',name:'Old Boys Demo',kuerzel:'OBD',teams:2,logins:5,paket:'Starter',aktiv:false,col:'#DC2626',pilot:false,aktivAb:'2025-09-01',aktivBis:'2026-09-01'},
+];
+
 function pSuperDash(el){
-  const vereine=[
-    {n:'FC Musterstadt',t:3,u:8,l:'Pro',s:'aktiv',c:'#1B4FDB',ab:'FC',ende:'2026-08-01'},
-    {n:'SC Riehen',t:2,u:5,l:'Starter',s:'aktiv',c:'#16A34A',ab:'SC',ende:'2026-06-01'},
-    {n:'BS United',t:5,u:12,l:'Pro',s:'aktiv',c:'#D97706',ab:'BS',ende:'2026-09-01'},
-    {n:'Old Boys Demo',t:2,u:5,l:'Starter',s:'abläuft',c:'#DC2626',ab:'OB',ende:'2025-08-28'},
-  ];
-  el.innerHTML=`
-  <div class="dg">
+  const aktiv=VEREINE_DATA.filter(v=>v.aktiv).length;
+  const ablauf=VEREINE_DATA.filter(v=>{
+    if(!v.aktivBis)return false;
+    const d=Math.ceil((new Date(v.aktivBis)-new Date())/(864e5));
+    return d>=0&&d<=14;
+  }).length;
+  el.innerHTML=`<div class="dg">
     <div class="sr4">
-      <div class="sc"><div style="font-size:20px;margin-bottom:6px">🏟️</div><div class="sv">${vereine.length}</div><div class="sl">Aktive Vereine</div></div>
-      <div class="sc"><div style="font-size:20px;margin-bottom:6px">👥</div><div class="sv">30</div><div class="sl">Total Logins</div></div>
-      <div class="sc"><div style="font-size:20px;margin-bottom:6px">⚠️</div><div class="sv" style="color:var(--orange)">1</div><div class="sl">Läuft ab (≤14d)</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">🏟️</div><div class="sv">${VEREINE_DATA.length}</div><div class="sl">Vereine total</div><div class="sd up">${aktiv} aktiv</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">👥</div><div class="sv">${VEREINE_DATA.reduce((a,v)=>a+v.logins,0)}</div><div class="sl">Total Logins</div></div>
+      <div class="sc"><div style="font-size:20px;margin-bottom:6px">⚠️</div><div class="sv" style="color:var(--orange)">${ablauf}</div><div class="sl">Läuft ab (≤14d)</div></div>
       <div class="sc"><div style="font-size:20px;margin-bottom:6px">📩</div><div class="sv" style="color:var(--accent)">2</div><div class="sl">Neue Anfragen</div></div>
     </div>
     <div class="card">
-      <div class="ch"><span class="ct">🏟️ Vereinsübersicht</span>
+      <div class="ch"><span class="ct">🏟️ Vereinsverwaltung</span>
         <div style="display:flex;gap:6px">
           <button class="btn btn-o btn-sm" onclick="goPage('anfragen')">📩 Anfragen</button>
           <button class="btn btn-b btn-sm" onclick="showAddVerein()">+ Verein</button>
         </div>
       </div>
-      <div style="padding:0 18px">
-        ${vereine.map(v=>`
-        <div style="display:grid;grid-template-columns:1fr auto auto auto auto auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:32px;height:32px;border-radius:7px;background:${v.c};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px">${v.ab}</div>
-            <div><div style="font-weight:700;font-size:13px">${v.n}</div><div style="font-size:11px;color:var(--text2)">${v.t} Teams · ${v.u} Logins · bis ${v.ende}</div></div>
-          </div>
-          <span class="bdg ${v.s==='aktiv'?'bdg-g':'bdg-r'}">${v.s}</span>
-          <span class="bdg bdg-b">${v.l}</span>
-          <button class="btn btn-o btn-sm" onclick="showVereinDetails('${v.n}')">Details</button>
-          <button class="btn btn-o btn-sm" onclick="showModuleManager('${v.n}')">Module</button>
-          <button class="btn btn-b btn-sm" onclick="showLizenzManager('${v.n}')">🔑 Lizenz</button>
-        </div>`).join('')}
-      </div>
+      <div style="padding:0 18px" id="vereine-liste">${buildVereinListe()}</div>
     </div>
   </div>`;
 }
 
-function showVereinDetails(name){
-  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">🏟️ ${name}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
-      <div style="background:var(--surface2);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text2)">STATUS</div><div style="font-weight:700;color:var(--green)">Aktiv</div></div>
-      <div style="background:var(--surface2);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text2)">PAKET</div><div style="font-weight:700">Pro</div></div>
-    </div>
-    <div class="fi-wrap"><label class="fi-label">Verein aktiv</label>
-    <div style="display:flex;gap:6px">
-      <button class="btn btn-g btn-sm">✓ Aktivieren</button>
-      <button class="btn btn-r btn-sm">✕ Deaktivieren</button>
-    </div></div>
-    <button class="btn btn-b" style="width:100%;margin-top:10px" onclick="closeOv()">Schliessen</button>`);
-}
-
-function showModuleManager(vereinName){
-  const mods=[
-    {id:'makrozyklus',lb:'Makrozyklus',on:true},
-    {id:'bewertungen',lb:'Bewertungen',on:true},
-    {id:'taktiktafel',lb:'Taktiktafel',on:true},
-    {id:'iep',lb:'IEP (Entwicklungsplan)',on:false},
-    {id:'mirwald',lb:'Mirwald-Messung',on:false},
-    {id:'gespraeche',lb:'Gespräche',on:false},
-  ];
-  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">📦 Module — ${vereinName}</div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:14px">Basis-Module (Dashboard, Kalender, Spieler, Teams) sind immer aktiv.</div>
-    <div class="card" style="box-shadow:none">
-      ${mods.map(m=>`
-      <div class="module-toggle">
+function buildVereinListe(){
+  return VEREINE_DATA.map(v=>{
+    const today=new Date();
+    const endDate=v.aktivBis?new Date(v.aktivBis):null;
+    const startDate=v.aktivAb?new Date(v.aktivAb):null;
+    const daysLeft=endDate?Math.ceil((endDate-today)/(864e5)):null;
+    const daysUntilStart=startDate&&!v.aktiv?Math.ceil((startDate-today)/(864e5)):null;
+    let statusBadge=v.aktiv?`<span class="bdg bdg-g">aktiv</span>`:
+      (daysUntilStart>0?`<span class="bdg bdg-gold">aktiviert ab ${v.aktivAb}</span>`:
+      `<span class="bdg bdg-r">inaktiv</span>`);
+    let lizenzInfo=daysLeft!==null?(daysLeft<0?`<span class="bdg bdg-r">abgelaufen</span>`:
+      daysLeft<=14?`<span class="bdg bdg-gold">noch ${daysLeft}d</span>`:
+      `<span class="bdg bdg-g">bis ${v.aktivBis}</span>`):'';
+    return `<div style="display:grid;grid-template-columns:1fr auto;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:7px;background:${v.col};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:10px;flex-shrink:0">${v.kuerzel}</div>
         <div>
-          <div style="font-weight:600;font-size:13px">${m.lb}</div>
-          <div style="font-size:11px;color:var(--text2)">Zusatzmodul</div>
+          <div style="font-weight:700;font-size:13px">${v.name}</div>
+          <div style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:2px">
+            <span class="bdg bdg-b">${v.paket}</span>
+            ${v.pilot?`<span class="bdg bdg-p">Pilot 5J</span>`:''}
+            ${statusBadge}${lizenzInfo}
+            <span style="color:var(--text3)">${v.teams} Teams · ${v.logins} Logins</span>
+          </div>
         </div>
-        <div class="toggle-sw ${m.on?'on':''}" onclick="this.classList.toggle('on')"></div>
-      </div>`).join('')}
-    </div>
-    <button class="btn btn-b" style="width:100%;margin-top:14px" onclick="closeOv()">Speichern</button>`);
+      </div>
+      <div style="display:flex;gap:5px;flex-shrink:0">
+        <button class="btn btn-o btn-sm" onclick="showModuleManager('${v.id}')">Module</button>
+        <button class="btn btn-o btn-sm" onclick="showLizenzManager('${v.id}')">🔑</button>
+        <button class="btn ${v.aktiv?'btn-r':'btn-g'} btn-sm" onclick="toggleVereinAktiv('${v.id}')">${v.aktiv?'Sperren':'Aktivieren'}</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-function showLizenzManager(vereinName){
-  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">🔑 Lizenz — ${vereinName}</div>
-    <div class="fi-wrap"><label class="fi-label">Paket</label>
-    <select class="fi" style="margin-top:4px"><option>Solo (1 Team · 2 Logins)</option><option>Starter (2 Teams · 5 Logins)</option><option selected>Pro (5 Teams · 15 Logins)</option><option>Enterprise (15 Teams · ∞ Logins)</option></select></div>
-    <div class="fi-wrap"><label class="fi-label">Periode</label>
-    <select class="fi" style="margin-top:4px"><option>Monatlich</option><option selected>Jährlich</option></select></div>
-    <div class="fi-wrap"><label class="fi-label">Ablaufdatum</label>
-    <input type="date" class="fi" value="2026-08-01" style="margin-top:4px"></div>
-    <div class="fi-wrap"><label class="fi-label">Pilotpartner (kostenlos)</label>
-    <div style="display:flex;gap:8px;margin-top:4px">
-      <button class="btn btn-g btn-sm">✓ Ja</button>
-      <button class="btn btn-o btn-sm">Nein</button>
-    </div></div>
-    <div style="background:var(--gold-l);border-radius:8px;padding:10px;font-size:11px;color:var(--gold);margin-bottom:14px">
-      ⚠️ Nach Ablauf: 3 Tage Vollzugang (Grace Period), danach automatisch Basis-Modus. Daten bleiben erhalten.
-    </div>
-    <button class="btn btn-b" style="width:100%" onclick="closeOv()">Speichern</button>`);
+function toggleVereinAktiv(vid){
+  const v=VEREINE_DATA.find(x=>x.id===vid);if(!v)return;
+  if(v.aktiv){
+    showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">⚠️ ${v.name} sperren?</div>
+      <div style="color:var(--text2);font-size:12px;margin-bottom:14px;line-height:1.6">Trainer verlieren Zugang. Daten bleiben vollständig erhalten. Jederzeit reaktivierbar.</div>
+      <div class="fi-wrap"><label class="flbl">Automatisch reaktivieren am</label>
+        <input type="date" class="fi" id="reaktiv-datum" style="margin-top:4px" placeholder="Optional">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn btn-r" style="flex:1" onclick="
+          const d=document.getElementById('reaktiv-datum').value;
+          const vx=VEREINE_DATA.find(x=>x.id==='${vid}');
+          if(vx){vx.aktiv=false;if(d)vx.aktivAb=d;}
+          closeOv();document.getElementById('vereine-liste').innerHTML=buildVereinListe();
+        ">Sperren</button>
+        <button class="btn btn-o" style="flex:1" onclick="closeOv()">Abbrechen</button>
+      </div>`);
+  } else {
+    showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">✅ ${v.name} aktivieren</div>
+      <div class="fi-wrap">
+        <label class="flbl">Aktivieren</label>
+        <div style="display:flex;gap:6px;margin-top:4px">
+          <button class="btn btn-g btn-sm" onclick="
+            const vx=VEREINE_DATA.find(x=>x.id==='${vid}');
+            if(vx){vx.aktiv=true;vx.aktivAb=null;}
+            closeOv();document.getElementById('vereine-liste').innerHTML=buildVereinListe();
+          ">Sofort</button>
+          <input type="date" class="fi" id="aktiv-datum" style="flex:1">
+        </div>
+      </div>
+      <div class="fi-wrap"><label class="flbl">Aktiv bis</label>
+        <input type="date" class="fi" id="aktiv-bis" value="${v.aktivBis||''}" style="margin-top:4px">
+      </div>
+      <button class="btn btn-g" style="width:100%;margin-top:4px" onclick="
+        const vx=VEREINE_DATA.find(x=>x.id==='${vid}');
+        const ad=document.getElementById('aktiv-datum').value;
+        const ab=document.getElementById('aktiv-bis').value;
+        if(vx){
+          if(!ad||new Date(ad)<=new Date()){vx.aktiv=true;vx.aktivAb=null;}
+          else{vx.aktiv=false;vx.aktivAb=ad;}
+          if(ab)vx.aktivBis=ab;
+        }
+        closeOv();document.getElementById('vereine-liste').innerHTML=buildVereinListe();
+      ">Speichern</button>`);
+  }
 }
 
 function showAddVerein(){
   showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">➕ Neuer Verein</div>
     <div class="fl2">
-      <div class="fi-wrap"><label class="fi-label">Vereinsname</label><input class="fi" placeholder="FC Beispiel" style="margin-top:4px"></div>
-      <div class="fi-wrap"><label class="fi-label">Kürzel</label><input class="fi" placeholder="FCB" maxlength="4" style="margin-top:4px"></div>
+      <div class="fi-wrap"><label class="flbl">Vereinsname *</label><input class="fi" id="nv-name" placeholder="FC Beispiel" style="margin-top:4px"></div>
+      <div class="fi-wrap"><label class="flbl">Kürzel</label><input class="fi" id="nv-kuerzel" placeholder="FCB" maxlength="4" style="margin-top:4px"></div>
     </div>
-    <div class="fi-wrap"><label class="fi-label">E-Mail Vereinsleiter</label><input type="email" class="fi" placeholder="leiter@verein.ch" style="margin-top:4px"></div>
-    <div class="fi-wrap"><label class="fi-label">Stadt</label><input class="fi" placeholder="Basel" style="margin-top:4px"></div>
-    <div class="fi-wrap"><label class="fi-label">Paket</label>
-    <select class="fi" style="margin-top:4px"><option>Solo</option><option selected>Starter</option><option>Pro</option><option>Enterprise</option></select></div>
-    <div class="fi-wrap"><label class="fi-label">Pilot (5 Jahre kostenlos)</label>
-    <div style="display:flex;gap:6px;margin-top:4px">
-      <button class="btn btn-g btn-sm">✓ Ja</button>
-      <button class="btn btn-o btn-sm">Nein</button>
-    </div></div>
-    <div style="display:flex;gap:8px;margin-top:4px">
-      <button class="btn btn-b" style="flex:1" onclick="closeOv()">Verein erstellen & Magic Link senden</button>
+    <div class="fi-wrap"><label class="flbl">E-Mail Vereinsleiter</label><input type="email" class="fi" id="nv-email" placeholder="leiter@verein.ch" style="margin-top:4px"></div>
+    <div class="fl2">
+      <div class="fi-wrap"><label class="flbl">Paket</label>
+        <select class="fi" id="nv-paket" style="margin-top:4px">
+          <option>Solo</option><option selected>Starter</option><option>Pro</option><option>Enterprise</option>
+        </select>
+      </div>
+      <div class="fi-wrap"><label class="flbl">Aktiv ab</label>
+        <input type="date" class="fi" id="nv-ab" style="margin-top:4px">
+      </div>
+    </div>
+    <div class="fl2">
+      <div class="fi-wrap"><label class="flbl">Aktiv bis</label>
+        <input type="date" class="fi" id="nv-bis" style="margin-top:4px">
+      </div>
+      <div class="fi-wrap">
+        <label class="flbl">Pilot (5J kostenlos)</label>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn btn-b btn-sm" id="nv-pilot-n" onclick="this.className='btn btn-b btn-sm';document.getElementById('nv-pilot-y').className='btn btn-o btn-sm'">Nein</button>
+          <button class="btn btn-o btn-sm" id="nv-pilot-y" onclick="this.className='btn btn-b btn-sm';document.getElementById('nv-pilot-n').className='btn btn-o btn-sm'">Ja</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-b" style="flex:1" onclick="
+        const name=document.getElementById('nv-name').value.trim();
+        if(!name){return;}
+        const pilot=document.getElementById('nv-pilot-y').className.includes('btn-b');
+        const ab=document.getElementById('nv-ab').value;
+        const aktiv=!ab||new Date(ab)<=new Date();
+        VEREINE_DATA.push({
+          id:'v'+Date.now(),
+          name,
+          kuerzel:document.getElementById('nv-kuerzel').value.toUpperCase()||name.slice(0,3).toUpperCase(),
+          teams:0,logins:0,
+          paket:document.getElementById('nv-paket').value,
+          aktiv,col:'#1B4FDB',pilot,
+          aktivAb:aktiv?null:ab,
+          aktivBis:document.getElementById('nv-bis').value||null
+        });
+        closeOv();goPage('dashboard');
+      ">Verein erstellen</button>
       <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
     </div>`);
 }
+
+function showModuleManager(vid){
+  const v=VEREINE_DATA.find(x=>x.id===vid)||{name:'Verein'};
+  const mods=[
+    {id:'makrozyklus',lb:'Makrozyklus',desc:'Saisonplanung & Phasen'},
+    {id:'bewertungen',lb:'Bewertungen',desc:'IST/SOLL, Radar, Verlauf'},
+    {id:'taktiktafel',lb:'Taktiktafel',desc:'Interaktive Spielfeldanalyse'},
+    {id:'mirwald',lb:'Mirwald-Messung',desc:'PHV-Status & Wachstum'},
+    {id:'gespraeche',lb:'Gespräche',desc:'Spieler- & Elterngespräche'},
+    {id:'matchvorbereitung',lb:'Matchvorbereitung',desc:'Spielvorbereitung & Statistiken'},
+    {id:'aufstellung',lb:'Aufstellungen',desc:'Drag & Drop Aufstellung'},
+  ];
+  const aktive=['makrozyklus','bewertungen','taktiktafel','matchvorbereitung','aufstellung'];
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:6px">📦 Module — ${v.name}</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:14px">Basis ist immer aktiv. Zusatz-Module nach Bedarf.</div>
+    <div class="card" style="box-shadow:none;border:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--surface2)">
+        <div><div style="font-size:11px;font-weight:600">Basis (immer aktiv)</div><div style="font-size:10px;color:var(--text2)">Dashboard · Kalender · Spieler · Teams</div></div>
+        <div class="toggle-sw on" style="pointer-events:none"></div>
+      </div>
+      ${mods.map(m=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-top:1px solid var(--border)">
+        <div>
+          <div style="font-weight:600;font-size:12px">${m.lb}</div>
+          <div style="font-size:10px;color:var(--text2)">${m.desc}</div>
+        </div>
+        <div class="toggle-sw ${aktive.includes(m.id)?'on':''}" onclick="this.classList.toggle('on')"></div>
+      </div>`).join('')}
+    </div>
+    <button class="btn btn-b" style="width:100%;margin-top:14px" onclick="closeOv()">Speichern</button>`);
+}
+
+function showLizenzManager(vid){
+  const v=VEREINE_DATA.find(x=>x.id===vid)||{};
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">🔑 Lizenz — ${v.name}</div>
+    <div class="fi-wrap"><label class="flbl">Paket</label>
+      <select class="fi" style="margin-top:4px" id="lm-paket">
+        ${['Solo','Starter','Pro','Enterprise'].map(p=>`<option${v.paket===p?' selected':''}>${p}</option>`).join('')}
+      </select>
+    </div>
+    <div class="fl2">
+      <div class="fi-wrap"><label class="flbl">Aktiv ab</label>
+        <input type="date" class="fi" id="lm-ab" value="${v.aktivAb||''}" style="margin-top:4px">
+      </div>
+      <div class="fi-wrap"><label class="flbl">Aktiv bis</label>
+        <input type="date" class="fi" id="lm-bis" value="${v.aktivBis||''}" style="margin-top:4px">
+      </div>
+    </div>
+    <div class="fi-wrap"><label class="flbl">Pilot (5 Jahre kostenlos)</label>
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="btn ${v.pilot?'btn-o':'btn-b'} btn-sm" id="lm-pn" onclick="this.className='btn btn-b btn-sm';document.getElementById('lm-py').className='btn btn-o btn-sm'">Nein</button>
+        <button class="btn ${v.pilot?'btn-b':'btn-o'} btn-sm" id="lm-py" onclick="this.className='btn btn-b btn-sm';document.getElementById('lm-pn').className='btn btn-o btn-sm'">Ja (5J kostenlos)</button>
+      </div>
+    </div>
+    <div style="background:var(--gold-l);border-radius:8px;padding:10px;font-size:11px;color:var(--gold);margin-bottom:14px">
+      ⚠️ Grace Period: 3 Tage Vollzugang nach Ablauf → dann Basis-Modus. Kein Datenverlust.
+    </div>
+    <button class="btn btn-b" style="width:100%" onclick="
+      const vx=VEREINE_DATA.find(x=>x.id==='${vid}');
+      if(vx){
+        vx.paket=document.getElementById('lm-paket').value;
+        vx.aktivBis=document.getElementById('lm-bis').value||null;
+        vx.aktivAb=document.getElementById('lm-ab').value||null;
+        vx.pilot=document.getElementById('lm-py').className.includes('btn-b');
+      }
+      closeOv();
+      const vl=document.getElementById('vereine-liste');
+      if(vl)vl.innerHTML=buildVereinListe();
+    ">Speichern</button>`);
+}
+
 
 // ═══════════════════════════════════════════════════════════════
 // KALENDER
@@ -1151,69 +1345,177 @@ function pSpieler(el){
 // BEWERTUNGEN
 // ═══════════════════════════════════════════════════════════════
 let mzOpen={};
+
 function pBew(el){
-  el.innerHTML=`
-  <div class="tabs">
-    <div class="tab active" onclick="swTab(this,'bw-einzel')">Einzelbewertung</div>
-    <div class="tab" onclick="swTab(this,'bw-vgl')">Vergleich</div>
-    <div class="tab" onclick="swTab(this,'bw-verl')">Verlauf</div>
+  el.innerHTML=`<div class="tabs" id="bw-tabs">
+    <div class="tab active" onclick="swBewTab(this,'bw-einzel')">Einzelbewertung</div>
+    <div class="tab" onclick="swBewTab(this,'bw-verlauf')">Verlauf</div>
+    <div class="tab" onclick="swBewTab(this,'bw-radar')">Radar</div>
   </div>
   <div id="bw-einzel">
-    <div style="display:grid;grid-template-columns:220px 1fr;gap:14px">
+    <div style="display:grid;grid-template-columns:190px 1fr;gap:14px">
       <div class="card">
-        <div class="ch"><span class="ct">Spieler</span></div>
-        <div style="padding:8px">
-          ${SPIELER_DATA.map((p,i)=>`
-          <div onclick="selSp(this,'${p.vorname} ${p.nachname}')" style="padding:8px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:9px;${i===0?'background:var(--accent-l)':''}">
-            <div class="pav" style="${i===0?'background:var(--accent);color:#fff':''}">${p.vorname[0]}${p.nachname[0]}</div>
-            <div><div style="font-weight:600;font-size:12px">${p.vorname} ${p.nachname}</div><div style="font-size:10px;color:var(--text2)">${p.pos}</div></div>
-          </div>`).join('')}
+        <div class="ch" style="padding:10px 14px"><span class="ct" style="font-size:12px">Spieler wählen</span></div>
+        <div style="padding:6px">
+          ${SPIELER_DATA.map((p,i)=>\`<div id="bwsp-\${p.id}" onclick="selBewSp('\${p.id}',this)" style="padding:7px 8px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:8px;\${i===0?'background:var(--accent-l)':''}">
+            <div style="width:26px;height:26px;border-radius:6px;background:\${i===0?'var(--accent)':'var(--surface2)'};color:\${i===0?'#fff':'var(--text2)'};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700">\${p.vorname[0]}\${p.nachname[0]}</div>
+            <div><div style="font-weight:600;font-size:11px">\${p.vorname} \${p.nachname}</div><div style="font-size:9px;color:var(--text2)">\${p.pos}</div></div>
+          </div>\`).join('')}
         </div>
       </div>
-      <div class="card" id="bw-dp">
-        <div class="ch">
-          <span class="ct" id="bw-name">Jan Meier — Q2 2025</span>
-          <div style="display:flex;gap:6px">
-            <select class="fi" style="width:auto;padding:4px 8px;font-size:11px">
-              <option>Q2 2025</option><option>Q1 2025</option><option>Q4 2024</option>
-            </select>
-            <button class="btn btn-o btn-sm">📤 PDF</button>
-            ${canWrite()?`<button class="btn btn-b btn-sm" onclick="showNewBew()">+ Bewertung</button>`:''}
-          </div>
-        </div>
-        <div class="cb">
-          <div class="bw-grid">
-            ${[
-              {lb:'Technik',v:8,cls:'h',kom:'Gute Ballkontrolle, Passgenauigkeit verbessert.'},
-              {lb:'Spielintelligenz',v:9,cls:'h',kom:'Sehr gutes Lesen des Spiels. Positionierung top.'},
-              {lb:'Persönlichkeit',v:7,cls:'m',kom:'Führungsqualität vorhanden, kann mehr kommunizieren.'},
-              {lb:'Athletik',v:8,cls:'h',kom:'Ausdauer und Zweikampfstärke sehr gut.'},
-              {lb:'Schnelligkeit',v:8,cls:'h',kom:'Schnelle Entscheidungen. Antritt verbessert.'},
-              {lb:'Umfeld',v:6,cls:'m',kom:'Familiäre Situation stabil. Schulleistungen gut.'},
-            ].map(r=>`
-            <div class="bw-item">
-              <div class="bw-lbl">${r.lb}</div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-                <div class="bw-track" style="flex:1"><div class="bw-fill ${r.cls}" style="width:${r.v*10}%"></div></div>
-                <div class="bw-val" style="color:${r.cls==='h'?'var(--green)':r.cls==='m'?'var(--gold)':'var(--red)'}">${r.v}</div>
-              </div>
-              <div class="bw-kom"><textarea class="fi" style="font-size:11px;min-height:40px;resize:vertical">${r.kom}</textarea></div>
-            </div>`).join('')}
-          </div>
-          <div style="margin-top:12px;padding:10px;background:var(--surface2);border-radius:7px;font-size:11px;color:var(--text2)">
-            Bewertet von: <strong>Marco Becker</strong> · 15.08.2025 · Q2 2025
-          </div>
-        </div>
-      </div>
+      <div id="bw-detail">\${buildBewDetail('s3')}</div>
     </div>
   </div>
-  <div id="bw-vgl" class="hidden"><div class="card"><div class="cb" style="text-align:center;padding:40px;color:var(--text2)">🔄 Radar-Chart Vergleich mehrerer Spieler<br><button class="btn btn-b btn-sm" style="margin-top:14px">Spieler auswählen</button></div></div></div>
-  <div id="bw-verl" class="hidden"><div class="card"><div class="cb" style="text-align:center;padding:40px;color:var(--text2)">📈 Verlauf Q1 → Q4 — Langzeitanalyse</div></div></div>`;
+  <div id="bw-verlauf" class="hidden">\${buildBewVerlauf('s3')}</div>
+  <div id="bw-radar" class="hidden">\${buildBewRadar('s3')}</div>`;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// MATCHVORBEREITUNG
-// ═══════════════════════════════════════════════════════════════
+function buildBewDetail(spId){
+  const p=SPIELER_DATA.find(x=>x.id===spId);if(!p)return '';
+  const latest=(BEW_VERLAUF[spId]||[]).slice(-1)[0]||{};
+  const koms={technik:'Ballkontrolle gut, Passgenauigkeit verbessert.',spielintelligenz:'Liest das Spiel sehr gut.',persoenlichkeit:'Führungsqualität vorhanden.',athletik:'Ausdauer und Zweikampf stark.',schnelligkeit:'Antritt klar verbessert.',umfeld:'Schulleistungen stabil.'};
+  return \`<div class="card">
+    <div class="ch">
+      <span class="ct">\${p.vorname} \${p.nachname} — Q2 2025</span>
+      <div style="display:flex;gap:6px">
+        <select class="fi" style="width:auto;padding:4px 8px;font-size:11px"><option>Q2 2025</option><option>Q1 2025</option><option>Q4 2024</option></select>
+        \${hasMod('bewertungen')&&canWrite()?`<button class="btn btn-b btn-sm" onclick="showNewBew('\${spId}')">+ Bewertung</button>`:''}
+        <button class="btn btn-o btn-sm" onclick="pdfBewertung('\${spId}')">📤 PDF</button>
+      </div>
+    </div>
+    <div class="cb">
+      <div style="font-weight:700;font-size:12px;margin-bottom:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px">IST / SOLL Vergleich</div>
+      \${BEW_DIMS.map(d=>{
+        const ist=latest[d.k]||p.rating;
+        const soll=p.soll;
+        const diff=ist-soll;
+        return \`<div class="is-row">
+          <div class="is-label">\${d.lb}</div>
+          <div class="is-bar-wrap">
+            <div class="is-ist" style="width:\${ist*10}%"></div>
+            <div class="is-soll-line" style="left:\${soll*10}%"></div>
+          </div>
+          <div class="is-val" style="color:\${ist>=soll?'var(--green)':ist>=soll-1?'var(--gold)':'var(--red)'}">\${ist}<span style="font-size:9px;color:var(--text3);">/\${soll}</span></div>
+        </div>\`;
+      }).join('')}
+      <div style="display:flex;gap:14px;margin:8px 0 14px;font-size:10px;color:var(--text2)">
+        <span>▬ IST (blau)</span><span>| SOLL (rot)</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        \${BEW_DIMS.map(d=>{
+          const v=latest[d.k]||p.rating;
+          const cls=v>=8?'var(--green)':v>=6?'var(--gold)':'var(--red)';
+          return \`<div style="background:var(--surface2);border-radius:8px;padding:10px">
+            <div style="font-size:10px;font-weight:700;color:var(--text2);margin-bottom:5px;text-transform:uppercase">\${d.lb}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+              <div style="flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden"><div style="width:\${v*10}%;height:100%;background:\${cls};border-radius:3px"></div></div>
+              <span style="font-size:17px;font-weight:800;color:\${cls}">\${v}</span>
+            </div>
+            <textarea class="fi" style="font-size:10px;min-height:28px;resize:vertical">\${koms[d.k]||''}</textarea>
+          </div>\`;
+        }).join('')}
+      </div>
+    </div>
+  </div>\`;
+}
+
+function buildBewVerlauf(spId){
+  const p=SPIELER_DATA.find(x=>x.id===spId);
+  const data=BEW_VERLAUF[spId]||[];
+  if(!data.length)return \`<div class="card"><div class="cb" style="text-align:center;padding:40px;color:var(--text2)">Noch keine Verlaufsdaten für \${p?.vorname} \${p?.nachname}.</div></div>\`;
+  return \`<div class="card">
+    <div class="ch"><span class="ct">📈 Verlauf — \${p?.vorname} \${p?.nachname}</span>
+      <button class="btn btn-o btn-sm" onclick="pdfVerlauf('\${spId}')">📤 PDF</button>
+    </div>
+    <div class="cb" style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr style="background:var(--surface2)">
+          <th style="padding:8px;text-align:left;border-bottom:1px solid var(--border)">Dimension</th>
+          \${data.map(d=>\`<th style="padding:8px;text-align:center;border-bottom:1px solid var(--border)">\${d.q}</th>\`).join('')}
+          <th style="padding:8px;text-align:center;border-bottom:1px solid var(--border)">Trend</th>
+        </tr></thead>
+        <tbody>
+          \${BEW_DIMS.map(dim=>{
+            const vals=data.map(d=>d[dim.k]||0);
+            const trend=vals.length>1?vals[vals.length-1]-vals[0]:0;
+            return \`<tr>
+              <td style="padding:8px;border-bottom:1px solid var(--border);font-weight:600">\${dim.lb}</td>
+              \${vals.map(v=>\`<td style="padding:8px;text-align:center;border-bottom:1px solid var(--border)">
+                <span style="font-weight:700;font-size:14px;color:\${v>=8?'var(--green)':v>=6?'var(--gold)':'var(--red)'}">\${v}</span>
+              </td>\`).join('')}
+              <td style="padding:8px;text-align:center;border-bottom:1px solid var(--border);font-weight:700;font-size:13px;color:\${trend>0?'var(--green)':trend<0?'var(--red)':'var(--text2)'}">\${trend>0?'▲ +'+trend:trend<0?'▼ '+trend:'='}</td>
+            </tr>\`;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>\`;
+}
+
+function buildBewRadar(spId){
+  const p=SPIELER_DATA.find(x=>x.id===spId);
+  const latest=(BEW_VERLAUF[spId]||[]).slice(-1)[0]||{};
+  return \`<div class="card">
+    <div class="ch"><span class="ct">📊 Radar — \${p?.vorname} \${p?.nachname} (Q2 2025)</span></div>
+    <div class="cb">
+      \${buildRadar(latest,\`\${p?.vorname} \${p?.nachname}\`)}
+    </div>
+  </div>\`;
+}
+
+function swBewTab(tab,tid){
+  tab.closest('#bw-tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');
+  ['bw-einzel','bw-verlauf','bw-radar'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.add('hidden');});
+  const t=document.getElementById(tid);if(t)t.classList.remove('hidden');
+}
+
+function selBewSp(id,el){
+  selBewId=id;
+  document.querySelectorAll('[id^="bwsp-"]').forEach(e=>{e.style.background='';const av=e.querySelector('div');if(av&&av.style)av.style.cssText=av.style.cssText.replace(/background:[^;]+/,'background:var(--surface2)').replace(/color:[^;]+/,'color:var(--text2)');});
+  el.style.background='var(--accent-l)';const av=el.querySelector('div');if(av&&av.style){av.style.background='var(--accent)';av.style.color='#fff';}
+  document.getElementById('bw-detail').innerHTML=buildBewDetail(id);
+  document.getElementById('bw-verlauf').innerHTML=buildBewVerlauf(id);
+  document.getElementById('bw-radar').innerHTML=buildBewRadar(id);
+}
+
+function pdfBewertung(spId){
+  if(!window.jspdf)return;
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  const p=SPIELER_DATA.find(x=>x.id===spId);if(!p)return;
+  let y=14;
+  doc.setFillColor(27,79,219);doc.rect(0,0,210,28,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('CoachOS',14,12);
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text((STATE?.verein?.name||'—')+' · Bewertung',14,20);doc.text(new Date().toLocaleDateString('de-CH'),196,20,{align:'right'});
+  doc.setTextColor(15,23,42);y=38;
+  doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text(\`\${p.vorname} \${p.nachname} — Q2 2025\`,14,y);y+=8;
+  const latest=(BEW_VERLAUF[spId]||[]).slice(-1)[0]||{};
+  doc.autoTable({startY:y,head:[['Dimension','IST','SOLL','Differenz']],
+    body:BEW_DIMS.map(d=>{const ist=latest[d.k]||p.rating;const diff=ist-p.soll;return[d.lb,ist,p.soll,(diff>=0?'+':'')+diff];}),
+    styles:{fontSize:10},headStyles:{fillColor:[27,79,219]},
+    didParseCell:data=>{if(data.column.index===3&&data.section==='body'){const v=parseFloat(data.cell.raw);data.cell.styles.textColor=v>=0?[22,163,74]:[220,38,38];}}});
+  doc.save(\`CoachOS_Bewertung_\${p.nachname}.pdf\`);
+}
+
+function pdfVerlauf(spId){
+  if(!window.jspdf)return;
+  const{jsPDF}=window.jspdf;const doc=new jsPDF('l');
+  const p=SPIELER_DATA.find(x=>x.id===spId);if(!p)return;
+  let y=14;
+  doc.setFillColor(27,79,219);doc.rect(0,0,297,28,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('CoachOS',14,12);
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text((STATE?.verein?.name||'—')+' · Verlauf',14,20);
+  doc.setTextColor(15,23,42);y=38;
+  doc.setFontSize(12);doc.setFont('helvetica','bold');doc.text(\`\${p.vorname} \${p.nachname} — Bewertungsverlauf\`,14,y);y+=8;
+  const data=BEW_VERLAUF[spId]||[];
+  if(data.length){
+    doc.autoTable({startY:y,head:[['Dimension',...data.map(d=>d.q),'Trend']],
+      body:BEW_DIMS.map(d=>{const vals=data.map(x=>x[d.k]||0);const trend=vals.length>1?vals[vals.length-1]-vals[0]:0;return[d.lb,...vals,(trend>=0?'+':'')+trend];}),
+      styles:{fontSize:9},headStyles:{fillColor:[27,79,219]}});
+  }
+  doc.save(\`CoachOS_Verlauf_\${p.nachname}.pdf\`);
+}
+
+
 function pMatch(el){
   el.innerHTML=`
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px">
@@ -1465,17 +1767,113 @@ function addTkOpp(){const w=document.getElementById('tkw');if(!w)return;const o=
 // ═══════════════════════════════════════════════════════════════
 // MAKROZYKLUS
 // ═══════════════════════════════════════════════════════════════
+
 function pMakro(el){
-  el.innerHTML=`
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <div style="display:flex;gap:6px">
-      <button class="btn btn-b btn-sm">Vorrunde (Jul–Dez)</button>
-      <button class="btn btn-o btn-sm">Rückrunde (Jan–Jun)</button>
+  el.innerHTML=`<div class="dg">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-b btn-sm">Vorrunde</button>
+        <button class="btn btn-o btn-sm">Rückrunde</button>
+      </div>
+      <div style="display:flex;gap:6px">
+        ${canWrite()?`<button class="btn btn-o btn-sm" onclick="showAddMzPhase()">+ Phase</button>`:''}
+        <button class="btn btn-o btn-sm" onclick="pdfMakro()">📤 PDF</button>
+      </div>
     </div>
-    ${canWrite()?`<button class="btn btn-b btn-sm">+ Phase</button>`:''}
-  </div>
-  <div>${MZ_PHASES.map((p,i)=>buildMzPhase(p,i)).join('')}</div>`;
+    <div id="mz-list">${buildMzList()}</div>
+  </div>`;
 }
+
+function buildMzList(){
+  return MZ_PHASES.map((p,i)=>{
+    const sfv=p.sfv?SFV_DATA[p.sfv]:null;
+    return `<div style="margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      <div onclick="toggleMzOpen(${i})" style="padding:12px 14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap">
+          <div style="width:10px;height:10px;border-radius:50%;background:${p.col};flex-shrink:0"></div>
+          <span style="font-weight:700;font-size:13px">${p.lb}</span>
+          <span style="font-size:11px;color:var(--text2)">${p.dates}</span>
+          ${sfv?`<span class="bdg" style="background:${sfv.bg};color:${sfv.col}">${sfv.label}</span>`:''}
+          ${p.typ==='ferien'?`<span class="bdg bdg-gold">🏖 Pause</span>`:''}
+          ${p.sw.length?`<span style="font-size:10px;color:var(--text2)">${p.sw.join(' · ')}</span>`:''}
+        </div>
+        <div style="display:flex;align-items:center;gap:5px">
+          ${canWrite()?`<button class="btn btn-o btn-sm" style="font-size:10px" onclick="event.stopPropagation();showEditMzPhase(${i})">✏️</button>
+          <button class="btn btn-sm" style="background:var(--red-l);color:var(--red);font-size:10px" onclick="event.stopPropagation();MZ_PHASES.splice(${i},1);goPage('makrozyklus')">✕</button>`:''}
+          <span style="color:var(--text3);margin-left:4px">▼</span>
+        </div>
+      </div>
+      <div id="mz-body-${i}" style="display:none;padding:14px;border-top:1px solid var(--border)">
+        ${sfv?`<div style="background:${sfv.bg};border-radius:7px;padding:12px;margin-bottom:12px;border-left:3px solid ${sfv.col}">
+          <div style="font-weight:700;font-size:12px;color:${sfv.col};margin-bottom:6px">${sfv.label}</div>
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px;text-transform:uppercase">ZIELE:</div>
+          ${sfv.ziele.map(z=>`<div style="font-size:11px;margin-bottom:2px;padding-left:10px">• ${z}</div>`).join('')}
+          ${Object.entries(sfv.zonen).map(([zn,zd])=>`<div style="margin-top:8px"><div style="font-size:10px;font-weight:700;color:${sfv.col};text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">${zn}:</div>${zd.p.map(pr=>`<div style="font-size:11px;padding-left:10px;margin-bottom:1px;color:var(--text2);position:relative">•&nbsp;${pr}</div>`).join('')}</div>`).join('')}
+        </div>`:''}
+        <div><label class="flbl">Trainer-Notiz</label><textarea class="fi" style="height:50px;resize:vertical;font-size:12px;margin-top:4px" placeholder="Notizen zu dieser Phase..." oninput="MZ_PHASES[${i}].notiz=this.value">${p.notiz}</textarea></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleMzOpen(i){const b=document.getElementById('mz-body-'+i);if(b)b.style.display=b.style.display==='block'?'none':'block';}
+
+function showAddMzPhase(){
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">➕ Phase hinzufügen</div>
+    <div class="fi-wrap"><label class="flbl">Bezeichnung</label><input class="fi" id="nmp-lb" placeholder="z.B. Intensivphase" style="margin-top:4px"></div>
+    <div style="display:grid;grid-template-columns:1fr 80px;gap:8px">
+      <div class="fi-wrap"><label class="flbl">Zeitraum</label><input class="fi" id="nmp-dates" placeholder="Aug–Sep" style="margin-top:4px"></div>
+      <div class="fi-wrap"><label class="flbl">Farbe</label><input type="color" class="fi" id="nmp-col" value="#1B4FDB" style="margin-top:4px;padding:4px;height:38px"></div>
+    </div>
+    <div class="fi-wrap"><label class="flbl">SFV-Spielphase</label>
+      <select class="fi" id="nmp-sfv" style="margin-top:4px">
+        <option value="">— keine —</option>
+        <option value="wir_haben_ball">🟢 Wir haben den Ball</option>
+        <option value="wir_verlieren_ball">🔴 Wir verlieren den Ball</option>
+        <option value="wir_haben_ball_nicht">🔵 Wir haben den Ball nicht</option>
+        <option value="wir_erobern_ball">🟠 Wir erobern den Ball</option>
+      </select>
+    </div>
+    <div class="fi-wrap"><label class="flbl">Schwerpunkte</label>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
+        ${['Technik','Spielintelligenz','Persönlichkeit','Athletik','Schnelligkeit','Umfeld'].map(s=>`<button class="btn btn-o btn-sm nmp-sw" onclick="this.className=this.className.includes('btn-b')?'btn btn-o btn-sm nmp-sw':'btn btn-b btn-sm nmp-sw'">${s}</button>`).join('')}
+      </div>
+    </div>
+    <button class="btn btn-b" style="width:100%;margin-top:10px" onclick="
+      const lb=document.getElementById('nmp-lb').value.trim();if(!lb)return;
+      const sw=[...document.querySelectorAll('.nmp-sw')].filter(b=>b.className.includes('btn-b')).map(b=>b.textContent);
+      MZ_PHASES.push({id:'mz'+Date.now(),lb,dates:document.getElementById('nmp-dates').value,col:document.getElementById('nmp-col').value,sfv:document.getElementById('nmp-sfv').value||null,typ:'normal',sw,notiz:''});
+      closeOv();goPage('makrozyklus');
+    ">Phase speichern</button>`);
+}
+
+function showEditMzPhase(i){
+  const p=MZ_PHASES[i];
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">✏️ Phase bearbeiten — ${p.lb}</div>
+    <div class="fi-wrap"><label class="flbl">Bezeichnung</label><input class="fi" id="emp-lb" value="${p.lb}" style="margin-top:4px"></div>
+    <div style="display:grid;grid-template-columns:1fr 80px;gap:8px">
+      <div class="fi-wrap"><label class="flbl">Zeitraum</label><input class="fi" id="emp-dates" value="${p.dates}" style="margin-top:4px"></div>
+      <div class="fi-wrap"><label class="flbl">Farbe</label><input type="color" class="fi" id="emp-col" value="${p.col}" style="margin-top:4px;padding:4px;height:38px"></div>
+    </div>
+    <div class="fi-wrap"><label class="flbl">SFV-Phase</label>
+      <select class="fi" id="emp-sfv" style="margin-top:4px">
+        <option value="">— keine —</option>
+        ${Object.entries(SFV_DATA).map(([k,v])=>`<option value="${k}"${p.sfv===k?' selected':''}>${v.label}</option>`).join('')}
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="btn btn-b" style="flex:1" onclick="
+        MZ_PHASES[${i}].lb=document.getElementById('emp-lb').value;
+        MZ_PHASES[${i}].dates=document.getElementById('emp-dates').value;
+        MZ_PHASES[${i}].col=document.getElementById('emp-col').value;
+        MZ_PHASES[${i}].sfv=document.getElementById('emp-sfv').value||null;
+        closeOv();goPage('makrozyklus');
+      ">Speichern</button>
+      <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
+    </div>`);
+}
+
+
 function buildMzPhase(p,i){
   const sfv=p.sfv?SFV[p.sfv]:null;
   return `<div class="mz-phase">
@@ -1733,6 +2131,380 @@ function swTab(tab,tid){
   tab.classList.add('active');
   document.querySelectorAll('[id^="bw-"]').forEach(e=>e.classList.add('hidden'));
   const t=document.getElementById(tid);if(t)t.classList.remove('hidden');
+}
+
+// === PATCH: MIRWALD MESSUNG (Schritt 8) ===
+
+const MIRWALD_DATA={
+  s3:[{saison:'2024/25 Vorrunde',groesse:152,gewicht:42,sitzhoehe:80,datum:'2024-08-15'},{saison:'2024/25 Rückrunde',groesse:155,gewicht:44,sitzhoehe:82,datum:'2025-02-20'}],
+  s7:[{saison:'2024/25 Vorrunde',groesse:158,gewicht:48,sitzhoehe:84,datum:'2024-08-15'},{saison:'2024/25 Rückrunde',groesse:162,gewicht:51,sitzhoehe:86,datum:'2025-02-20'}],
+};
+
+function pMirwald(el){
+  el.innerHTML=`<div class="dg">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:12px;color:var(--text2)">2× pro Saison: Vorrunde (Aug) + Rückrunde (Feb/März)</div>
+      ${canWrite?`<button class="btn btn-b btn-sm" onclick="showAddMirwald()">+ Messung</button>`:''}
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">📏 Messungen 2024/25</span>
+        <div style="display:flex;gap:5px">
+          <span class="bdg bdg-b">Vorrunde ✓</span><span class="bdg bdg-g">Rückrunde ✓</span>
+        </div>
+      </div>
+      <div style="padding:0 18px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 100px;gap:8px;align-items:center;padding:8px 0;border-bottom:2px solid var(--border)">
+          <div style="font-weight:700;font-size:10px;text-transform:uppercase;color:var(--text3)">Spieler</div>
+          <div style="font-weight:700;font-size:10px;text-transform:uppercase;color:var(--text3)">Grösse / Gewicht</div>
+          <div style="font-weight:700;font-size:10px;text-transform:uppercase;color:var(--text3)">Sitzhöhe</div>
+          <div style="font-weight:700;font-size:10px;text-transform:uppercase;color:var(--text3)">PHV-Status</div>
+        </div>
+        ${SPIELER_DATA.map(p=>{
+          const mess=MIRWALD_DATA[p.id];
+          const latest=mess?mess[mess.length-1]:null;
+          const phv=latest?calcPHV(p,latest):null;
+          return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr 100px;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+            <div>
+              <div style="font-weight:600;font-size:12px">${p.vorname} ${p.nachname}</div>
+              <div style="font-size:10px;color:var(--text2)">${p.pos}${latest?' · '+latest.saison:''}</div>
+            </div>
+            <div style="font-size:12px">${latest?`${latest.groesse} cm · ${latest.gewicht} kg`:'<span style="color:var(--text3)">—</span>'}</div>
+            <div style="font-size:12px">${latest?`${latest.sitzhoehe} cm`:'<span style="color:var(--text3)">—</span>'}</div>
+            <div style="display:flex;align-items:center;gap:6px">
+              ${phv?`<span style="padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;${phv.style}">${phv.label}</span>`:'<span style="font-size:10px;color:var(--text3)">Keine Daten</span>'}
+              <button class="btn btn-o btn-sm" style="font-size:10px;padding:2px 6px" onclick="showMirwaldSp('${p.id}')">+</button>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div style="background:var(--accent-l);border-radius:10px;padding:14px 18px;font-size:12px;color:var(--accent)">
+      📌 <strong>Mirwald-Formel:</strong> Schätzt PHV-Distanz (Peak Height Velocity = Wachstumsspurt) aus Grösse, Gewicht, Sitzhöhe und Alter. Pre-PHV: mehr als −1J, Peri-PHV: ±1J, Post-PHV: mehr als +1J.
+    </div>
+  </div>`;
+}
+
+function calcPHV(spieler,mess){
+  const alter=new Date().getFullYear()-new Date(spieler.geb||'2013-01-01').getFullYear();
+  const beinlaenge=mess.groesse-mess.sitzhoehe;
+  const phvDist=(mess.groesse*0.0026+beinlaenge*(-0.00126)+mess.sitzhoehe*0.00256+mess.gewicht*0.00003+alter*(-0.088))-7.709;
+  if(phvDist<-1)return{label:`Pre-PHV (${phvDist.toFixed(1)}J)`,style:'background:#EBF0FF;color:#1B4FDB'};
+  if(phvDist<=1)return{label:`Peri-PHV (${phvDist.toFixed(1)}J)`,style:'background:#FEF3C7;color:#D97706'};
+  return{label:`Post-PHV (+${phvDist.toFixed(1)}J)`,style:'background:#DCFCE7;color:#16A34A'};
+}
+
+function showAddMirwald(){
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">📏 Mirwald-Messung erfassen</div>
+    <div class="fi-wrap"><label class="flbl">Spieler</label>
+      <select class="fi" id="mw-sp" style="margin-top:4px">
+        ${SPIELER_DATA.map(p=>`<option value="${p.id}">${p.vorname} ${p.nachname}</option>`).join('')}
+      </select>
+    </div>
+    <div class="fi-wrap"><label class="flbl">Saison-Zeitpunkt</label>
+      <div style="display:flex;gap:6px;margin-top:4px">
+        <button class="btn btn-b btn-sm" id="mw-vr" onclick="this.className='btn btn-b btn-sm';document.getElementById('mw-rk').className='btn btn-o btn-sm'">Vorrunde (Aug)</button>
+        <button class="btn btn-o btn-sm" id="mw-rk" onclick="this.className='btn btn-b btn-sm';document.getElementById('mw-vr').className='btn btn-o btn-sm'">Rückrunde (Feb)</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="fi-wrap"><label class="flbl">Körpergrösse (cm)</label><input type="number" class="fi" id="mw-gr" placeholder="152" style="margin-top:4px"></div>
+      <div class="fi-wrap"><label class="flbl">Gewicht (kg)</label><input type="number" class="fi" id="mw-gw" placeholder="42" style="margin-top:4px"></div>
+    </div>
+    <div class="fi-wrap"><label class="flbl">Sitzhöhe (cm)</label><input type="number" class="fi" id="mw-sh" placeholder="80" style="margin-top:4px"></div>
+    <div class="fi-wrap"><label class="flbl">Messdatum</label><input type="date" class="fi" id="mw-dat" style="margin-top:4px"></div>
+    <button class="btn btn-b" style="width:100%;margin-top:8px" onclick="
+      const spId=document.getElementById('mw-sp').value;
+      const vr=document.getElementById('mw-vr').className.includes('btn-b');
+      if(!MIRWALD_DATA[spId])MIRWALD_DATA[spId]=[];
+      MIRWALD_DATA[spId].push({
+        saison:'2025/26 '+(vr?'Vorrunde':'Rückrunde'),
+        groesse:+document.getElementById('mw-gr').value,
+        gewicht:+document.getElementById('mw-gw').value,
+        sitzhoehe:+document.getElementById('mw-sh').value,
+        datum:document.getElementById('mw-dat').value
+      });
+      closeOv();goPage('mirwald');
+    ">Messung speichern</button>`);
+}
+
+function showMirwaldSp(spId){
+  const p=SPIELER_DATA.find(x=>x.id===spId);
+  const existing=MIRWALD_DATA[spId]||[];
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">📏 ${p?.vorname} ${p?.nachname}</div>
+    ${existing.length?`<div style="margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:8px;font-size:11px">
+      <div style="font-weight:700;margin-bottom:6px">Bisherige Messungen:</div>
+      ${existing.map(m=>`<div>${m.saison}: ${m.groesse}cm · ${m.gewicht}kg · Sitzh. ${m.sitzhoehe}cm</div>`).join('')}
+    </div>`:''}
+    <div class="fi-wrap"><label class="flbl">Zeitpunkt</label>
+      <div style="display:flex;gap:6px;margin-top:4px">
+        <button class="btn btn-b btn-sm" id="mws-vr" onclick="this.className='btn btn-b btn-sm';document.getElementById('mws-rk').className='btn btn-o btn-sm'">Vorrunde</button>
+        <button class="btn btn-o btn-sm" id="mws-rk" onclick="this.className='btn btn-b btn-sm';document.getElementById('mws-vr').className='btn btn-o btn-sm'">Rückrunde</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="fi-wrap"><label class="flbl">Grösse (cm)</label><input type="number" class="fi" id="mws-gr" style="margin-top:4px"></div>
+      <div class="fi-wrap"><label class="flbl">Gewicht (kg)</label><input type="number" class="fi" id="mws-gw" style="margin-top:4px"></div>
+    </div>
+    <div class="fi-wrap"><label class="flbl">Sitzhöhe (cm)</label><input type="number" class="fi" id="mws-sh" style="margin-top:4px"></div>
+    <button class="btn btn-b" style="width:100%;margin-top:10px" onclick="
+      const vr=document.getElementById('mws-vr').className.includes('btn-b');
+      if(!MIRWALD_DATA['${spId}'])MIRWALD_DATA['${spId}']=[];
+      MIRWALD_DATA['${spId}'].push({
+        saison:'2025/26 '+(vr?'Vorrunde':'Rückrunde'),
+        groesse:+document.getElementById('mws-gr').value,
+        gewicht:+document.getElementById('mws-gw').value,
+        sitzhoehe:+document.getElementById('mws-sh').value,
+        datum:new Date().toISOString().split('T')[0]
+      });
+      closeOv();goPage('mirwald');
+    ">Speichern</button>`);
+}
+
+// === PATCH: GESPRÄCHE (Schritt 11) ===
+
+const GESPRAECHE_DEMO=[
+  {id:'g1',spieler:'Jan Meier',spielerId:'s3',typ:'Spielergespräch',datum:'2024-11-20',protokoll:'Gute Entwicklung. Fokus Spielintelligenz Q3. Ziel: Kapitänrolle übernehmen.',massnahmen:'Extratraining Mittwoch',status:'abgeschlossen'},
+  {id:'g2',spieler:'Luca Müller',spielerId:'s7',typ:'Elterngespräch',datum:'2024-12-05',protokoll:'Eltern sehr engagiert. Schulleistungen besprochen. Trainingszeiten passen gut.',massnahmen:'Monatlicher Kurzbericht per E-Mail',status:'abgeschlossen'},
+  {id:'g3',spieler:'Max Schulz',spielerId:'s4',typ:'Gemeinsam',datum:'2025-04-10',protokoll:'Saisonplanung. Aufstieg diskutiert. Max möchte ins Goalgettertraining.',massnahmen:'Anmeldung Goalgettertraining bis Mai',status:'offen'},
+];
+
+function pGespraeche(el){
+  el.innerHTML=`<div class="dg">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-size:12px;color:var(--text2)">2× pro Saison: Nov–Dez (Zwischenstand) · März–Mai (Jahresplanung)</div>
+      ${canWrite?`<button class="btn btn-b btn-sm" onclick="showAddGespraech()">+ Gespräch planen</button>`:''}
+    </div>
+    <div class="card">
+      <div class="ch"><span class="ct">💬 Gespräche 2024/25</span>
+        <div style="display:flex;gap:5px">
+          <span class="bdg bdg-g">${GESPRAECHE_DEMO.filter(g=>g.status==='abgeschlossen').length} abgeschlossen</span>
+          <span class="bdg bdg-gold">${GESPRAECHE_DEMO.filter(g=>g.status==='offen').length} offen</span>
+        </div>
+      </div>
+      <div style="padding:0 18px">
+        ${GESPRAECHE_DEMO.map(g=>`
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px solid var(--border)">
+          <div style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:${g.typ==='Spielergespräch'?'var(--accent-l)':g.typ==='Elterngespräch'?'var(--green-l)':'var(--gold-l)'}">
+            ${g.typ==='Spielergespräch'?'⚽':g.typ==='Elterngespräch'?'👨‍👩‍👦':'🤝'}
+          </div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+              <span style="font-weight:700;font-size:13px">${g.spieler}</span>
+              <span class="bdg ${g.typ==='Spielergespräch'?'bdg-b':g.typ==='Elterngespräch'?'bdg-g':'bdg-gold'}">${g.typ}</span>
+              <span class="bdg ${g.status==='abgeschlossen'?'bdg-g':'bdg-gold'}">${g.status}</span>
+            </div>
+            <div style="font-size:11px;color:var(--text2);margin-bottom:6px">📅 ${g.datum}</div>
+            <div style="font-size:12px;color:var(--text);margin-bottom:4px">${g.protokoll}</div>
+            ${g.massnahmen?`<div style="font-size:11px;padding:5px 8px;background:var(--accent-l);border-radius:5px;color:var(--accent)">→ ${g.massnahmen}</div>`:''}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+            <button class="btn btn-o btn-sm" onclick="showGespraechDetail('${g.id}')">Bearbeiten</button>
+            <button class="btn btn-o btn-sm" onclick="pdfGespraech('${g.id}')">📤 PDF</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function showGespraechDetail(gid){
+  const g=GESPRAECHE_DEMO.find(x=>x.id===gid);if(!g)return;
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">💬 ${g.typ} — ${g.spieler}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div style="background:var(--surface2);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text2)">TYP</div><div style="font-weight:700">${g.typ}</div></div>
+      <div style="background:var(--surface2);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text2)">DATUM</div><div style="font-weight:700">${g.datum}</div></div>
+    </div>
+    <div class="fi-wrap"><label class="flbl">Protokoll / Notizen</label>
+      <textarea class="fi" style="height:90px;resize:vertical;margin-top:4px">${g.protokoll}</textarea>
+    </div>
+    <div class="fi-wrap"><label class="flbl">Vereinbarte Massnahmen</label>
+      <textarea class="fi" style="height:50px;resize:vertical;margin-top:4px">${g.massnahmen||''}</textarea>
+    </div>
+    <div class="fi-wrap"><label class="flbl">Status</label>
+      <div style="display:flex;gap:6px;margin-top:4px">
+        <button class="btn ${g.status==='offen'?'btn-b':'btn-o'} btn-sm">Offen</button>
+        <button class="btn ${g.status==='abgeschlossen'?'btn-b':'btn-o'} btn-sm">Abgeschlossen</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-b" style="flex:1" onclick="closeOv()">Speichern</button>
+      <button class="btn btn-o btn-sm" onclick="pdfGespraech('${gid}');closeOv()">📤 Elternbrief PDF</button>
+    </div>`);
+}
+
+function showAddGespraech(){
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">💬 Gespräch planen</div>
+    <div class="fi-wrap"><label class="flbl">Spieler</label>
+      <select class="fi" style="margin-top:4px">
+        ${SPIELER_DATA.map(p=>`<option>${p.vorname} ${p.nachname}</option>`).join('')}
+      </select>
+    </div>
+    <div class="fi-wrap"><label class="flbl">Typ</label>
+      <div style="display:flex;gap:6px;margin-top:4px">
+        <button class="btn btn-b btn-sm" onclick="swBtn(this,'.gtyp-btn')">⚽ Spieler</button>
+        <button class="btn btn-o btn-sm gtyp-btn" onclick="swBtn(this,'.gtyp-btn')">👨‍👩‍👦 Eltern</button>
+        <button class="btn btn-o btn-sm gtyp-btn" onclick="swBtn(this,'.gtyp-btn')">🤝 Gemeinsam</button>
+      </div>
+    </div>
+    <div class="fi-wrap"><label class="flbl">Datum</label>
+      <input type="date" class="fi" style="margin-top:4px">
+    </div>
+    <div class="fi-wrap"><label class="flbl">Vorbereitete Themen</label>
+      <textarea class="fi" style="height:70px;resize:vertical;margin-top:4px" placeholder="Was soll besprochen werden?"></textarea>
+    </div>
+    <button class="btn btn-b" style="width:100%;margin-top:4px" onclick="closeOv()">Planen & Speichern</button>`);
+}
+
+function pdfGespraech(gid){
+  const g=GESPRAECHE_DEMO.find(x=>x.id===gid);if(!g||!window.jspdf)return;
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  let y=14;
+  doc.setFillColor(27,79,219);doc.rect(0,0,210,28,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('CoachOS',14,12);
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text('Gesprächsprotokoll',14,20);doc.text(new Date().toLocaleDateString('de-CH'),196,20,{align:'right'});
+  doc.setTextColor(15,23,42);y=38;
+  doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text(`${g.typ} — ${g.spieler}`,14,y);y+=6;
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(90,100,120);doc.text(`Datum: ${g.datum}  ·  Status: ${g.status}`,14,y);y+=10;
+  doc.setTextColor(15,23,42);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Protokoll / Notizen:',14,y);y+=5;
+  doc.setFont('helvetica','normal');const pl=doc.splitTextToSize(g.protokoll,180);doc.text(pl,14,y);y+=pl.length*5+8;
+  if(g.massnahmen){doc.setFont('helvetica','bold');doc.text('Vereinbarte Massnahmen:',14,y);y+=5;doc.setFont('helvetica','normal');doc.text(g.massnahmen,14,y);y+=15;}
+  doc.setFontSize(7);doc.setTextColor(150,150,150);doc.text('CoachOS · nDSG-konform · Vertraulich',14,285);
+  doc.save(`CoachOS_Gespraech_${g.spieler.replace(/ /g,'_')}.pdf`);
+}
+
+// === PATCH: nDSG SETTINGS (Schritt 4) ===
+
+function buildNdsgSection(){
+  return `<div class="card">
+    <div class="ch"><span class="ct">🔐 Datenschutz & Sicherheit (nDSG)</span></div>
+    <div class="cb">
+      <div style="font-size:12px;line-height:1.8;color:var(--text2)">
+        <div style="margin-bottom:10px"><strong style="color:var(--text)">Was ist nDSG?</strong> Das revidierte Schweizer Datenschutzgesetz (nDSG) ist seit 01.09.2023 in Kraft. Es schützt Personendaten und stärkt die Rechte der Betroffenen — insbesondere bei Minderjährigen.</div>
+        <div style="display:grid;gap:8px;margin-bottom:12px">
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:var(--green-l);border-radius:7px">
+            <span style="color:var(--green);font-weight:700;font-size:14px">✓</span>
+            <div><strong style="color:var(--green)">Datentrennung:</strong> Vereine sind vollständig isoliert. Kein Querzugriff möglich (Row Level Security via Supabase).</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:var(--green-l);border-radius:7px">
+            <span style="color:var(--green);font-weight:700;font-size:14px">✓</span>
+            <div><strong style="color:var(--green)">Server EU/Frankfurt:</strong> Alle Daten bleiben im Europäischen Wirtschaftsraum. Kein Transfer in Drittländer.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:var(--green-l);border-radius:7px">
+            <span style="color:var(--green);font-weight:700;font-size:14px">✓</span>
+            <div><strong style="color:var(--green)">Magic Link Auth:</strong> Keine Passwörter gespeichert. Anmeldung ausschliesslich via sicheren E-Mail-Link.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:var(--green-l);border-radius:7px">
+            <span style="color:var(--green);font-weight:700;font-size:14px">✓</span>
+            <div><strong style="color:var(--green)">Minderjährigen-Schutz:</strong> Spielerdaten (Alter, Leistung, Gesundheit) separat geschützt, nur für autorisierte Trainer einsehbar.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:var(--green-l);border-radius:7px">
+            <span style="color:var(--green);font-weight:700;font-size:14px">✓</span>
+            <div><strong style="color:var(--green)">Kein Datenverlust:</strong> Nach Abo-Ablauf bleiben alle Daten erhalten (Basis-Modus). Vollzugang nach Verlängerung sofort aktiv.</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:8px 10px;background:var(--green-l);border-radius:7px">
+            <span style="color:var(--green);font-weight:700;font-size:14px">✓</span>
+            <div><strong style="color:var(--green)">Betroffenenrechte:</strong> Auskunft, Berichtigung und Löschung aller persönlichen Daten jederzeit auf Anfrage möglich.</div>
+          </div>
+        </div>
+        <div style="padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:11px;line-height:1.6">
+          <strong>Verantwortliche Stelle:</strong> Kaplan Digital · Basel · Schweiz<br>
+          <strong>Kontakt Datenschutz:</strong> dogusk@fe.ch<br>
+          <strong>Datenschutzerklärung:</strong> <a style="color:var(--accent)" href="#" onclick="return false">coachos.ch/datenschutz</a>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// === PATCH: HOMEPAGE D. Kaplan BLOCK (Schritt 3) ===
+// Wird separat in index.html gepatcht
+
+// === PATCH: PDF HELPER ===
+function getPdfHeader(doc,titel){
+  const vereinName=STATE?.verein?.name||'CoachOS';
+  doc.setFillColor(27,79,219);doc.rect(0,0,210,28,'F');
+  doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('CoachOS',14,12);
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text(vereinName+' · '+titel,14,20);
+  doc.text(new Date().toLocaleDateString('de-CH'),196,20,{align:'right'});
+  doc.setTextColor(15,23,42);
+  return 35;
+}
+
+function pdfKader(){
+  if(!window.jspdf){alert('PDF nicht verfügbar');return;}
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  let y=getPdfHeader(doc,'Kader');
+  doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('Kader — FE12 Blau',14,y);y+=8;
+  doc.autoTable({startY:y,head:[['Name','Pos','Alt.','Fuss','IST','SOLL','Min','Tore']],
+    body:SPIELER_DATA.map(p=>[`${p.vorname} ${p.nachname}${p.tw?' (TW)':''}`,p.pos,p.pos2||'—',p.fuss,p.rating,p.soll,p.min+"'",p.tore]),
+    styles:{fontSize:9},headStyles:{fillColor:[27,79,219]},alternateRowStyles:{fillColor:[240,242,246]}});
+  doc.save('CoachOS_Kader.pdf');
+}
+
+function pdfAufstellung(){
+  if(!window.jspdf){alert('PDF nicht verfügbar');return;}
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  let y=getPdfHeader(doc,'Aufstellung');
+  const fmtEl=document.getElementById('formation-sel');
+  const formation=fmtEl?fmtEl.value:'1-2-3-1';
+  const spielzeit=document.getElementById('szt')?.value||15;
+  doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text(`FE12 Blau · ${STATE?.curFmt||7}er · ${spielzeit}min · ${formation}`,14,y);y+=8;
+  const players=FORMATIONS[STATE?.curFmt||'7']?.[formation]||FORMATIONS['7']['1-2-3-1'];
+  doc.autoTable({startY:y,head:[['Position','Spieler','Fuss','Pos2']],
+    body:players.map(p=>{const s=SPIELER_DATA.find(x=>x.pos===p.pos||x.pos2===p.pos)||{vorname:'—',nachname:'',fuss:'—',pos2:''};return[p.pos+(p.k?' (TW)':''),`${s.vorname} ${s.nachname}`,s.fuss,s.pos2||'—'];}),
+    styles:{fontSize:10},headStyles:{fillColor:[27,79,219]}});
+  doc.save('CoachOS_Aufstellung.pdf');
+}
+
+function pdfMakro(){
+  if(!window.jspdf){alert('PDF nicht verfügbar');return;}
+  const{jsPDF}=window.jspdf;const doc=new jsPDF();
+  let y=getPdfHeader(doc,'Makrozyklus');
+  doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('Saisonplan — FE12 Blau 2025/26',14,y);y+=8;
+  doc.autoTable({startY:y,head:[['Phase','Zeitraum','SFV-Phase','Schwerpunkte']],
+    body:MZ_PHASES.map(p=>[p.lb,p.dates,p.sfv?SFV_DATA[p.sfv]?.label||'—':'—',p.sw.join(', ')||'—']),
+    styles:{fontSize:9},headStyles:{fillColor:[27,79,219]},alternateRowStyles:{fillColor:[240,242,246]}});
+  doc.save('CoachOS_Makrozyklus.pdf');
+}
+
+function swBtn(btn,cls){document.querySelectorAll(cls).forEach(b=>b.className='btn btn-o btn-sm'+cls.replace('.',''));btn.className='btn btn-b btn-sm';}
+
+
+
+// Teams hinzufügen (nur Superadmin/Vereinsleiter)
+function showAddTeam(){
+  if(!['superadmin','vereinsleiter'].includes(STATE.role)){
+    showOv('<div style="text-align:center;padding:20px"><div style="font-size:28px;margin-bottom:10px">🔒</div><div style="font-weight:700">Nur Vereinsleiter und Superadmin können Teams erstellen.</div><button class="btn btn-b btn-sm" style="margin-top:12px" onclick="closeOv()">OK</button></div>');
+    return;
+  }
+  const limitMap={Solo:1,Starter:2,Pro:5,Enterprise:15};
+  const limit=limitMap[STATE.verein?.lizenz_typ||'Starter']||2;
+  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:16px">➕ Neues Team</div>
+    <div style="background:var(--accent-l);border-radius:8px;padding:10px;font-size:11px;color:var(--accent);margin-bottom:14px">
+      Paket ${STATE.verein?.lizenz_typ||'Starter'}: max. ${limit} Teams erlaubt.
+    </div>
+    <div class="fi-wrap"><label class="flbl">Teamname *</label><input class="fi" id="nt-name" placeholder="FE12 Blau" style="margin-top:4px"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="fi-wrap"><label class="flbl">Format</label>
+        <select class="fi" id="nt-fmt" style="margin-top:4px"><option>7er</option><option>9er</option><option>11er</option></select>
+      </div>
+      <div class="fi-wrap"><label class="flbl">Saison</label>
+        <input class="fi" id="nt-saison" value="2025/26" style="margin-top:4px">
+      </div>
+    </div>
+    <div class="fi-wrap"><label class="flbl">Haupttrainer (E-Mail für Magic Link)</label>
+      <input type="email" class="fi" id="nt-trainer" placeholder="trainer@verein.ch" style="margin-top:4px">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-b" style="flex:1" onclick="
+        const name=document.getElementById('nt-name').value.trim();
+        if(!name)return;
+        alert('Team erstellt! Magic Link an ' + document.getElementById('nt-trainer').value + ' gesendet.');
+        closeOv();
+      ">Team erstellen & Einladen</button>
+      <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
+    </div>`);
 }
 
 // ═══════════════════════════════════════════════════════════════

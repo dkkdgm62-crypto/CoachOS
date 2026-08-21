@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CoachOS</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --bg:#F4F6F9;--surface:#FFFFFF;--surface2:#F0F2F6;--border:#E2E6EE;
@@ -291,7 +291,6 @@ input,select,textarea{font-family:inherit;}
 .fi:focus{border-color:var(--accent);}
 .fl2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .flbl{font-size:10px;font-weight:700;color:var(--text2);display:block;margin-bottom:3px;text-transform:uppercase;letter-spacing:.4px;}
-@keyframes spin{to{transform:rotate(360deg);}}
 </style>
 </head>
 <body>
@@ -304,52 +303,21 @@ input,select,textarea{font-family:inherit;}
       <div class="lt">Coach<span>OS</span></div>
     </div>
     <div class="lh">Willkommen zurück</div>
-    <div class="ls2">Für Trainer · Vereine · Ausbilder</div>
-
-    <!-- ERROR BOX -->
-    <div id="login-err" style="display:none;background:#FEE2E2;border:1px solid #FCA5A5;border-radius:7px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#DC2626;font-weight:600"></div>
-
-    <!-- EMAIL/PASSWORD FORM -->
-    <div id="login-form">
-      <div style="margin-bottom:10px">
-        <label class="flbl">E-MAIL</label>
-        <input id="li-email" type="email" class="fi" placeholder="trainer@verein.ch" style="margin-top:4px" onkeydown="if(event.key==='Enter')doLogin()">
-      </div>
-      <div style="margin-bottom:14px">
-        <label class="flbl">PASSWORT</label>
-        <div style="position:relative;margin-top:4px">
-          <input id="li-pw" type="password" class="fi" placeholder="••••••••" style="padding-right:38px" onkeydown="if(event.key==='Enter')doLogin()">
-          <button onclick="togglePw()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:14px;color:var(--text2)">👁</button>
-        </div>
-      </div>
-      <button class="btn btn-b" style="width:100%;padding:11px;font-size:13px" onclick="doLogin()" id="login-btn">
-        Anmelden
-      </button>
-
-      <!-- TRENNLINIE -->
-      <div style="display:flex;align-items:center;gap:10px;margin:16px 0">
-        <div style="flex:1;height:1px;background:var(--border)"></div>
-        <div style="font-size:10px;color:var(--text3);font-weight:600">ODER</div>
-        <div style="flex:1;height:1px;background:var(--border)"></div>
-      </div>
-
-      <!-- DEMO BUTTON -->
-      <button id="demo-btn" onclick="startDemo()" style="width:100%;padding:11px;border-radius:8px;border:2px solid var(--accent);background:var(--accent-l);color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;transition:all .15s"
-        onmouseenter="this.style.background='var(--accent)';this.style.color='#fff'"
-        onmouseleave="this.style.background='var(--accent-l)';this.style.color='var(--accent)'">
-        🧪 Demo ausprobieren — kostenlos &amp; unverbindlich
-      </button>
-      <div style="text-align:center;font-size:10px;color:var(--text3);margin-top:6px">Keine Registrierung · Keine Daten werden gespeichert</div>
+    <div class="ls2">Mit deinem Trainer-Konto anmelden</div>
+    <div style="margin-bottom:10px">
+      <label class="flbl" style="color:#5A6478">E-MAIL</label>
+      <input id="li-email" type="email" class="fi" placeholder="trainer@verein.ch" style="margin-top:4px"
+        onkeydown="if(event.key==='Enter')document.getElementById('li-pw').focus()">
     </div>
-
-    <!-- LOADING STATE -->
-    <div id="login-loading" style="display:none;text-align:center;padding:24px">
-      <div style="width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 12px"></div>
-      <div style="font-size:12px;color:var(--text2)" id="login-loading-txt">Anmeldung läuft...</div>
+    <div style="margin-bottom:14px">
+      <label class="flbl" style="color:#5A6478">PASSWORT</label>
+      <input id="li-pw" type="password" class="fi" placeholder="••••••••" style="margin-top:4px"
+        onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-
-    <div style="margin-top:16px;text-align:center;font-size:10px;color:var(--text3)">
-      CoachOS · Kaplan Digital · Basel 2025
+    <div id="li-err" style="display:none;background:#FEE2E2;color:#DC2626;border-radius:7px;padding:8px 12px;font-size:12px;margin-bottom:12px"></div>
+    <button id="li-btn" class="btn btn-b" style="width:100%;padding:11px;font-size:14px" onclick="doLogin()">Anmelden</button>
+    <div style="margin-top:14px;text-align:center;font-size:11px;color:#9CA3AF">
+      Kein Zugang? Kontaktiere deinen Vereinsleiter.
     </div>
   </div>
 </div>
@@ -404,113 +372,7 @@ input,select,textarea{font-family:inherit;}
 </div>
 
 <script>
-// ── SUPABASE ──────────────────────────────────────────
-const SUPA_URL = 'https://lmojjiczebnhnbstuweg.supabase.co';
-const SUPA_KEY = 'sb_publishable_xUP-cfbbQd7yWCjfe6XWFA_QLls1y2r';
-let _sb = null;
-
-function getSB(){
-  if(!_sb){
-    if(typeof window.supabase === 'undefined'){
-      showErr('Supabase-Script nicht geladen. Bitte Seite neu laden.');
-      return null;
-    }
-    _sb = window.supabase.createClient(SUPA_URL, SUPA_KEY);
-  }
-  return _sb;
-}
-
-// Demo email → role mapping
-const DEMO_ROLES = {
-  'dogusk@fe.ch':      'superadmin',
-  'trainer@demo.ch':   'cheftrainer',
-  'assistent@demo.ch': 'assistent',
-  'leiter@demo.ch':    'vereinsleiter',
-};
-
-// Login helpers
-function setLoginLoading(on){
-  document.getElementById('login-form').style.display    = on ? 'none' : '';
-  document.getElementById('login-loading').style.display = on ? 'block' : 'none';
-}
-function showErr(msg){
-  const el = document.getElementById('login-err');
-  el.textContent = msg;
-  el.style.display = 'block';
-  setLoginLoading(false);
-}
-function togglePw(){
-  const inp = document.getElementById('li-pw');
-  inp.type = inp.type === 'password' ? 'text' : 'password';
-}
-function loginDemo(email, pw){ fillDemo(email, pw); doLogin(); }
-function fillDemo(email, pw){
-  document.getElementById('li-email').value = email;
-  document.getElementById('li-pw').value    = pw;
-  document.getElementById('login-err').style.display = 'none';
-  document.getElementById('li-email').focus();
-}
-
-async function doLogin(){
-  const email = document.getElementById('li-email').value.trim();
-  const pw    = document.getElementById('li-pw').value;
-  document.getElementById('login-err').style.display = 'none';
-
-  if(!email){ showErr('Bitte E-Mail eingeben.'); return; }
-  if(!pw)   { showErr('Bitte Passwort eingeben.'); return; }
-
-  const sb = getSB();
-  if(!sb) return;
-
-  setLoginLoading(true);
-
-  try {
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
-
-    if(error){
-      // Friendly error messages
-      let msg = 'Anmeldung fehlgeschlagen.';
-      if(error.message.includes('Invalid login'))  msg = '❌ Falsche E-Mail oder falsches Passwort.';
-      else if(error.message.includes('Email not')) msg = '❌ E-Mail nicht bestätigt.';
-      else if(error.message.includes('Too many'))  msg = '⏳ Zu viele Versuche. Bitte warten.';
-      else if(error.message.includes('network'))   msg = '🌐 Netzwerkfehler. Bitte Verbindung prüfen.';
-      else msg = '❌ ' + error.message;
-      showErr(msg);
-      return;
-    }
-
-    const user = data.user;
-    // Determine role from profiles table or fallback to email mapping
-    let detectedRole = DEMO_ROLES[email] || 'cheftrainer';
-
-    try {
-      const { data: profile } = await sb
-        .from('profiles')
-        .select('rolle, vorname, nachname')
-        .eq('id', user.id)
-        .single();
-      if(profile?.rolle) detectedRole = profile.rolle;
-    } catch(e) {
-      // profiles table might not have entry yet — use demo mapping
-    }
-
-    // Sign out immediately after (DEMO MODE — no persistent session)
-    await sb.auth.signOut();
-
-    loginAs(detectedRole, user.email, user.user_metadata?.full_name || '');
-
-  } catch(e) {
-    showErr('🌐 Verbindungsfehler: ' + (e.message || 'Unbekannter Fehler'));
-  }
-}
-
 // ── DATA ─────────────────────────────────────────────
-const ROLES_DATA = {
-  superadmin:   {name:'Dogus Kaplan',    ab:'DK', role:'Super-Admin',     col:'#1B4FDB'},
-  vereinsleiter:{name:'Thomas Müller',   ab:'TM', role:'Vereinsleiter',   col:'#16A34A'},
-  cheftrainer:  {name:'Marco Becker',    ab:'MB', role:'Cheftrainer',     col:'#D97706'},
-  assistent:    {name:'Sara Lehmann',    ab:'SL', role:'Assistentin',     col:'#6B7280'},
-};
 
 const NAV = {
   superadmin:[
@@ -604,92 +466,123 @@ const SFV = {
   },
 };
 
-const SPIELER_DATA = [
-  // 6 Demo-Spieler/innen mit Persönlichkeit — werden nicht gespeichert
-  {name:'Leon Müller',   pos:'TW', pos2:'',   fuss:'R', rating:8, tw:true,  min:270, tore:0,
-   persoenlichkeit:'Ruhig, lautstark im Strafraum, sicherer Rückhalt. Führungsqualität, kommuniziert viel.'},
-  {name:'Sara Kaya',     pos:'LV', pos2:'ZM', fuss:'L', rating:7, tw:false, min:200, tore:1,
-   persoenlichkeit:'Technisch stark, schnell. Manchmal ungeduldig, aber lernbegierig und ehrgeizig.'},
-  {name:'Nico Berger',   pos:'IV', pos2:'DM', fuss:'R', rating:9, tw:false, min:260, tore:2,
-   persoenlichkeit:'Taktisch sehr klug, ruhig am Ball. Anführer, gibt Struktur und Sicherheit ab.'},
-  {name:'Mia Steiner',   pos:'ZM', pos2:'OM', fuss:'R', rating:7, tw:false, min:220, tore:3,
-   persoenlichkeit:'Kreativ und verspielt. Braucht klare Struktur — wenn sie läuft ist sie nicht zu stoppen.'},
-  {name:'Jamal Hassan',  pos:'LF', pos2:'ST', fuss:'L', rating:8, tw:false, min:245, tore:5,
-   persoenlichkeit:'Explosiv, direkt, gefährlich. Manchmal zu individuell — lernt gerade Teamspiel.'},
-  {name:'Lena Vogel',    pos:'ST', pos2:'RF', fuss:'R', rating:9, tw:false, min:255, tore:7,
-   persoenlichkeit:'Torjägerin mit Instinkt. Führt sich selbst, motiviert andere. Topscorerin der Saison.'},
-];
+// ── SUPABASE INIT ─────────────────────────────────────
+const SB_URL = 'https://lmojjiczebnhnbstuweg.supabase.co';
+const SB_KEY = 'sb_publishable_xUP-cfbbQd7yWCjfe6XWFA_QLls1y2r';
+const sb = supabase.createClient(SB_URL, SB_KEY);
 
-let role='',sideRight=false;
+// ── APP STATE ─────────────────────────────────────────
+let SPIELER_DATA = []; // wird aus Supabase geladen
+let currentUser = null;
+let currentProfile = null;
+let currentTeamId = null;
+let currentVereinId = null;
+let role = '', sideRight = false;
+let editingSpielerID = null; // für Bearbeiten-Modus
 
 // ── LOGIN ─────────────────────────────────────────────
-let IS_DEMO = false;
-
-function startDemo(){
-  IS_DEMO = true;
-  loginAs('cheftrainer', '', 'Demo Trainer');
+async function doLogin(){
+  const email = document.getElementById('li-email').value.trim();
+  const pw    = document.getElementById('li-pw').value;
+  const errEl = document.getElementById('li-err');
+  const btnEl = document.getElementById('li-btn');
+  if(!email||!pw){errEl.textContent='Bitte E-Mail und Passwort eingeben.';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  btnEl.textContent='Anmelden…';btnEl.disabled=true;
+  const {data,error} = await sb.auth.signInWithPassword({email,password:pw});
+  if(error){
+    errEl.textContent=error.message==='Invalid login credentials'?'E-Mail oder Passwort falsch.':error.message;
+    errEl.style.display='block';
+    btnEl.textContent='Anmelden';btnEl.disabled=false;
+    return;
+  }
+  await initApp(data.user);
 }
 
-function loginAs(r, email, fullName){
-  role = r;
-  const u = ROLES_DATA[r] || ROLES_DATA['cheftrainer'];
+async function doLogout(){
+  await sb.auth.signOut();
+  currentUser=null;currentProfile=null;currentTeamId=null;currentVereinId=null;
+  SPIELER_DATA=[];role='';
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('ls').classList.remove('hidden');
+  document.getElementById('li-email').value='';
+  document.getElementById('li-pw').value='';
+}
 
-  // Reset login form
-  setLoginLoading(false);
-  document.getElementById('li-email').value = '';
-  document.getElementById('li-pw').value    = '';
-  document.getElementById('login-err').style.display = 'none';
+async function initApp(user){
+  currentUser = user;
+  // Profil laden
+  const {data:prof} = await sb.from('profiles').select('*').eq('id',user.id).single();
+  if(!prof){
+    document.getElementById('li-err').textContent='Kein Profil gefunden. Bitte Dogus kontaktieren.';
+    document.getElementById('li-err').style.display='block';
+    document.getElementById('li-btn').textContent='Anmelden';
+    document.getElementById('li-btn').disabled=false;
+    await sb.auth.signOut();return;
+  }
+  currentProfile = prof;
+  role = prof.rolle;
+  currentVereinId = prof.verein_id;
+  currentTeamId = prof.team_id;
 
+  // UI aufbauen
   document.getElementById('ls').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
 
-  const av = document.getElementById('ua');
-  av.textContent = u.ab;
-  av.style.background = u.col;
-  document.getElementById('un').textContent = IS_DEMO ? 'Demo Trainer' : (fullName || u.name);
-  document.getElementById('ur').textContent = IS_DEMO ? 'Demo · Cheftrainer' : u.role;
+  // Avatar
+  const av=document.getElementById('ua');
+  const initials=((prof.vorname||'?')[0]+(prof.nachname||'?')[0]).toUpperCase();
+  const roleColors={superadmin:'#DC2626',vereinsleiter:'#D97706',cheftrainer:'#1B4FDB',assistent:'#16A34A',torwarttrainer:'#8B5CF6',athletiktrainer:'#0891B2'};
+  av.textContent=initials;
+  av.style.background=roleColors[role]||'#1B4FDB';
+  document.getElementById('un').textContent=(prof.vorname||'')+' '+(prof.nachname||'');
+  document.getElementById('ur').textContent=roleLabel(role);
 
-  if(r === 'superadmin'){
-    document.getElementById('vb-logo').textContent = 'SA';
-    document.getElementById('vb-name').textContent = 'Super-Admin';
-    document.getElementById('vb-sub').textContent  = '4 Vereine · Vollzugriff';
-  } else if(r === 'vereinsleiter'){
-    document.getElementById('vb-logo').textContent = 'FC';
-    document.getElementById('vb-name').textContent = 'FC Musterstadt';
-    document.getElementById('vb-sub').textContent  = '3 Teams · Leiter';
-  } else {
-    document.getElementById('vb-logo').textContent = IS_DEMO ? '🧪' : 'FC';
-    document.getElementById('vb-name').textContent = IS_DEMO ? 'Demo FC Basel' : 'FC Musterstadt';
-    document.getElementById('vb-sub').textContent  = IS_DEMO ? 'FE12 Demo · Cheftrainer' :
-      (r === 'cheftrainer' ? 'FE12 Blau · Cheftrainer' : 'FE12 Rot · Assistentin');
+  // Verein laden & Sidebar
+  if(currentVereinId){
+    const {data:verein}=await sb.from('vereine').select('*').eq('id',currentVereinId).single();
+    if(verein){
+      const vl=document.getElementById('vb-logo');
+      if(verein.logo_url){vl.innerHTML=`<img src="${verein.logo_url}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">`;vl.style.padding='0';}
+      else{vl.textContent=(verein.kuerzel||verein.name.substring(0,2)).toUpperCase();}
+      document.getElementById('vb-name').textContent=verein.name;
+      document.getElementById('vb-sub').textContent=roleLabel(role);
+    }
+  } else if(role==='superadmin'){
+    document.getElementById('vb-logo').textContent='SA';
+    document.getElementById('vb-name').textContent='Super-Admin';
+    document.getElementById('vb-sub').textContent='Vollzugriff';
   }
 
-  // Demo-Banner in Topbar einblenden
-  const tb = document.querySelector('.tb-a');
-  const existingBanner = document.getElementById('demo-topbanner');
-  if(existingBanner) existingBanner.remove();
-  if(IS_DEMO && tb){
-    const banner = document.createElement('div');
-    banner.id = 'demo-topbanner';
-    banner.style.cssText = 'background:#EBF0FF;border:1px solid #1B4FDB44;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;color:#1B4FDB;display:flex;align-items:center;gap:5px';
-    banner.innerHTML = '🧪 DEMO · Keine Daten werden gespeichert';
-    tb.insertBefore(banner, tb.firstChild);
+  // Sidebar-Präferenz anwenden
+  if(prof.sidebar_seite==='rechts'){
+    sideRight=true;
+    document.getElementById('sb').classList.add('right');
+    document.getElementById('mc').classList.add('sr');
   }
 
   buildNav();
   goPage('dashboard');
 }
 
-function doLogout(){
-  IS_DEMO = false;
-  document.getElementById('app').classList.add('hidden');
-  document.getElementById('ls').classList.remove('hidden');
-  setLoginLoading(false);
+function roleLabel(r){
+  const m={superadmin:'Super-Admin',vereinsleiter:'Vereinsleiter',cheftrainer:'Cheftrainer',assistent:'Assistent',torwarttrainer:'Torwarttrainer',athletiktrainer:'Athletiktrainer'};
+  return m[r]||r;
 }
+
+// Session beim Laden prüfen
+window.addEventListener('DOMContentLoaded',async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session?.user) await initApp(session.user);
+});
 function toggleSide(){
   sideRight=!sideRight;
   document.getElementById('sb').classList.toggle('right',sideRight);
   document.getElementById('mc').classList.toggle('sr',sideRight);
+  // Präferenz in Supabase speichern
+  if(currentUser){
+    sb.from('profiles').update({sidebar_seite:sideRight?'rechts':'links'}).eq('id',currentUser.id);
+  }
 }
 
 // ── NAV ───────────────────────────────────────────────
@@ -888,44 +781,98 @@ function pKal(el){
 }
 
 // ── SPIELER ───────────────────────────────────────────
-function pSpieler(el){
-  const canDel=['cheftrainer','vereinsleiter','superadmin'].includes(role);
+async function pSpieler(el){
+  el.innerHTML=`<div style="text-align:center;padding:40px;color:var(--text2)">⏳ Spieler werden geladen…</div>`;
+  await ladeSpieler();
+  renderSpielerSeite(el);
+}
+
+async function ladeSpieler(){
+  if(!currentTeamId){SPIELER_DATA=[];return;}
+  const {data,error}=await sb.from('spieler')
+    .select('*')
+    .eq('team_id',currentTeamId)
+    .eq('aktiv',true)
+    .order('nachname');
+  if(error){console.error('Spieler laden Fehler:',error);SPIELER_DATA=[];return;}
+  SPIELER_DATA=data||[];
+}
+
+function renderSpielerSeite(el){
+  const canDel=['vereinsleiter','superadmin'].includes(role);
+  const canEdit=['cheftrainer','vereinsleiter','superadmin','assistent','torwarttrainer','athletiktrainer'].includes(role);
+  const twAnzahl=SPIELER_DATA.filter(s=>s.ist_torwart).length;
+
   el.innerHTML=`
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <div style="display:flex;gap:6px">
-      <span class="bdg bdg-b">${SPIELER_DATA.length} Spieler</span>
-      <span class="bdg bdg-gold">2 TW</span>
-      <span class="bdg bdg-g">7er Format</span>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <span class="bdg bdg-b">${SPIELER_DATA.length}/24 Spieler</span>
+      <span class="bdg bdg-gold">${twAnzahl} TW</span>
     </div>
     <div style="display:flex;gap:8px">
-      <button class="btn btn-o btn-sm">📤 PDF</button>
-      <button class="btn btn-b btn-sm" onclick="showAddSp()">+ Spieler</button>
+      <select id="sp-filter-pos" class="fi" style="width:auto;padding:4px 8px;font-size:12px" onchange="filterSpieler()">
+        <option value="">Alle Positionen</option>
+        ${POSITIONEN.map(p=>`<option value="${p}">${p}</option>`).join('')}
+      </select>
+      ${canEdit&&SPIELER_DATA.length<24?`<button class="btn btn-b btn-sm" onclick="showAddSp()">+ Spieler</button>`:`<button class="btn btn-o btn-sm" disabled title="Max. 24 Spieler erreicht">+ Spieler</button>`}
     </div>
   </div>
   <div class="card">
     <div class="ch">
-      <span class="ct">Kader — FE12 Blau</span>
-      <select class="fi" style="width:auto;padding:4px 8px;font-size:12px">
-        <option>Alle Positionen</option>${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}
-      </select>
+      <span class="ct" id="sp-kader-titel">Kader</span>
     </div>
-    <div style="padding:0 18px">
-      ${SPIELER_DATA.map(p=>{
-        const rc=p.rating>=8?'rh':p.rating>=6?'rm2':'rl';
-        return `<div class="pr" style="grid-template-columns:32px 1fr auto auto auto${canDel?' auto':''}">
-          <div class="pav${p.tw?' style=background:var(--gold-l);color:var(--gold)':''}">${p.name.split(' ').map(n=>n[0]).join('')}</div>
-          <div>
-            <div class="pn">${p.name}${p.tw?` <span style="font-size:9px;padding:1px 4px;background:var(--gold-l);color:var(--gold);border-radius:3px;font-weight:700">TW</span>`:''}</div>
-            <div class="pp">${p.pos}${p.pos2?' · '+p.pos2:''} · ${p.fuss}${p.fuss2?' / '+p.fuss2:''}</div>
-          </div>
-          <div class="rp ${rc}">${p.rating}</div>
-          <button class="btn btn-o btn-sm" onclick="showSpDetail('${p.name}')">Detail</button>
-          <button class="btn btn-o btn-sm" onclick="goPage('bewertungen')">⭐</button>
-          ${canDel?`<button class="btn btn-sm" style="background:var(--red-l);color:var(--red)" onclick="confirmDel('${p.name}')">✕</button>`:''}
-        </div>`;
-      }).join('')}
+    <div style="padding:0 18px" id="sp-liste">
+      ${renderSpielerListe(SPIELER_DATA,canDel,canEdit)}
     </div>
   </div>`;
+
+  // Teamname in Titel setzen
+  if(currentTeamId){
+    sb.from('teams').select('name,spielformat').eq('id',currentTeamId).single().then(({data})=>{
+      if(data){
+        const t=document.getElementById('sp-kader-titel');
+        if(t) t.textContent=`Kader — ${data.name}`;
+      }
+    });
+  }
+}
+
+function renderSpielerListe(liste,canDel,canEdit){
+  if(liste.length===0) return `<div style="text-align:center;padding:32px;color:var(--text2)">
+    <div style="font-size:28px;margin-bottom:8px">👥</div>
+    <div style="font-weight:600">Noch keine Spieler</div>
+    <div style="font-size:11px;margin-top:4px">Füge deinen ersten Spieler hinzu</div>
+  </div>`;
+
+  return liste.map(p=>{
+    const initials=((p.vorname||'?')[0]+(p.nachname||'?')[0]).toUpperCase();
+    const vollname=`${p.vorname||''} ${p.nachname||''}`.trim();
+    const pos2=p.position_alt1?` · ${p.position_alt1}`:'';
+    return `<div class="pr" style="grid-template-columns:36px 1fr auto auto${canDel?' auto':''}">
+      <div class="pav" style="${p.ist_torwart?'background:var(--gold-l);color:var(--gold)':''}">
+        ${p.foto_url?`<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">`:`${initials}`}
+      </div>
+      <div>
+        <div class="pn">${vollname}
+          ${p.ist_torwart?`<span style="font-size:9px;padding:1px 5px;background:var(--gold-l);color:var(--gold);border-radius:3px;font-weight:700;margin-left:4px">TW</span>`:''}
+          ${p.trikotnummer?`<span style="font-size:9px;padding:1px 5px;background:var(--surface2);color:var(--text2);border-radius:3px;font-weight:700;margin-left:4px">#${p.trikotnummer}</span>`:''}
+        </div>
+        <div class="pp">${p.position_haupt||'—'}${pos2} · ${p.starker_fuss||'R'}</div>
+      </div>
+      ${canEdit?`<button class="btn btn-o btn-sm" onclick="showEditSp('${p.id}')">✏️</button>`:''}
+      <button class="btn btn-o btn-sm" onclick="showSpDetail('${p.id}')">Detail</button>
+      ${canDel?`<button class="btn btn-sm" style="background:var(--red-l);color:var(--red)" onclick="confirmDel('${p.id}','${vollname.replace(/'/g,"\\'")}')">✕</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+function filterSpieler(){
+  const pos=document.getElementById('sp-filter-pos')?.value||'';
+  const gefiltert=pos?SPIELER_DATA.filter(s=>s.position_haupt===pos||s.position_alt1===pos||s.position_alt2===pos):SPIELER_DATA;
+  const canDel=['vereinsleiter','superadmin'].includes(role);
+  const canEdit=['cheftrainer','vereinsleiter','superadmin','assistent','torwarttrainer','athletiktrainer'].includes(role);
+  const liste=document.getElementById('sp-liste');
+  if(liste) liste.innerHTML=renderSpielerListe(gefiltert,canDel,canEdit);
 }
 
 // ── BEWERTUNGEN ───────────────────────────────────────
@@ -1639,35 +1586,220 @@ function previewLogo(inp){
 function showOv(html){document.getElementById('ovc').innerHTML=html;document.getElementById('ov').classList.remove('hidden');}
 function closeOv(){document.getElementById('ov').classList.add('hidden');}
 
-function showAddSp(){
-  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">➕ Spieler hinzufügen</div>
-    <div class="fl2">
-      <div><label class="flbl">VORNAME</label><input class="fi" placeholder="Vorname" style="margin-top:3px"></div>
-      <div><label class="flbl">NACHNAME</label><input class="fi" placeholder="Nachname" style="margin-top:3px"></div>
-      <div><label class="flbl">GEBURTSDATUM</label><input type="date" class="fi" style="margin-top:3px"></div>
-      <div><label class="flbl">STARKER FUSS</label><select class="fi" style="margin-top:3px"><option>Rechts</option><option>Links</option><option>Beide</option></select></div>
-      <div><label class="flbl">POSITION (HAUPT)</label><select class="fi" style="margin-top:3px">${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}</select></div>
-      <div><label class="flbl">POSITION ALT 1</label><select class="fi" style="margin-top:3px"><option>—</option>${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}</select></div>
-      <div><label class="flbl">POSITION ALT 2</label><select class="fi" style="margin-top:3px"><option>—</option>${POSITIONEN.map(p=>`<option>${p}</option>`).join('')}</select></div>
-      <div><label class="flbl">TRIKOTNUMMER</label><input type="number" class="fi" placeholder="7" style="margin-top:3px"></div>
+function spielerFormHTML(sp=null){
+  const v=sp||{};
+  return `
+  <div style="font-weight:700;font-size:15px;margin-bottom:16px">${sp?'✏️ Spieler bearbeiten':'➕ Spieler hinzufügen'}</div>
+  <div class="fl2">
+    <div>
+      <label class="flbl">VORNAME *</label>
+      <input id="sp-vorname" class="fi" placeholder="Vorname" style="margin-top:3px" value="${v.vorname||''}">
     </div>
-    <div style="margin-top:10px"><label class="flbl">FOTO (optional)</label>
-    <input type="file" accept="image/*" class="fi" style="margin-top:3px;padding:6px"></div>
-    <div style="display:flex;gap:8px;margin-top:14px">
-      <button class="btn btn-b" style="flex:1" onclick="closeOv()">Spieler speichern</button>
-      <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
-    </div>`);
+    <div>
+      <label class="flbl">NACHNAME *</label>
+      <input id="sp-nachname" class="fi" placeholder="Nachname" style="margin-top:3px" value="${v.nachname||''}">
+    </div>
+    <div>
+      <label class="flbl">GEBURTSDATUM *</label>
+      <input id="sp-geb" type="date" class="fi" style="margin-top:3px" value="${v.geburtsdatum||''}">
+    </div>
+    <div>
+      <label class="flbl">TRIKOTNUMMER</label>
+      <input id="sp-trikot" type="number" class="fi" placeholder="7" style="margin-top:3px" value="${v.trikotnummer||''}">
+    </div>
+    <div>
+      <label class="flbl">STARKER FUSS</label>
+      <select id="sp-fuss" class="fi" style="margin-top:3px">
+        <option value="rechts" ${(v.starker_fuss||'rechts')==='rechts'?'selected':''}>Rechts</option>
+        <option value="links" ${v.starker_fuss==='links'?'selected':''}>Links</option>
+        <option value="beide" ${v.starker_fuss==='beide'?'selected':''}>Beide</option>
+      </select>
+    </div>
+    <div>
+      <label class="flbl">TORWART</label>
+      <select id="sp-tw" class="fi" style="margin-top:3px">
+        <option value="0" ${!v.ist_torwart?'selected':''}>Nein</option>
+        <option value="1" ${v.ist_torwart?'selected':''}>Ja</option>
+      </select>
+    </div>
+    <div>
+      <label class="flbl">POSITION HAUPT *</label>
+      <select id="sp-pos" class="fi" style="margin-top:3px">
+        ${POSITIONEN.map(p=>`<option value="${p}" ${v.position_haupt===p?'selected':''}>${p}</option>`).join('')}
+      </select>
+    </div>
+    <div>
+      <label class="flbl">POSITION ALT 1</label>
+      <select id="sp-pos2" class="fi" style="margin-top:3px">
+        <option value="">—</option>
+        ${POSITIONEN.map(p=>`<option value="${p}" ${v.position_alt1===p?'selected':''}>${p}</option>`).join('')}
+      </select>
+    </div>
+    <div>
+      <label class="flbl">POSITION ALT 2</label>
+      <select id="sp-pos3" class="fi" style="margin-top:3px">
+        <option value="">—</option>
+        ${POSITIONEN.map(p=>`<option value="${p}" ${v.position_alt2===p?'selected':''}>${p}</option>`).join('')}
+      </select>
+    </div>
+    <div></div>
+    <div>
+      <label class="flbl">GRÖSSE (cm)</label>
+      <input id="sp-groesse" type="number" class="fi" placeholder="165" style="margin-top:3px" value="${v.groesse||''}">
+    </div>
+    <div>
+      <label class="flbl">GEWICHT (kg)</label>
+      <input id="sp-gewicht" type="number" class="fi" placeholder="55" style="margin-top:3px" value="${v.gewicht||''}">
+    </div>
+  </div>
+  <div style="margin-top:8px">
+    <label class="flbl">DATUM KÖRPERMESSUNG</label>
+    <input id="sp-gemessen" type="date" class="fi" style="margin-top:3px" value="${v.koerper_gemessen_am||''}">
+  </div>
+  <div style="margin-top:8px">
+    <label class="flbl">FOTO (optional)</label>
+    <input id="sp-foto" type="file" accept="image/*" class="fi" style="margin-top:3px;padding:6px">
+    ${v.foto_url?`<div style="margin-top:6px"><img src="${v.foto_url}" style="height:48px;border-radius:7px;object-fit:cover"></div>`:''}
+  </div>
+  <div id="sp-form-err" style="display:none;background:var(--red-l);color:var(--red);border-radius:7px;padding:8px 12px;font-size:12px;margin-top:10px"></div>
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn btn-b" style="flex:1" id="sp-save-btn" onclick="saveSpieler()">💾 Speichern</button>
+    <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
+  </div>`;
 }
-function showSpDetail(name){
-  const p=SPIELER_DATA.find(s=>s.name===name)||{name,pos:'—',min:0,tore:0,rating:0};
-  showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">👤 ${name}</div>
-    <div class="fl2" style="margin-bottom:14px">
-      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">POSITION</div><div style="font-weight:700">${p.pos}</div></div>
-      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">SPIELZEIT</div><div style="font-weight:700">${p.min} Min</div></div>
-      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">TORE</div><div style="font-weight:700">${p.tore}</div></div>
-      <div style="background:var(--surface2);border-radius:7px;padding:10px"><div style="font-size:10px;color:var(--text2)">Ø BEWERTUNG</div><div style="font-weight:700;color:var(--green)">${p.rating}</div></div>
+
+function showAddSp(){
+  editingSpielerID=null;
+  showOv(spielerFormHTML(null));
+}
+
+function showEditSp(id){
+  const sp=SPIELER_DATA.find(s=>s.id===id);
+  if(!sp)return;
+  editingSpielerID=id;
+  showOv(spielerFormHTML(sp));
+}
+
+async function saveSpieler(){
+  const btn=document.getElementById('sp-save-btn');
+  const errEl=document.getElementById('sp-form-err');
+  const vorname=(document.getElementById('sp-vorname')?.value||'').trim();
+  const nachname=(document.getElementById('sp-nachname')?.value||'').trim();
+  const geb=(document.getElementById('sp-geb')?.value||'').trim();
+  const pos=(document.getElementById('sp-pos')?.value||'').trim();
+
+  // Validierung
+  if(!vorname||!nachname||!geb||!pos){
+    errEl.textContent='Bitte Vorname, Nachname, Geburtsdatum und Position (Haupt) ausfüllen.';
+    errEl.style.display='block';return;
+  }
+  errEl.style.display='none';
+  btn.textContent='Speichern…';btn.disabled=true;
+
+  // Foto hochladen falls vorhanden
+  let foto_url=null;
+  if(editingSpielerID){
+    const alt=SPIELER_DATA.find(s=>s.id===editingSpielerID);
+    foto_url=alt?.foto_url||null;
+  }
+  const fotoInp=document.getElementById('sp-foto');
+  if(fotoInp?.files[0]){
+    const file=fotoInp.files[0];
+    const ext=file.name.split('.').pop();
+    const path=`spieler/${currentVereinId}/${Date.now()}.${ext}`;
+    const {data:upData,error:upErr}=await sb.storage.from('fotos').upload(path,file,{upsert:true});
+    if(!upErr){
+      const {data:pubData}=sb.storage.from('fotos').getPublicUrl(path);
+      foto_url=pubData.publicUrl;
+    }
+  }
+
+  const payload={
+    vorname,
+    nachname,
+    geburtsdatum:geb||null,
+    trikotnummer:document.getElementById('sp-trikot')?.value?parseInt(document.getElementById('sp-trikot').value):null,
+    starker_fuss:document.getElementById('sp-fuss')?.value||'rechts',
+    ist_torwart:document.getElementById('sp-tw')?.value==='1',
+    position_haupt:pos||null,
+    position_alt1:document.getElementById('sp-pos2')?.value||null,
+    position_alt2:document.getElementById('sp-pos3')?.value||null,
+    groesse:document.getElementById('sp-groesse')?.value?parseFloat(document.getElementById('sp-groesse').value):null,
+    gewicht:document.getElementById('sp-gewicht')?.value?parseFloat(document.getElementById('sp-gewicht').value):null,
+    koerper_gemessen_am:document.getElementById('sp-gemessen')?.value||null,
+    foto_url,
+    team_id:currentTeamId,
+    verein_id:currentVereinId,
+    aktiv:true,
+  };
+
+  let error;
+  if(editingSpielerID){
+    ({error}=await sb.from('spieler').update(payload).eq('id',editingSpielerID));
+  } else {
+    ({error}=await sb.from('spieler').insert(payload));
+  }
+
+  if(error){
+    errEl.textContent='Fehler beim Speichern: '+error.message;
+    errEl.style.display='block';
+    btn.textContent='💾 Speichern';btn.disabled=false;
+    return;
+  }
+
+  closeOv();
+  // Seite neu laden
+  const pc=document.getElementById('pc');
+  if(pc) await pSpieler(pc);
+}
+
+function showSpDetail(id){
+  const p=SPIELER_DATA.find(s=>s.id===id);
+  if(!p)return;
+  const vollname=`${p.vorname||''} ${p.nachname||''}`.trim();
+  const initials=((p.vorname||'?')[0]+(p.nachname||'?')[0]).toUpperCase();
+  showOv(`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div class="pav" style="width:48px;height:48px;font-size:14px;${p.ist_torwart?'background:var(--gold-l);color:var(--gold)':''}">
+        ${p.foto_url?`<img src="${p.foto_url}" style="width:100%;height:100%;object-fit:cover;border-radius:7px">`:`${initials}`}
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:16px">${vollname}</div>
+        <div style="font-size:11px;color:var(--text2)">${p.position_haupt||'—'}${p.ist_torwart?' · Torwart':''}</div>
+      </div>
     </div>
-    <button class="btn btn-b" style="width:100%" onclick="closeOv();goPage('bewertungen')">Zur Bewertung →</button>`);
+    <div class="fl2" style="margin-bottom:14px;gap:6px">
+      <div style="background:var(--surface2);border-radius:7px;padding:10px">
+        <div style="font-size:10px;color:var(--text2)">TRIKOTNUMMER</div>
+        <div style="font-weight:700">${p.trikotnummer?'#'+p.trikotnummer:'—'}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:7px;padding:10px">
+        <div style="font-size:10px;color:var(--text2)">STARKER FUSS</div>
+        <div style="font-weight:700;text-transform:capitalize">${p.starker_fuss||'—'}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:7px;padding:10px">
+        <div style="font-size:10px;color:var(--text2)">GRÖSSE</div>
+        <div style="font-weight:700">${p.groesse?p.groesse+' cm':'—'}</div>
+      </div>
+      <div style="background:var(--surface2);border-radius:7px;padding:10px">
+        <div style="font-size:10px;color:var(--text2)">GEWICHT</div>
+        <div style="font-weight:700">${p.gewicht?p.gewicht+' kg':'—'}</div>
+      </div>
+    </div>
+    ${p.position_alt1||p.position_alt2?`
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;color:var(--text2);font-weight:700;margin-bottom:4px">ALTERNATIVPOSITIONEN</div>
+      <div style="display:flex;gap:6px">
+        ${p.position_alt1?`<span class="bdg bdg-b">${p.position_alt1}</span>`:''}
+        ${p.position_alt2?`<span class="bdg bdg-b">${p.position_alt2}</span>`:''}
+      </div>
+    </div>`:''}
+    ${p.geburtsdatum?`<div style="font-size:11px;color:var(--text2);margin-bottom:14px">📅 Geb.: ${new Date(p.geburtsdatum).toLocaleDateString('de-CH')}</div>`:''}
+    ${p.koerper_gemessen_am?`<div style="font-size:11px;color:var(--text2);margin-bottom:14px">📏 Messung: ${new Date(p.koerper_gemessen_am).toLocaleDateString('de-CH')}</div>`:''}
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-b" style="flex:1" onclick="closeOv();goPage('bewertungen')">⭐ Zur Bewertung</button>
+      ${['cheftrainer','vereinsleiter','superadmin','assistent'].includes(role)?`<button class="btn btn-o" onclick="closeOv();showEditSp('${p.id}')">✏️ Bearbeiten</button>`:''}
+    </div>`);
 }
 function showPickerFor(el,pos){
   showOv(`<div style="font-weight:700;font-size:15px;margin-bottom:14px">Position ${pos} — Spieler wählen</div>
@@ -1725,16 +1857,34 @@ function showSpielForm(typ){
       <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
     </div>`);
 }
-function confirmDel(name){
+function confirmDel(id,name){
   showOv(`<div style="text-align:center;padding:10px">
     <div style="font-size:28px;margin-bottom:10px">⚠️</div>
     <div style="font-weight:700;font-size:15px;margin-bottom:6px">Spieler löschen?</div>
-    <div style="color:var(--text2);font-size:12px;margin-bottom:18px">${name} und alle Daten werden dauerhaft gelöscht.</div>
+    <div style="color:var(--text2);font-size:12px;margin-bottom:18px">${name} wird auf inaktiv gesetzt. Alle Daten bleiben erhalten.</div>
+    <div id="del-err" style="display:none;background:var(--red-l);color:var(--red);border-radius:7px;padding:8px 12px;font-size:12px;margin-bottom:10px"></div>
     <div style="display:flex;gap:8px">
-      <button class="btn btn-r" style="flex:1" onclick="closeOv()">Löschen</button>
+      <button class="btn btn-r" style="flex:1" id="del-btn" onclick="doDelSpieler('${id}')">Entfernen</button>
       <button class="btn btn-o" style="flex:1" onclick="closeOv()">Abbrechen</button>
     </div>
   </div>`);
+}
+
+async function doDelSpieler(id){
+  const btn=document.getElementById('del-btn');
+  const errEl=document.getElementById('del-err');
+  btn.textContent='…';btn.disabled=true;
+  // Soft-Delete: aktiv=false statt wirklich löschen
+  const {error}=await sb.from('spieler').update({aktiv:false}).eq('id',id);
+  if(error){
+    errEl.textContent='Fehler: '+error.message;
+    errEl.style.display='block';
+    btn.textContent='Entfernen';btn.disabled=false;
+    return;
+  }
+  closeOv();
+  const pc=document.getElementById('pc');
+  if(pc) await pSpieler(pc);
 }
 function selSp(el,name){
   el.closest('.card').querySelectorAll('div[onclick]').forEach(e=>{e.style.background='';e.querySelector('.pav').style.background='';e.querySelector('.pav').style.color='';});

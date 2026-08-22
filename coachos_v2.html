@@ -479,6 +479,16 @@ let currentTeamId = null;
 let currentVereinId = null;
 let role = '', sideRight = false;
 let editingSpielerID = null; // für Bearbeiten-Modus
+let MZ_DATA = []; // Makrozyklus-Phasen, aus Supabase geladen
+let mzHalbjahrFilter = true; // true=Vorrunde, false=Rückrunde
+let mzNotizSaving = {};
+
+function getAktuelleSaison(){
+  const d=new Date();
+  const y=d.getFullYear();
+  const startY = d.getMonth()>=6 ? y : y-1; // Saison läuft Jul–Jun
+  return `${startY}/${String((startY+1)%100).padStart(2,'0')}`;
+}
 
 // ── LOGIN ─────────────────────────────────────────────
 async function doLogin(){
@@ -503,6 +513,7 @@ async function doLogout(){
   await sb.auth.signOut();
   currentUser=null;currentProfile=null;currentTeamId=null;currentVereinId=null;
   SPIELER_DATA=[];role='';
+  MZ_DATA=[];mzHalbjahrFilter=true;mzOpen={};mzNotizSaving={};
   document.getElementById('app').classList.add('hidden');
   document.getElementById('ls').classList.remove('hidden');
   document.getElementById('li-email').value='';
@@ -1408,49 +1419,108 @@ function addTkOpp(){
 
 // ── MAKROZYKLUS ───────────────────────────────────────
 let mzOpen={};
-function pMakro(el){
+
+const MZ_PHASES=[
+  {lb:'Vorbereitung',col:'#1B4FDB',sfv:null,typ:'vorbereitung'},
+  {lb:'Aufbauphase',col:'#16A34A',sfv:'wir_haben_ball',typ:'normal'},
+  {lb:'Intensivphase',col:'#D97706',sfv:'wir_verlieren_ball',typ:'normal'},
+  {lb:'Wettkampfphase',col:'#DC2626',sfv:'wir_haben_ball_nicht',typ:'normal'},
+  {lb:'Ferienphase',col:'#6B7280',sfv:null,typ:'ferien'},
+  {lb:'Abschluss',col:'#8B5CF6',sfv:'wir_erobern_ball',typ:'normal'},
+];
+
+async function pMakro(el){
+  el.innerHTML=`<div style="text-align:center;padding:40px;color:var(--text2)">⏳ Makrozyklus wird geladen…</div>`;
+  await ladeMzPhasen();
+  renderMzSeite(el);
+}
+
+async function ladeMzPhasen(){
+  if(!currentTeamId){MZ_DATA=[];return;}
+  const saison=getAktuelleSaison();
+  let {data,error}=await sb.from('makrozyklus_phasen')
+    .select('*')
+    .eq('team_id',currentTeamId)
+    .eq('saison',saison)
+    .order('start_datum',{nullsFirst:true});
+  if(error){console.error('Makrozyklus laden Fehler:',error);MZ_DATA=[];return;}
+
+  if(!data||data.length===0){
+    await seedMzPhasen(saison);
+    ({data,error}=await sb.from('makrozyklus_phasen')
+      .select('*').eq('team_id',currentTeamId).eq('saison',saison)
+      .order('start_datum',{nullsFirst:true}));
+    if(error){console.error('Makrozyklus laden (nach Seed) Fehler:',error);MZ_DATA=[];return;}
+  }
+  MZ_DATA=data||[];
+}
+
+async function seedMzPhasen(saison){
+  const rows=MZ_PHASES.map((p,i)=>({
+    team_id:currentTeamId,
+    verein_id:currentVereinId,
+    name:p.lb,
+    typ:p.typ,
+    saison,
+    vorrunde: i<3,
+    sfv_phase:p.sfv||null,
+    farbe:p.col,
+    schwerpunkte:[],
+  }));
+  const {error}=await sb.from('makrozyklus_phasen').insert(rows);
+  if(error) console.error('Makrozyklus Seed Fehler:',error);
+}
+
+function renderMzSeite(el){
   el.innerHTML=`
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
     <div style="display:flex;gap:6px">
-      <button class="btn btn-b btn-sm">Vorrunde (Jul–Dez)</button>
-      <button class="btn btn-o btn-sm">Rückrunde (Jan–Jun)</button>
+      <button class="btn ${mzHalbjahrFilter?'btn-b':'btn-o'} btn-sm" onclick="setMzFilter(true)">Vorrunde (Jul–Dez)</button>
+      <button class="btn ${!mzHalbjahrFilter?'btn-b':'btn-o'} btn-sm" onclick="setMzFilter(false)">Rückrunde (Jan–Jun)</button>
     </div>
-    <button class="btn btn-b btn-sm" onclick="addMzPhase()">+ Phase</button>
+    <button class="btn btn-b btn-sm" onclick="showAddMzPhase()">+ Phase</button>
   </div>
   <div id="mz-phases">${buildMzPhases()}</div>`;
 }
 
-const MZ_PHASES=[
-  {lb:'Vorbereitung',dates:'Jul–Aug',col:'#1B4FDB',sfv:null,typ:'vorbereitung'},
-  {lb:'Aufbauphase',dates:'Aug–Sep',col:'#16A34A',sfv:'wir_haben_ball',typ:'normal'},
-  {lb:'Intensivphase',dates:'Sep–Okt',col:'#D97706',sfv:'wir_verlieren_ball',typ:'normal'},
-  {lb:'Wettkampfphase',dates:'Okt–Nov',col:'#DC2626',sfv:'wir_haben_ball_nicht',typ:'normal'},
-  {lb:'Ferienphase',dates:'Okt',col:'#6B7280',sfv:null,typ:'ferien'},
-  {lb:'Abschluss',dates:'Nov–Dez',col:'#8B5CF6',sfv:'wir_erobern_ball',typ:'normal'},
-];
+function setMzFilter(vorrunde){
+  mzHalbjahrFilter=vorrunde;
+  const pc=document.getElementById('pc');
+  if(pc) renderMzSeite(pc);
+}
 
 function buildMzPhases(){
-  return MZ_PHASES.map((p,i)=>{
-    const sfv=p.sfv?SFV[p.sfv]:null;
+  const liste=MZ_DATA.filter(p=>p.vorrunde===mzHalbjahrFilter);
+  if(liste.length===0){
+    return `<div style="text-align:center;padding:32px;color:var(--text2)">
+      <div style="font-weight:600">Keine Phasen in diesem Zeitraum</div>
+      <div style="font-size:11px;margin-top:4px">Lege über "+ Phase" eine neue Phase an</div>
+    </div>`;
+  }
+  return liste.map(p=>{
+    const sfv=p.sfv_phase?SFV[p.sfv_phase]:null;
+    const zeitraum=(p.start_datum||p.ende_datum)
+      ? `${p.start_datum?new Date(p.start_datum).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit'}):'?'}–${p.ende_datum?new Date(p.ende_datum).toLocaleDateString('de-CH',{day:'2-digit',month:'2-digit'}):'?'}`
+      : '—';
     return `
     <div class="mz-phase">
-      <div class="mz-ph" onclick="toggleMz(${i})" style="background:${mzOpen[i]?'var(--surface2)':''}">
+      <div class="mz-ph" onclick="toggleMz('${p.id}')" style="background:${mzOpen[p.id]?'var(--surface2)':''}">
         <div style="display:flex;align-items:center;gap:10px;flex:1">
-          <div style="width:10px;height:10px;border-radius:50%;background:${p.col};flex-shrink:0"></div>
-          <span style="font-weight:700;font-size:13px">${p.lb}</span>
-          <span style="font-size:11px;color:var(--text2)">${p.dates}</span>
+          <div style="width:10px;height:10px;border-radius:50%;background:${p.farbe||'#1B4FDB'};flex-shrink:0"></div>
+          <span style="font-weight:700;font-size:13px">${p.name}</span>
+          <span style="font-size:11px;color:var(--text2)">${zeitraum}</span>
           ${sfv?`<span class="bdg" style="background:${sfv.bg};color:${sfv.col}">${sfv.label}</span>`:''}
           ${p.typ==='ferien'?`<span class="bdg bdg-gold">🏖 Ferien/Pause</span>`:''}
           ${p.typ==='vorbereitung'?`<span class="bdg bdg-b">Athletik · Grundlagen</span>`:''}
         </div>
-        <span style="color:var(--text3);font-size:14px">${mzOpen[i]?'▲':'▼'}</span>
+        <span style="color:var(--text3);font-size:14px">${mzOpen[p.id]?'▲':'▼'}</span>
       </div>
-      ${mzOpen[i]?buildMzBody(p,sfv,i):''}
+      ${mzOpen[p.id]?buildMzBody(p,sfv):''}
     </div>`;
   }).join('');
 }
 
-function buildMzBody(p,sfv,i){
+function buildMzBody(p,sfv){
   let html=`<div class="mz-body">`;
   if(p.typ==='ferien'){
     html+=`<div style="background:var(--gold-l);border-radius:7px;padding:12px;margin-bottom:10px">
@@ -1476,23 +1546,143 @@ function buildMzBody(p,sfv,i){
       </div>`;
     });
   }
+  const SCHWERPUNKTE=['Technik','Spielintelligenz','Persönlichkeit','Athletik','Schnelligkeit'];
+  const aktive=p.schwerpunkte||[];
   html+=`<div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
     <div class="flbl" style="width:100%;margin-bottom:4px">TRAININGSSCHWERPUNKTE WÄHLEN</div>
-    ${['Technik','Spielintelligenz','Persönlichkeit','Athletik','Schnelligkeit'].map(sw=>
-      `<button class="btn btn-o btn-sm" onclick="this.className=this.className.includes('btn-b')?'btn btn-o btn-sm':'btn btn-b btn-sm'">${sw}</button>`
+    ${SCHWERPUNKTE.map(sw=>
+      `<button class="btn ${aktive.includes(sw)?'btn-b':'btn-o'} btn-sm" onclick="toggleMzSchwerpunkt('${p.id}','${sw}')">${sw}</button>`
     ).join('')}
   </div>
   <div style="margin-top:10px">
     <div class="flbl" style="margin-bottom:4px">NOTIZ ZUR PHASE</div>
-    <textarea class="fi" style="height:60px;resize:vertical;font-size:12px" placeholder="Trainer-Notizen zu dieser Phase..."></textarea>
+    <textarea class="fi" id="mz-notiz-${p.id}" style="height:60px;resize:vertical;font-size:12px" placeholder="Trainer-Notizen zu dieser Phase..." onblur="saveMzNotiz('${p.id}')">${p.notizen||''}</textarea>
   </div>
   </div>`;
   return html;
 }
 
-function toggleMz(i){
-  mzOpen[i]=!mzOpen[i];
+function toggleMz(id){
+  mzOpen[id]=!mzOpen[id];
   document.getElementById('mz-phases').innerHTML=buildMzPhases();
+}
+
+async function toggleMzSchwerpunkt(phaseId,schwerpunkt){
+  const phase=MZ_DATA.find(x=>x.id===phaseId);
+  if(!phase)return;
+  const arr=phase.schwerpunkte||[];
+  const neu = arr.includes(schwerpunkt) ? arr.filter(s=>s!==schwerpunkt) : [...arr,schwerpunkt];
+  phase.schwerpunkte=neu;
+  document.getElementById('mz-phases').innerHTML=buildMzPhases();
+
+  const {error}=await sb.from('makrozyklus_phasen').update({schwerpunkte:neu}).eq('id',phaseId);
+  if(error){
+    console.error('Schwerpunkt speichern Fehler:',error);
+    phase.schwerpunkte=arr;
+    document.getElementById('mz-phases').innerHTML=buildMzPhases();
+    alert('Speichern fehlgeschlagen: '+error.message);
+  }
+}
+
+async function saveMzNotiz(phaseId){
+  const ta=document.getElementById(`mz-notiz-${phaseId}`);
+  if(!ta)return;
+  const text=ta.value;
+  const phase=MZ_DATA.find(x=>x.id===phaseId);
+  if(phase && phase.notizen===text) return;
+  if(mzNotizSaving[phaseId]) return;
+  mzNotizSaving[phaseId]=true;
+  const {error}=await sb.from('makrozyklus_phasen').update({notizen:text}).eq('id',phaseId);
+  mzNotizSaving[phaseId]=false;
+  if(error){console.error('Notiz speichern Fehler:',error);return;}
+  if(phase) phase.notizen=text;
+}
+
+function showAddMzPhase(){
+  showOv(mzPhaseFormHTML());
+}
+function addMzPhase(){showAddMzPhase();} // Alias für Abwärtskompatibilität
+
+function mzPhaseFormHTML(){
+  return `
+  <div style="font-weight:700;font-size:15px;margin-bottom:16px">➕ Phase hinzufügen</div>
+  <div>
+    <label class="flbl">NAME *</label>
+    <input id="mz-f-name" class="fi" placeholder="z.B. Zwischenphase" style="margin-top:3px">
+  </div>
+  <div class="fl2" style="margin-top:8px">
+    <div>
+      <label class="flbl">START</label>
+      <input id="mz-f-start" type="date" class="fi" style="margin-top:3px">
+    </div>
+    <div>
+      <label class="flbl">ENDE</label>
+      <input id="mz-f-ende" type="date" class="fi" style="margin-top:3px">
+    </div>
+    <div>
+      <label class="flbl">TYP</label>
+      <select id="mz-f-typ" class="fi" style="margin-top:3px">
+        <option value="normal">Normal</option>
+        <option value="vorbereitung">Vorbereitung</option>
+        <option value="ferien">Ferien</option>
+      </select>
+    </div>
+    <div>
+      <label class="flbl">SFV-PHASE</label>
+      <select id="mz-f-sfv" class="fi" style="margin-top:3px">
+        <option value="">—</option>
+        <option value="wir_haben_ball">Wir haben den Ball</option>
+        <option value="wir_verlieren_ball">Wir verlieren den Ball</option>
+        <option value="wir_haben_ball_nicht">Wir haben den Ball nicht</option>
+        <option value="wir_erobern_ball">Wir erobern den Ball</option>
+      </select>
+    </div>
+  </div>
+  <div style="margin-top:8px">
+    <label class="flbl">ZUORDNUNG</label>
+    <select id="mz-f-vorrunde" class="fi" style="margin-top:3px">
+      <option value="1">Vorrunde (Jul–Dez)</option>
+      <option value="0">Rückrunde (Jan–Jun)</option>
+    </select>
+  </div>
+  <div id="mz-f-err" style="display:none;background:var(--red-l);color:var(--red);border-radius:7px;padding:8px 12px;font-size:12px;margin-top:10px"></div>
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn btn-b" style="flex:1" id="mz-f-save-btn" onclick="saveMzPhase()">💾 Speichern</button>
+    <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
+  </div>`;
+}
+
+async function saveMzPhase(){
+  const btn=document.getElementById('mz-f-save-btn');
+  const errEl=document.getElementById('mz-f-err');
+  const name=(document.getElementById('mz-f-name')?.value||'').trim();
+  if(!name){errEl.textContent='Bitte einen Namen angeben.';errEl.style.display='block';return;}
+  if(!currentTeamId){errEl.textContent='Kein Team ausgewählt.';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  btn.textContent='Speichern…';btn.disabled=true;
+
+  const payload={
+    team_id:currentTeamId,
+    verein_id:currentVereinId,
+    name,
+    saison:getAktuelleSaison(),
+    typ:document.getElementById('mz-f-typ')?.value||'normal',
+    start_datum:document.getElementById('mz-f-start')?.value||null,
+    ende_datum:document.getElementById('mz-f-ende')?.value||null,
+    sfv_phase:document.getElementById('mz-f-sfv')?.value||null,
+    vorrunde:document.getElementById('mz-f-vorrunde')?.value==='1',
+    schwerpunkte:[],
+  };
+  const {error}=await sb.from('makrozyklus_phasen').insert(payload);
+  if(error){
+    errEl.textContent='Fehler beim Speichern: '+error.message;
+    errEl.style.display='block';
+    btn.textContent='💾 Speichern';btn.disabled=false;
+    return;
+  }
+  closeOv();
+  const pc=document.getElementById('pc');
+  if(pc) await pMakro(pc);
 }
 
 // ── TEAMS ─────────────────────────────────────────────
@@ -1900,7 +2090,6 @@ function swTab(tab,tid){
   const t=document.getElementById(tid);
   if(t)t.classList.remove('hidden');
 }
-function addMzPhase(){alert('Neue Phase hinzufügen — in der echten Version öffnet ein Formular.');}
 </script>
 </body>
 </html>

@@ -473,6 +473,7 @@ const sb = supabase.createClient(SB_URL, SB_KEY);
 
 // ── APP STATE ─────────────────────────────────────────
 let SPIELER_DATA = []; // wird aus Supabase geladen
+let TEAMS_DATA = []; // wird aus Supabase geladen
 let currentUser = null;
 let currentProfile = null;
 let currentTeamId = null;
@@ -1686,32 +1687,121 @@ async function saveMzPhase(){
 }
 
 // ── TEAMS ─────────────────────────────────────────────
-function pTeams(el){
+async function pTeams(el){
+  el.innerHTML=`<div style="text-align:center;padding:40px;color:var(--text2)">⏳ Teams werden geladen…</div>`;
+  await ladeTeams();
+  renderTeamsSeite(el);
+}
+
+async function ladeTeams(){
+  if(!currentVereinId){TEAMS_DATA=[];return;}
+  const {data,error}=await sb.from('teams')
+    .select('*')
+    .eq('verein_id',currentVereinId)
+    .eq('aktiv',true)
+    .order('name');
+  if(error){console.error('Teams laden Fehler:',error);TEAMS_DATA=[];return;}
+  TEAMS_DATA=data||[];
+
+  if(TEAMS_DATA.length>0){
+    const ids=TEAMS_DATA.map(t=>t.id);
+    const {data:sp,error:spErr}=await sb.from('spieler')
+      .select('team_id').eq('aktiv',true).in('team_id',ids);
+    if(!spErr && sp){
+      const counts={};
+      sp.forEach(s=>{counts[s.team_id]=(counts[s.team_id]||0)+1;});
+      TEAMS_DATA.forEach(t=>{t._spielerCount=counts[t.id]||0;});
+    }
+  }
+}
+
+function renderTeamsSeite(el){
   el.innerHTML=`
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
-    ${[
-      {n:'FE12 Blau',fmt:'7er',sp:18,tr:'Marco Becker',s:'2025/26'},
-      {n:'FE12 Rot',fmt:'7er',sp:16,tr:'Andrea Mäder',s:'2025/26'},
-      {n:'FE14 A',fmt:'9er',sp:20,tr:'Stefan Wolf',s:'2025/26'},
-    ].map(t=>`
-    <div class="card" style="cursor:pointer" onclick="alert('Team öffnen...')"
+    ${TEAMS_DATA.map(t=>`
+    <div class="card" style="cursor:pointer" onclick="openTeam('${t.id}')"
       onmouseenter="this.style.boxShadow='var(--sh2)'" onmouseleave="this.style.boxShadow='var(--sh)'">
       <div class="cb">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <div style="width:40px;height:40px;background:var(--accent-l);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:var(--accent)">${t.n[0]}</div>
-          <div><div style="font-weight:700;font-size:14px">${t.n}</div><div style="font-size:11px;color:var(--text2)">${t.fmt} · ${t.s}</div></div>
+          <div style="width:40px;height:40px;background:var(--accent-l);border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:var(--accent)">${t.name[0]}</div>
+          <div><div style="font-weight:700;font-size:14px">${t.name}</div><div style="font-size:11px;color:var(--text2)">${t.spielformat||'—'} · ${t.saison||'—'}${t.altersklasse?' · '+t.altersklasse:''}</div></div>
         </div>
-        <div style="font-size:11px;color:var(--text2)">👥 ${t.sp} Spieler · 👤 ${t.tr}</div>
+        <div style="font-size:11px;color:var(--text2)">👥 ${t._spielerCount||0} Spieler</div>
       </div>
     </div>`).join('')}
     <div class="card" style="cursor:pointer;border:2px dashed var(--border);background:transparent;box-shadow:none"
-      onclick="alert('Neues Team erstellen...')">
+      onclick="showAddTeam()">
       <div class="cb" style="text-align:center;padding:36px;color:var(--text2)">
         <div style="font-size:26px;margin-bottom:6px">+</div>
         <div style="font-weight:600;font-size:13px">Team hinzufügen</div>
       </div>
     </div>
   </div>`;
+}
+
+function openTeam(id){
+  currentTeamId=id;
+  goPage('spieler');
+}
+
+function showAddTeam(){
+  showOv(teamFormHTML());
+}
+
+function teamFormHTML(){
+  return `
+  <div style="font-weight:700;font-size:15px;margin-bottom:16px">➕ Team hinzufügen</div>
+  <div>
+    <label class="flbl">TEAMNAME *</label>
+    <input id="team-f-name" class="fi" placeholder="z.B. FE12 Blau" style="margin-top:3px">
+  </div>
+  <div class="fl2" style="margin-top:8px">
+    <div>
+      <label class="flbl">ALTERSKLASSE</label>
+      <input id="team-f-altersklasse" class="fi" placeholder="z.B. E-Junioren" style="margin-top:3px">
+    </div>
+    <div>
+      <label class="flbl">SPIELFORMAT</label>
+      <select id="team-f-fmt" class="fi" style="margin-top:3px">
+        <option value="7er">7er</option>
+        <option value="9er">9er</option>
+        <option value="11er">11er</option>
+      </select>
+    </div>
+  </div>
+  <div id="team-f-err" style="display:none;background:var(--red-l);color:var(--red);border-radius:7px;padding:8px 12px;font-size:12px;margin-top:10px"></div>
+  <div style="display:flex;gap:8px;margin-top:14px">
+    <button class="btn btn-b" style="flex:1" id="team-f-save-btn" onclick="saveTeam()">💾 Speichern</button>
+    <button class="btn btn-o" onclick="closeOv()">Abbrechen</button>
+  </div>`;
+}
+
+async function saveTeam(){
+  const btn=document.getElementById('team-f-save-btn');
+  const errEl=document.getElementById('team-f-err');
+  const name=(document.getElementById('team-f-name')?.value||'').trim();
+  if(!name){errEl.textContent='Bitte einen Teamnamen angeben.';errEl.style.display='block';return;}
+  if(!currentVereinId){errEl.textContent='Kein Verein zugewiesen.';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  btn.textContent='Speichern…';btn.disabled=true;
+
+  const payload={
+    verein_id:currentVereinId,
+    name,
+    altersklasse:document.getElementById('team-f-altersklasse')?.value||null,
+    spielformat:document.getElementById('team-f-fmt')?.value||'7er',
+    saison:getAktuelleSaison(),
+  };
+  const {error}=await sb.from('teams').insert(payload);
+  if(error){
+    errEl.textContent='Fehler beim Speichern: '+error.message;
+    errEl.style.display='block';
+    btn.textContent='💾 Speichern';btn.disabled=false;
+    return;
+  }
+  closeOv();
+  const pc=document.getElementById('pc');
+  if(pc) await pTeams(pc);
 }
 
 // ── VEREINE / LIZENZEN ────────────────────────────────
